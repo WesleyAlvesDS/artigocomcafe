@@ -1,0 +1,116 @@
+---
+import NewsletterForm from './NewsletterForm'
+---
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content container">
+    <div class="hero-text">
+      <div class="hero-availability">
+        <span class="pulse-dot"></span>
+        <span>Novos artigos toda semana</span>
+      </div>
+      <h1 class="hero-title">
+        Seu <span class="gradient-text">guia definitivo</span> para o mundo do café digital
+      </h1>
+      <p class="hero-subtitle">
+        Conteúdo autoral sobre cafeteria digital, experiência do usuário, tecnologia e monetização.
+        Aprenda, inspire-se e transforme sua paixão por café em conhecimento.
+      </p>
+      <div class="hero-actions">
+        <a href="/blog" class="btn-primary">
+          Explorar Artigos
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        </a>
+        <a href="/sobre" class="btn-ghost">Sobre o Projeto</a>
+      </div>
+      <div class="hero-newsletter">
+        <p class="hero-newsletter-label">Receba os melhores conteúdos no seu email:</p>
+        <NewsletterForm variant="hero" client:load />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 20% 50%, rgba(0, 212, 170, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(124, 58, 237, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(0, 212, 170, 0.04) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    padding-top: 6rem;
+    padding-bottom: 4rem;
+  }
+
+  .hero-text {
+    max-width: 680px;
+  }
+
+  .hero-availability {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 100px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+  }
+
+  .hero-title {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--color-text-primary);
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-subtitle {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+    margin-bottom: 2rem;
+    max-width: 540px;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 3rem;
+  }
+
+  .hero-newsletter {
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-bg-card-border);
+  }
+
+  .hero-newsletter-label {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin-bottom: 0.75rem;
+  }
+</style>

@@ -1,0 +1,104 @@
+---
+import Base from '../layouts/Base.astro'
+import NewsletterForm from '../components/NewsletterForm'
+import SearchModal from '../components/SearchModal'
+---
+
+<Base title="Newsletter — Artigo com Café" description="Inscreva-se na newsletter do Artigo com Café e receba os melhores conteúdos no seu email.">
+  <section class="section newsletter-hero">
+    <div class="container">
+      <div class="newsletter-content" data-reveal>
+        <div class="newsletter-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-accent);">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+            <polyline points="22,6 12,13 2,6" />
+          </svg>
+        </div>
+        <span class="section-label">Newsletter</span>
+        <h1 class="section-title" style="max-width: 600px; margin: 0 auto;">
+          Receba os melhores conteúdos sobre <span class="gradient-text">cafeteria digital</span>
+        </h1>
+        <p class="section-subtitle" style="margin: 1rem auto 2rem;">
+          Inscreva-se gratuitamente e receba artigos exclusivos, dicas e análises diretamente no seu email. 
+          Sem spam, apenas conteúdo de qualidade.
+        </p>
+        <div class="newsletter-form-wrapper">
+          <NewsletterForm variant="hero" client:load />
+        </div>
+        <div class="newsletter-benefits">
+          <div class="benefit-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Conteúdo exclusivo toda semana
+          </div>
+          <div class="benefit-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Análises aprofundadas do mercado
+          </div>
+          <div class="benefit-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Dicas práticas de monetização
+          </div>
+          <div class="benefit-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Zero spam, cancele quando quiser
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <SearchModal client:load />
+</Base>
+
+<style>
+  .newsletter-hero {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+  }
+
+  .newsletter-content {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .newsletter-icon {
+    margin-bottom: 1rem;
+  }
+
+  .newsletter-form-wrapper {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .newsletter-benefits {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 3rem;
+    text-align: left;
+  }
+
+  .benefit-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+  }
+
+  @media (max-width: 480px) {
+    .newsletter-benefits {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

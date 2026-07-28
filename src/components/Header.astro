@@ -1,0 +1,207 @@
+---
+import ThemeToggle from './ThemeToggle'
+---
+
+<header class="header">
+  <div class="header-inner container">
+    <a href="/" class="header-logo" aria-label="Artigo com Café - Home">
+      <span class="header-logo-icon">&#9749;</span>
+      <span class="header-logo-text">
+        Artigo com <span class="gradient-text">Café</span>
+      </span>
+    </a>
+
+    <nav class="header-nav" aria-label="Navegação principal">
+      <a href="/" class="nav-link">Início</a>
+      <a href="/blog" class="nav-link">Blog</a>
+      <a href="/sobre" class="nav-link">Sobre</a>
+      <a href="/contato" class="nav-link">Contato</a>
+      <a href="/newsletter" class="nav-cta btn-primary">Newsletter</a>
+      <ThemeToggle client:load />
+    </nav>
+
+    <button class="hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+  </div>
+
+  <nav class="mobile-menu" id="mobile-menu" aria-hidden="true">
+    <a href="/" class="mobile-link">Início</a>
+    <a href="/blog" class="mobile-link">Blog</a>
+    <a href="/sobre" class="mobile-link">Sobre</a>
+    <a href="/contato" class="mobile-link">Contato</a>
+    <a href="/newsletter" class="mobile-link">Newsletter</a>
+  </nav>
+</header>
+
+<style>
+  .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: color-mix(in srgb, var(--color-bg-primary) 80%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--color-bg-card-border);
+    transition: background 0.3s;
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+
+  .header-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: var(--color-text-primary);
+    font-weight: 700;
+    font-size: 1.15rem;
+  }
+
+  .header-logo-icon {
+    font-size: 1.5rem;
+  }
+
+  .header-logo-text {
+    font-family: var(--font-sans);
+  }
+
+  .header-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .nav-link {
+    position: relative;
+    padding: 0.5rem 0.85rem;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.3s;
+    border-radius: 8px;
+  }
+
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: calc(100% - 1.7rem);
+    height: 2px;
+    background: var(--color-accent);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .nav-link:hover {
+    color: var(--color-accent);
+  }
+
+  .nav-link:hover::after {
+    transform: translateX(-50%) scaleX(1);
+  }
+
+  .nav-cta {
+    margin-left: 0.5rem;
+  }
+
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+  }
+
+  .hamburger-line {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--color-text-primary);
+    border-radius: 2px;
+    transition: all 0.3s;
+  }
+
+  .hamburger.active .hamburger-line:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+  }
+
+  .hamburger.active .hamburger-line:nth-child(2) {
+    opacity: 0;
+  }
+
+  .hamburger.active .hamburger-line:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+  }
+
+  .mobile-menu {
+    display: none;
+    flex-direction: column;
+    padding: 1rem;
+    background: var(--color-bg-primary);
+    border-bottom: 1px solid var(--color-bg-card-border);
+  }
+
+  .mobile-menu[aria-hidden="false"] {
+    display: flex;
+  }
+
+  .mobile-link {
+    padding: 0.75rem 1rem;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.3s;
+  }
+
+  .mobile-link:hover {
+    background: var(--color-bg-card);
+    color: var(--color-accent);
+  }
+
+  @media (max-width: 768px) {
+    .header-nav {
+      display: none;
+    }
+
+    .hamburger {
+      display: flex;
+    }
+  }
+</style>
+
+<script>
+  const hamburger = document.getElementById('hamburger')
+  const mobileMenu = document.getElementById('mobile-menu')
+
+  if (hamburger && mobileMenu) {
+    hamburger.addEventListener('click', () => {
+      const isOpen = hamburger.classList.toggle('active')
+      hamburger.setAttribute('aria-expanded', String(isOpen))
+      mobileMenu.setAttribute('aria-hidden', String(!isOpen))
+    })
+
+    mobileMenu.querySelectorAll('.mobile-link').forEach(link => {
+      link.addEventListener('click', () => {
+        hamburger.classList.remove('active')
+        hamburger.setAttribute('aria-expanded', 'false')
+        mobileMenu.setAttribute('aria-hidden', 'true')
+      })
+    })
+  }
+</script>

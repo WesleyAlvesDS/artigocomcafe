@@ -1,0 +1,282 @@
+---
+import Base from '../layouts/Base.astro'
+import SearchModal from '../components/SearchModal'
+---
+
+<Base title="Contato — Artigo com Café" description="Entre em contato com a equipe do Artigo com Café.">
+  <section class="section page-header">
+    <div class="container">
+      <div data-reveal>
+        <span class="section-label">Contato</span>
+        <h1 class="section-title">Fale Conosco</h1>
+        <p class="section-subtitle">
+          Tem alguma dúvida, sugestão ou quer colaborar? Mande uma mensagem.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="contact-grid">
+        <div class="contact-form-wrapper" data-reveal>
+          <form class="contact-form" id="contact-form" netlify>
+            <input type="hidden" name="form-name" value="contato" />
+            <div class="form-row">
+              <div class="form-group">
+                <label for="name" class="form-label">Nome</label>
+                <input type="text" id="name" name="name" required class="form-input" placeholder="Seu nome" />
+              </div>
+              <div class="form-group">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" name="email" required class="form-input" placeholder="seu@email.com" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="subject" class="form-label">Assunto</label>
+              <select id="subject" name="subject" class="form-input form-select" required>
+                <option value="">Selecione um assunto</option>
+                <option value="duvida">Dúvida</option>
+                <option value="sugestao">Sugestão</option>
+                <option value="colaboracao">Colaboração</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="message" class="form-label">Mensagem</label>
+              <textarea id="message" name="message" required class="form-input form-textarea" placeholder="Sua mensagem…" rows="5"></textarea>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
+              Enviar Mensagem
+            </button>
+          </form>
+
+          <div class="form-success" id="form-success" style="display: none;">
+            <div class="success-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-accent);">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+            </div>
+            <h2 class="success-title">Mensagem enviada!</h2>
+            <p class="success-desc">Obrigado pelo contato. Responderemos em breve.</p>
+          </div>
+        </div>
+
+        <div class="contact-info" data-reveal="delay-2">
+          <div class="info-card glass-card">
+            <div class="info-icon" style="background: rgba(0,212,170,0.1); color: var(--color-accent);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                <polyline points="22,6 12,13 2,6" />
+              </svg>
+            </div>
+            <h3 class="info-title">Email</h3>
+            <p class="info-desc">wesleyalvesferreira@gmail.com</p>
+          </div>
+          <div class="info-card glass-card">
+            <div class="info-icon" style="background: rgba(124,58,237,0.1); color: var(--color-accent-secondary);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+            </div>
+            <h3 class="info-title">Localização</h3>
+            <p class="info-desc">Nova Friburgo, RJ — Brasil</p>
+          </div>
+          <div class="info-card glass-card">
+            <div class="info-icon" style="background: rgba(245,158,11,0.1); color: #f59e0b;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+              </svg>
+            </div>
+            <h3 class="info-title">Redes Sociais</h3>
+            <div class="info-social">
+              <a href="https://github.com/WesleyAlvesDS" target="_blank" rel="noopener" class="info-social-link">GitHub</a>
+              <a href="https://www.linkedin.com/in/wesleyalvesds/" target="_blank" rel="noopener" class="info-social-link">LinkedIn</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <SearchModal client:load />
+
+  <script>
+    const form = document.getElementById('contact-form')
+    const success = document.getElementById('form-success')
+
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault()
+        const data = new FormData(form)
+
+        try {
+          const response = await fetch('/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams(data).toString()
+          })
+
+          if (response.ok || response.redirected) {
+            form.style.display = 'none'
+            success.style.display = 'block'
+          }
+        } catch {
+          const mailto = `mailto:wesleyalvesferreira@gmail.com?subject=${encodeURIComponent(data.get('subject') || 'Contato')}&body=${encodeURIComponent(data.get('message') || '')}`
+          window.location.href = mailto
+        }
+      })
+    }
+  </script>
+</Base>
+
+<style>
+  .page-header {
+    padding-bottom: 1rem;
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .form-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+  }
+
+  .form-input {
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    border: 1px solid var(--color-bg-card-border);
+    background: var(--color-bg-card);
+    color: var(--color-text-primary);
+    font-size: 0.9rem;
+    font-family: var(--font-sans);
+    outline: none;
+    transition: border-color 0.3s;
+  }
+
+  .form-input:focus {
+    border-color: var(--color-accent);
+  }
+
+  .form-input::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  .form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%239CA3AF' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.5rem;
+  }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  .form-success {
+    text-align: center;
+    padding: 3rem;
+  }
+
+  .success-icon {
+    margin-bottom: 1rem;
+  }
+
+  .success-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .success-desc {
+    color: var(--color-text-secondary);
+  }
+
+  .contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .info-card {
+    padding: 1.5rem;
+  }
+
+  .info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    margin-bottom: 0.75rem;
+  }
+
+  .info-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 0.25rem;
+  }
+
+  .info-desc {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .info-social {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .info-social-link {
+    font-size: 0.85rem;
+    color: var(--color-accent);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .info-social-link:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    .contact-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,141 @@
+---
+export interface Props {
+  currentPage: number
+  totalPages: number
+  basePath: string
+}
+
+const { currentPage, totalPages, basePath } = Astro.props
+
+function pageUrl(page: number): string {
+  if (page <= 1) return basePath
+  return `${basePath}/page/${page}`
+}
+
+function getPageNumbers(): (number | 'ellipsis')[] {
+  const pages: (number | 'ellipsis')[] = []
+  const delta = 1
+
+  pages.push(1)
+
+  const start = Math.max(2, currentPage - delta)
+  const end = Math.min(totalPages - 1, currentPage + delta)
+
+  if (start > 2) pages.push('ellipsis')
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+
+  if (end < totalPages - 1) pages.push('ellipsis')
+
+  if (totalPages > 1) pages.push(totalPages)
+
+  return pages
+}
+
+const pageNumbers = getPageNumbers()
+---
+
+<nav class="pagination" aria-label="Paginação">
+  {currentPage > 1 && (
+    <a href={pageUrl(currentPage - 1)} class="page-btn" aria-label="Página anterior">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
+      Anterior
+    </a>
+  )}
+
+  <div class="page-numbers">
+    {pageNumbers.map(page => (
+      page === 'ellipsis' ? (
+        <span class="page-ellipsis">…</span>
+      ) : (
+        <a
+          href={pageUrl(page as number)}
+          class={`page-number ${page === currentPage ? 'active' : ''}`}
+          aria-current={page === currentPage ? 'page' : undefined}
+        >
+          {page}
+        </a>
+      )
+    ))}
+  </div>
+
+  {currentPage < totalPages && (
+    <a href={pageUrl(currentPage + 1)} class="page-btn" aria-label="Próxima página">
+      Próximo
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
+    </a>
+  )}
+</nav>
+
+<style>
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 3rem;
+    flex-wrap: wrap;
+  }
+
+  .page-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.85rem;
+    border-radius: 8px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+
+  .page-btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  .page-numbers {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .page-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+
+  .page-number:hover {
+    background: var(--color-bg-card);
+    color: var(--color-accent);
+  }
+
+  .page-number.active {
+    background: linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary));
+    color: #0a0a0f;
+    font-weight: 600;
+  }
+
+  .page-ellipsis {
+    color: var(--color-text-muted);
+    padding: 0 0.25rem;
+  }
+</style>

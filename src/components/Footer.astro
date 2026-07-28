@@ -1,0 +1,161 @@
+---
+import NewsletterForm from './NewsletterForm'
+---
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <span class="footer-logo-icon">&#9749;</span>
+          <span>Artigo com <span class="gradient-text">Café</span></span>
+        </div>
+        <p class="footer-desc">
+          Blog autoral sobre cafeteria digital. Conteúdo, experiência do usuário e monetização.
+        </p>
+        <div class="footer-social">
+          <a href="https://github.com/WesleyAlvesDS" target="_blank" rel="noopener" class="social-link" aria-label="GitHub">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.73.083-.73 1.205.085 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12 24 5.37 18.63 0 12 0z"/></svg>
+          </a>
+          <a href="https://www.linkedin.com/in/wesleyalvesds/" target="_blank" rel="noopener" class="social-link" aria-label="LinkedIn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+          </a>
+          <a href="mailto:wesleyalvesferreira@gmail.com" class="social-link" aria-label="Email">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <h3 class="footer-heading">Navegação</h3>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/sobre" class="footer-link">Sobre</a>
+        <a href="/contato" class="footer-link">Contato</a>
+        <a href="/newsletter" class="footer-link">Newsletter</a>
+      </div>
+
+      <div class="footer-newsletter">
+        <h3 class="footer-heading">Receba novidades</h3>
+        <p class="footer-newsletter-text">
+          Inscreva-se para receber os melhores conteúdos sobre cafeteria digital.
+        </p>
+        <NewsletterForm client:load />
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; {new Date().getFullYear()} Artigo com Café. Todos os direitos reservados.</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    border-top: 1px solid var(--color-bg-card-border);
+    padding-top: 4rem;
+    padding-bottom: 2rem;
+    margin-top: 4rem;
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 2fr;
+    gap: 3rem;
+  }
+
+  .footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--color-text-primary);
+    margin-bottom: 1rem;
+  }
+
+  .footer-logo-icon {
+    font-size: 1.5rem;
+  }
+
+  .footer-desc {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    max-width: 320px;
+  }
+
+  .footer-social {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    color: var(--color-text-muted);
+    transition: all 0.3s;
+    text-decoration: none;
+  }
+
+  .social-link:hover {
+    background: var(--color-accent);
+    color: #0a0a0f;
+    transform: translateY(-2px);
+  }
+
+  .footer-heading {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .footer-link {
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s;
+  }
+
+  .footer-link:hover {
+    color: var(--color-accent);
+  }
+
+  .footer-newsletter-text {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+
+  .footer-bottom {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-bg-card-border);
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 768px) {
+    .footer-grid {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+  }
+</style>

@@ -1,0 +1,136 @@
+---
+import type { BlogPost } from '../lib/types'
+import { formatDate } from '../lib/utils'
+
+export interface Props {
+  post: BlogPost
+}
+
+const { post } = Astro.props
+---
+
+<a href={`/blog/${post.slug}`} class="article-card glass-card" data-reveal>
+  {post.featuredImage && (
+    <div class="article-image-wrapper">
+      <img
+        src={post.featuredImage}
+        alt={post.featuredImageAlt}
+        class="article-image"
+        loading="lazy"
+        decoding="async"
+      />
+    </div>
+  )}
+  <div class="article-body">
+    <div class="article-meta">
+      {post.categories.length > 0 && (
+        <span class="article-category">{post.categories[0].name}</span>
+      )}
+      <span class="article-date">{formatDate(post.date)}</span>
+      <span class="article-reading">{post.readingTime} min de leitura</span>
+    </div>
+    <h2 class="article-title">{post.title}</h2>
+    <p class="article-excerpt">{post.excerpt}</p>
+    <span class="article-read-more">
+      Ler artigo
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="12" x2="19" y2="12" />
+        <polyline points="12 5 19 12 12 19" />
+      </svg>
+    </span>
+  </div>
+</a>
+
+<style>
+  .article-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .article-image-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+  }
+
+  .article-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .article-card:hover .article-image {
+    transform: scale(1.05);
+  }
+
+  .article-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+  }
+
+  .article-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+  }
+
+  .article-category {
+    padding: 0.15rem 0.5rem;
+    border-radius: 100px;
+    background: rgba(0, 212, 170, 0.1);
+    color: var(--color-accent);
+    font-weight: 500;
+  }
+
+  .article-date::before,
+  .article-reading::before {
+    content: '·';
+    margin-right: 0.5rem;
+  }
+
+  .article-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--color-text-primary);
+    margin: 0;
+  }
+
+  .article-excerpt {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .article-read-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    margin-top: auto;
+    transition: gap 0.3s;
+  }
+
+  .article-card:hover .article-read-more {
+    gap: 0.6rem;
+  }
+</style>

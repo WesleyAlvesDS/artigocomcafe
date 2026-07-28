@@ -1,0 +1,87 @@
+---
+import '../styles/global.css'
+import Header from '../components/Header.astro'
+import Footer from '../components/Footer.astro'
+
+export interface Props {
+  title?: string
+  description?: string
+  image?: string
+  type?: string
+}
+
+const {
+  title = 'Artigo com Café — Blog de Cafeteria Digital',
+  description = 'Blog autoral sobre cafeteria digital. Conteúdo, experiência do usuário e monetização.',
+  image = '/images/og-default.jpg',
+  type = 'website'
+} = Astro.props
+
+const siteUrl = 'https://artigocomcafe.com'
+const fullTitle = title.includes('Artigo com Café') ? title : `${title} — Artigo com Café`
+---
+
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#0a0a0f" />
+
+    <title>{fullTitle}</title>
+
+    <meta property="og:type" content={type} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={siteUrl} />
+    <meta property="og:image" content={`${siteUrl}${image}`} />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:site_name" content="Artigo com Café" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={`${siteUrl}${image}`} />
+
+    <link rel="canonical" href={siteUrl} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&family=JetBrains+Mono:wght@400..500&display=swap" rel="stylesheet" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <script is:inline>
+      (function() {
+        const theme = localStorage.getItem('theme')
+        if (theme === 'light') {
+          document.documentElement.classList.add('light')
+        } else if (theme === 'dark' || !window.matchMedia('(prefers-color-scheme: light)').matches) {
+          document.documentElement.classList.remove('light')
+        } else {
+          document.documentElement.classList.add('light')
+        }
+      })()
+    </script>
+
+    <script is:inline>
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) entry.target.classList.add('revealed')
+        })
+      }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' })
+
+      document.addEventListener('astro:page-load', () => {
+        document.querySelectorAll('[data-reveal]').forEach(el => observer.observe(el))
+      })
+    </script>
+
+    <Header />
+    <main>
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>
