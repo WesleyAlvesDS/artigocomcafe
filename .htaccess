@@ -1,0 +1,32 @@
+# Artigocomcafe.com - htaccess para Astro + WordPress
+# Coloque este arquivo em public_html/
+
+# Serve arquivos estáticos do Astro antes do WordPress
+DirectoryIndex index.html index.php
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+
+# WordPress - não reescreve se o arquivo já existe
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+
+# Cache de assets estáticos (1 ano)
+<FilesMatch "\.(js|css|svg|webp|png|jpg|ico)$">
+Header set Cache-Control "public, max-age=31536000, immutable"
+</FilesMatch>
+
+# Compressão
+<IfModule mod_deflate.c>
+AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml
+</IfModule>
+
+# Segurança
+<FilesMatch "^.*(wp-config\.php|\.ht.*)$">
+Require all denied
+</FilesMatch>
+Options -Indexes

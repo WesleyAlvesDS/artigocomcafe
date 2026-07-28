@@ -9,7 +9,9 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "deploy": "powershell -ExecutionPolicy Bypass -File deploy.ps1",
+    "deploy:dry": "powershell -ExecutionPolicy Bypass -File deploy.ps1 -DryRun"
   },
   "dependencies": {
     "@astrojs/react": "^6.0.1",

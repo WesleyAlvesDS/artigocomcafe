@@ -1,46 +1,75 @@
-# Astro Starter Kit: Basics
+# Artigo com Café — artigocomcafe.com
 
-```sh
-npm create astro@latest -- --template basics
+Blog autoral sobre cafeteria digital. Astro + React Islands + WordPress Headless.
+
+## Estrutura
+
+```
+blog/
+├── src/
+│   ├── components/       # Astro + React components
+│   ├── layouts/          # Layout Base (SEO, tema, fonts)
+│   ├── lib/              # WordPress API, types, utils
+│   ├── pages/            # Páginas (Home, Blog, Sobre, Contato, Newsletter)
+│   └── styles/           # Design system (CSS custom properties)
+├── public/               # Assets estáticos
+├── dist/                 # Build output (enviar para servidor)
+├── deploy.ps1            # Script de deploy automatizado
+├── .htaccess             # Config servidor (Astro + WordPress)
+└── astro.config.mjs
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Comandos
 
-## 🚀 Project Structure
+| Comando | Ação |
+|---------|------|
+| `npm run dev` | Dev server local |
+| `npm run build` | Build produção → `dist/` |
+| `npm run preview` | Preview do build |
+| `npm run deploy` | Deploy automático para ValueHost |
 
-Inside of your Astro project, you'll see the following folders and files:
+## Deploy Manual (ValueHost - DirectAdmin)
 
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
+1. **Build**: `npm run build`
+2. **Upload**: Copiar `dist/` para `public_html/` no servidor
+3. **.htaccess**: Garantir que `public_html/.htaccess` tenha `DirectoryIndex index.html index.php`
+
+## Deploy Automático
+
+```powershell
+# Opção 1: passar caminho
+.\deploy.ps1 -Target "C:\inetpub\public_html\artigocomcafe"
+
+# Opção 2: criar .env com DEPLOY_PATH=
+.\deploy.ps1
+
+# Opção 3: npm script
+npm run deploy
 ```
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+## WordPress Headless
 
-## 🧞 Commands
+O WordPress continua em `public_html/` e serve como backend de conteúdo:
 
-All commands are run from the root of the project, from a terminal:
+- **Admin**: `https://artigocomcafe.com/wp-admin/`
+- **API**: `https://artigocomcafe.com/wp-json/wp/v2/posts`
+- **Mídias**: `https://artigocomcafe.com/wp-content/uploads/`
+- **Plugins**: FluentCRM (newsletter), auto-blog-api (automação)
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+### Como publicar novo artigo
 
-## 👀 Want to learn more?
+1. Escreva no WordPress (admin)
+2. Execute no projeto: `npm run build`
+3. Faça deploy do `dist/` para `public_html/`
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+### Automação (opcional)
+
+Build automático via webhook: configure o plugin `auto-blog-api` para disparar rebuild via serviço externo (ex: GitHub Actions, cron).
+
+## Design System
+
+- **Fonte**: Inter (sans) + JetBrains Mono (mono)
+- **Tema**: Dark (#0a0a0f) / Light (#fafafa)
+- **Accent**: Teal (#00d4aa) + Violet (#7c3aed)
+- **Glassmorphism**: backdrop-blur, cards translúcidos
+- **Animações**: Scroll reveal, stagger, hover lift
