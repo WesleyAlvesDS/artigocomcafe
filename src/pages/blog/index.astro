@@ -3,7 +3,7 @@ import Base from '../../layouts/Base.astro'
 import ArticleCard from '../../components/ArticleCard.astro'
 import Pagination from '../../components/Pagination.astro'
 import SearchModal from '../../components/SearchModal'
-import { getPosts, getCategories } from '../../lib/wordpress'
+import { getPosts, getCategories } from '../../lib/laravel'
 
 export async function getStaticPaths() {
   return [{ params: { page: undefined } }]
@@ -25,7 +25,13 @@ if (categorySlug) {
 const { posts, pagination } = await getPosts(currentPage, 9, categoryId || undefined, search || undefined)
 ---
 
-<Base title="Blog — Artigo com Café" description="Artigos sobre cafeteria digital, tecnologia, experiência do usuário e monetização.">
+<Base title="Blog — Artigo com Café" description="Artigos sobre cafeteria digital, tecnologia, experiência do usuário e monetização." canonical="/blog/">
+  {pagination.totalPages > 1 && currentPage < pagination.totalPages && (
+    <link rel="next" href={`/blog?page=${currentPage + 1}${categorySlug ? `&categoria=${categorySlug}` : ''}`} />
+  )}
+  {pagination.totalPages > 1 && currentPage > 1 && (
+    <link rel="prev" href={`/blog?page=${currentPage - 1}${categorySlug ? `&categoria=${categorySlug}` : ''}`} />
+  )}
   <section class="section blog-header">
     <div class="container">
       <div class="blog-header-content" data-reveal>
@@ -61,7 +67,7 @@ const { posts, pagination } = await getPosts(currentPage, 9, categoryId || undef
               class={`cat-chip ${categorySlug === cat.slug ? 'active' : ''}`}
             >
               {cat.name}
-              <span class="cat-count">{cat.count}</span>
+              <span class="cat-count">{cat.articles_count}</span>
             </a>
           ))}
         </div>

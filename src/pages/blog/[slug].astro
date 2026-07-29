@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro'
 import SearchModal from '../../components/SearchModal'
 import { formatDate } from '../../lib/utils'
-import { getPost, getAllSlugs, getOriginalSlug } from '../../lib/wordpress'
+import { getPost, getAllSlugs } from '../../lib/laravel'
 import type { BlogPost } from '../../lib/types'
 
 export async function getStaticPaths() {
@@ -15,7 +15,7 @@ let post: BlogPost | null = null
 let error = false
 
 try {
-  post = await getPost(getOriginalSlug(slug!))
+  post = await getPost(slug!)
 } catch {
   error = true
 }
@@ -40,10 +40,28 @@ if (!post && !error) {
 ) : (
   <Base
     title={`${post!.title} — Artigo com Café`}
-    description={post!.excerpt}
+    description={(post!.excerpt || post!.content.substring(0, 160)).replace(/<[^>]+>/g, '').substring(0, 160)}
     image={post!.featuredImage ?? '/images/og-default.jpg'}
     type="article"
+    canonical={`/blog/${post!.slug}/`}
   >
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": post!.title,
+      "description": (post!.excerpt || post!.content.substring(0, 160)).replace(/<[^>]+>/g, ''),
+      "image": post!.featuredImage,
+      "datePublished": post!.date,
+      "author": {
+        "@type": "Person",
+        "name": "Wesley Alves"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Artigo com Café"
+      }
+    })} />
+
     <article class="article-page">
       <div class="article-header-section">
         <div class="container">
@@ -61,7 +79,7 @@ if (!post && !error) {
             {post!.tags.length > 0 && (
               <div class="article-tags">
                 {post!.tags.map(tag => (
-                  <a href={`/blog?categoria=${tag.slug}`} class="tag">#{tag.name}</a>
+                  <a href={`/blog?tag=${tag.slug}`} class="tag">#{tag.name}</a>
                 ))}
               </div>
             )}
@@ -103,7 +121,7 @@ if (!post && !error) {
                   <h3 class="sidebar-title">Tags</h3>
                   <div class="sidebar-tags">
                     {post!.tags.map(tag => (
-                      <a href={`/blog?categoria=${tag.slug}`} class="sidebar-tag">{tag.name}</a>
+                      <span class="sidebar-tag">{tag.name}</span>
                     ))}
                   </div>
                 </div>

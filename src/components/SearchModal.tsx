@@ -107,15 +107,15 @@ export default function SearchModal() {
     setLoading(true)
     try {
       const response = await fetch(
-        `https://artigocomcafe.com/wp-json/wp/v2/posts?search=${encodeURIComponent(q)}&per_page=5&status=publish&_fields=id,title,slug,date`
+        `${import.meta.env.PUBLIC_API_URL || 'https://back.artigocomcafe.com/api'}/articles?search=${encodeURIComponent(q)}&per_page=5`
       )
       if (response.ok) {
         const data = await response.json()
-        setResults(data.map((p: { id: number; title: { rendered: string }; slug: string; date: string }) => ({
+        setResults(data.data.map((p: { id: number; title: string; slug: string; published_at: string }) => ({
           id: p.id,
-          title: p.title.rendered,
+          title: p.title,
           slug: p.slug,
-          date: p.date
+          date: p.published_at
         })))
         setSelectedIndex(-1)
       }

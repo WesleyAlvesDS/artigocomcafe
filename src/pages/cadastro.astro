@@ -1,0 +1,24 @@
+---
+import Base from '../layouts/Base.astro'
+import RegisterForm from '../components/RegisterForm.tsx'
+---
+
+<Base title="Criar Conta — Artigo com Café" description="Crie sua conta no Artigo com Café e comece sua jornada de aprendizado" canonical="/cadastro/">
+  <main class="min-h-screen flex items-center justify-center px-4 py-20">
+    <div class="w-full max-w-md">
+      <div class="text-center mb-8">
+        <h1 data-reveal class="text-3xl font-bold text-foreground">Criar Conta</h1>
+        <p data-reveal class="mt-2 text-muted-foreground">
+          Comece sua jornada de conhecimento hoje
+        </p>
+      </div>
+      <div data-reveal class="bg-card border border-border rounded-2xl p-8 shadow-sm">
+        <RegisterForm client:load />
+        <p class="mt-6 text-center text-sm text-muted-foreground">
+          Já tem conta?{' '}
+          <a href="/entrar" class="text-primary hover:underline font-medium">Entrar</a>
+        </p>
+      </div>
+    </div>
+  </main>
+</Base>

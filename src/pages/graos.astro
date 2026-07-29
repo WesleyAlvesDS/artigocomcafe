@@ -1,0 +1,12 @@
+---
+import Base from '../layouts/Base.astro'
+import GrainsPage from '../components/GrainsPage.tsx'
+---
+
+<Base title="Meus Grãos — Artigo com Café" description="Seus grãos de conhecimento" canonical="/graos/">
+  <main class="min-h-screen py-20 px-4">
+    <div class="max-w-3xl mx-auto">
+      <GrainsPage client:load />
+    </div>
+  </main>
+</Base>

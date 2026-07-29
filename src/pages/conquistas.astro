@@ -1,0 +1,12 @@
+---
+import Base from '../layouts/Base.astro'
+import AchievementsPage from '../components/AchievementsPage.tsx'
+---
+
+<Base title="Conquistas — Artigo com Café" description="Suas conquistas no Artigo com Café" canonical="/conquistas/">
+  <main class="min-h-screen py-20 px-4">
+    <div class="max-w-4xl mx-auto">
+      <AchievementsPage client:load />
+    </div>
+  </main>
+</Base>

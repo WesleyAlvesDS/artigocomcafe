@@ -1,5 +1,6 @@
 ---
 import ThemeToggle from './ThemeToggle'
+import UserMenu from './UserMenu'
 ---
 
 <header class="header">
@@ -17,6 +18,7 @@ import ThemeToggle from './ThemeToggle'
       <a href="/sobre" class="nav-link">Sobre</a>
       <a href="/contato" class="nav-link">Contato</a>
       <a href="/newsletter" class="nav-cta btn-primary">Newsletter</a>
+      <UserMenu client:load />
       <ThemeToggle client:load />
     </nav>
 
@@ -33,6 +35,8 @@ import ThemeToggle from './ThemeToggle'
     <a href="/sobre" class="mobile-link">Sobre</a>
     <a href="/contato" class="mobile-link">Contato</a>
     <a href="/newsletter" class="mobile-link">Newsletter</a>
+    <a href="/perfil" class="mobile-link">Perfil</a>
+    <a href="/biblioteca" class="mobile-link">Biblioteca</a>
   </nav>
 </header>
 

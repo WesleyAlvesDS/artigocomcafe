@@ -3,13 +3,13 @@ import Base from '../layouts/Base.astro'
 import Hero from '../components/Hero.astro'
 import ArticleCard from '../components/ArticleCard.astro'
 import SearchModal from '../components/SearchModal'
-import { getPosts, getCategories } from '../lib/wordpress'
+import { getPosts, getCategories } from '../lib/laravel'
 
 const { posts } = await getPosts(1, 6)
 const categories = await getCategories()
 ---
 
-<Base title="Artigo com Café — Blog de Cafeteria Digital" description="Blog autoral sobre cafeteria digital. Conteúdo, experiência do usuário e monetização.">
+<Base title="Artigo com Café — Blog de Cafeteria Digital" description="Blog autoral sobre cafeteria digital. Conteúdo, experiência do usuário e monetização." canonical="/">
   <Hero />
 
   {categories.length > 0 && (

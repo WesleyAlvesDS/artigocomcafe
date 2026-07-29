@@ -1,0 +1,24 @@
+---
+import Base from '../layouts/Base.astro'
+import LoginForm from '../components/LoginForm.tsx'
+---
+
+<Base title="Entrar — Artigo com Café" description="Entre na sua conta do Artigo com Café" canonical="/entrar/">
+  <main class="min-h-screen flex items-center justify-center px-4 py-20">
+    <div class="w-full max-w-md">
+      <div class="text-center mb-8">
+        <h1 data-reveal class="text-3xl font-bold text-foreground">Entrar</h1>
+        <p data-reveal class="mt-2 text-muted-foreground">
+          Acesse sua biblioteca e continue aprendendo
+        </p>
+      </div>
+      <div data-reveal class="bg-card border border-border rounded-2xl p-8 shadow-sm">
+        <LoginForm client:load />
+        <p class="mt-6 text-center text-sm text-muted-foreground">
+          Ainda não tem conta?{' '}
+          <a href="/cadastro" class="text-primary hover:underline font-medium">Criar conta</a>
+        </p>
+      </div>
+    </div>
+  </main>
+</Base>
