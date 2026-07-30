@@ -81,6 +81,7 @@ curl_setopt_array($ch, [
     CURLOPT_CONNECTTIMEOUT => 10,
     CURLOPT_SSL_VERIFYPEER => false,
     CURLOPT_SSL_VERIFYHOST => 0,
+    CURLOPT_ENCODING => '', // Accept & decode all encodings (gzip, deflate, br)
     CURLOPT_HTTPHEADER => $headers,
     CURLOPT_CUSTOMREQUEST => $_SERVER['REQUEST_METHOD'],
 ]);
