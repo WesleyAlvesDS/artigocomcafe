@@ -4,9 +4,9 @@ import KnowledgeMap from '../components/KnowledgeMap'
 ---
 
 <Base title="Mapa do Conhecimento — Artigo com Café" description="Visualize sua evolução no aprendizado com o Mapa do Conhecimento interativo" canonical="/mapa/" breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Mapa do Conhecimento', slug: '/mapa/' }]}>
-  <main class="min-h-screen py-20 px-4">
+  <section class="min-h-screen py-20 px-4" aria-label="Mapa do Conhecimento">
     <div class="max-w-5xl mx-auto">
       <KnowledgeMap client:load />
     </div>
-  </main>
+  </section>
 </Base>
