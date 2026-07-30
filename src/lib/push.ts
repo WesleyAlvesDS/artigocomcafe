@@ -6,7 +6,7 @@ import { api } from './api'
  * Or: php artisan push:generate-vapid-keys
  */
 const APPLICATION_SERVER_KEY = import.meta.env.PUBLIC_VAPID_KEY
-  || 'BAlB_0gUT7QwfT9s3zB7G1kNW7gFCr5Sl-L0ld5jHH2SzBL3cFESJQElUqPjuqYHAGGHxnHhD2yIGYyYz2YRGak'
+  || 'BIoCtu4RLk9RBwDCT7cDrbPuQK-R9u2dUIEKjnZu-CSR17TZmciJ3oTPb6I-2vG_apIx5KnJE8RelWJQOcgFZws'
 
 /**
  * Convert a base64 string (VAPID public key) to Uint8Array for the Push API.
