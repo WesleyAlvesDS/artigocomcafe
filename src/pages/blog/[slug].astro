@@ -46,7 +46,9 @@ try {
   <Base
     title={`${post!.title} — Artigo com Café`}
     description={(post!.excerpt || post!.content.substring(0, 160)).replace(/<[^>]+>/g, '').substring(0, 160)}
-    image={post!.featuredImage ?? '/images/og-default.jpg'}
+    image={post!.featuredImage 
+      ? (post!.featuredImage.startsWith('http') ? post!.featuredImage : `https://artigocomcafe.com${post!.featuredImage}`)
+      : 'https://artigocomcafe.com/images/og-default.svg'}
     type="article"
     canonical={`/blog/${post!.slug}/`}
     breadcrumbs={[

@@ -63,9 +63,9 @@ export default function CafeDoDia() {
             )}
           </div>
 
-          <h3 class="text-lg font-bold text-[var(--color-text-primary)] group-hover:text-amber-500 transition-colors line-clamp-2 mb-1">
+          <h2 class="text-lg font-bold text-[var(--color-text-primary)] group-hover:text-amber-500 transition-colors line-clamp-2 mb-1">
             {article.title}
-          </h3>
+          </h2>
 
           {article.excerpt && (
             <p class="text-sm text-[var(--color-text-secondary)] line-clamp-2 mb-2">

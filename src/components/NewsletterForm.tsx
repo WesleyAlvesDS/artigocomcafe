@@ -52,17 +52,10 @@ export default function NewsletterForm({ variant = 'inline' }: Props) {
     setMessage('')
 
     try {
-      const response = await fetch('https://artigocomcafe.com/wp-json/autoblog/v1/automation/generic', {
+      const response = await fetch('/api-newsletter.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'send_email',
-          data: {
-            to: 'wesleyalvesferreira@gmail.com',
-            subject: 'Nova inscrição na newsletter',
-            message: `Novo email cadastrado: ${email}`
-          }
-        })
+        body: JSON.stringify({ email })
       })
 
       if (response.ok) {

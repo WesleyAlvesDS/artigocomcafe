@@ -42,7 +42,13 @@ function mapArticle(a: LaravelArticle): BlogPost {
     excerpt: a.excerpt ?? '',
     date: a.published_at,
     modified: a.published_at,
-    featuredImage: a.cover_image ? `/${a.cover_image}` : a.featured_image,
+    featuredImage: a.featured_image 
+      ? (a.featured_image.startsWith('http') || a.featured_image.startsWith('/') 
+         ? a.featured_image : `/${a.featured_image}`)
+      : a.cover_image
+        ? (a.cover_image.startsWith('http') || a.cover_image.startsWith('/') 
+           ? a.cover_image : `/${a.cover_image}`)
+        : null,
     featuredImageAlt: a.title,
     categories: a.category ? [{ id: a.category.id, name: a.category.name, slug: a.category.slug }] : [],
     tags: a.tags.map(t => ({ id: t.id, name: t.name, slug: t.slug })),

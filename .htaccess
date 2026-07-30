@@ -1,32 +1,53 @@
-# Artigocomcafe.com - htaccess para Astro + WordPress
-# Coloque este arquivo em public_html/
+# Artigocomcafe.com - htaccess para Astro (estático)
+# Site estático gerado pelo Astro + React
 
-# Serve arquivos estáticos do Astro antes do WordPress
-DirectoryIndex index.html index.php
+# Página inicial
+DirectoryIndex index.html
 
 <IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteBase /
 
-# WordPress - não reescreve se o arquivo já existe
-RewriteRule ^index\.php$ - [L]
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /index.php [L]
+# Se o arquivo/diretório existe, serve direto
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule . - [L]
+
+# Páginas HTML do Astro (sem extensão)
+RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+RewriteRule ^(.+)/?$ /$1.html [L]
+
+# Redirecionar /index para /
+RewriteRule ^index\.html$ / [R=301,L]
 </IfModule>
 
+# Página 404 customizada
+ErrorDocument 404 /404.html
+
 # Cache de assets estáticos (1 ano)
-<FilesMatch "\.(js|css|svg|webp|png|jpg|ico)$">
+<FilesMatch "\.(js|css|svg|webp|png|jpg|ico|woff2)$">
 Header set Cache-Control "public, max-age=31536000, immutable"
+</FilesMatch>
+
+# Cache de HTML (0s - sempre fresco)
+<FilesMatch "\.html$">
+Header set Cache-Control "no-cache, must-revalidate"
 </FilesMatch>
 
 # Compressão
 <IfModule mod_deflate.c>
-AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml
+AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml image/x-icon
 </IfModule>
 
 # Segurança
-<FilesMatch "^.*(wp-config\.php|\.ht.*)$">
+<FilesMatch "^.*\.(htaccess|htpasswd|ini|log|sh|inc|bak|sql)$">
 Require all denied
 </FilesMatch>
 Options -Indexes
+
+# Segurança de headers
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
