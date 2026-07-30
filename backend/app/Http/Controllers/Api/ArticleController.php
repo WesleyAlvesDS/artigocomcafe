@@ -56,16 +56,43 @@ class ArticleController extends Controller
             ->firstOrFail();
 
         $article->increment('views_count');
+        $tagIds = $article->tags->pluck('id')->toArray();
 
+        $selectFields = ['id', 'title', 'slug', 'excerpt', 'cover_image', 'reading_time', 'published_at', 'category_id'];
+
+        // Priority 1: Same category articles
         $related = Article::published()
+            ->with('category:id,name,slug')
             ->where('id', '!=', $article->id)
-            ->where(function ($q) use ($article) {
-                if ($article->category_id) {
-                    $q->where('category_id', $article->category_id);
-                }
-            })
+            ->where('category_id', $article->category_id)
+            ->orderBy('published_at', 'desc')
             ->limit(4)
-            ->get(['id', 'title', 'slug', 'excerpt', 'cover_image', 'reading_time', 'published_at']);
+            ->get($selectFields);
+
+        // Priority 2: If not enough, add articles with shared tags
+        if ($related->count() < 4 && !empty($tagIds)) {
+            $existingIds = $related->pluck('id')->push($article->id);
+            $tagRelated = Article::published()
+                ->with('category:id,name,slug')
+                ->whereNotIn('id', $existingIds)
+                ->whereHas('tags', fn($q) => $q->whereIn('tags.id', $tagIds))
+                ->orderBy('published_at', 'desc')
+                ->limit(4 - $related->count())
+                ->get($selectFields);
+            $related = $related->concat($tagRelated);
+        }
+
+        // Priority 3: Fallback to most recent articles
+        if ($related->count() < 4) {
+            $existingIds = $related->pluck('id')->push($article->id);
+            $recent = Article::published()
+                ->with('category:id,name,slug')
+                ->whereNotIn('id', $existingIds)
+                ->orderBy('published_at', 'desc')
+                ->limit(4 - $related->count())
+                ->get($selectFields);
+            $related = $related->concat($recent);
+        }
 
         return response()->json([
             'article' => $article,
