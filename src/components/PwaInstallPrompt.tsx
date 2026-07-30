@@ -87,6 +87,8 @@ export default function PwaInstallPrompt() {
     return (
       <div
         class="fixed bottom-6 left-4 right-4 z-[200] animate-slide-up"
+        role="dialog"
+        aria-label="Instalar aplicativo"
         style={{
           background: 'var(--color-bg-primary)',
           border: '1px solid var(--color-bg-card-border)',
@@ -106,7 +108,7 @@ export default function PwaInstallPrompt() {
             <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
-        <div class="flex items-start gap-3">
+        <section aria-label="Instruções de instalação" class="flex items-start gap-3">
           <div class="text-2xl">📱</div>
           <div>
             <p class="font-semibold text-sm text-[var(--color-text-primary)] mb-1">
@@ -116,7 +118,7 @@ export default function PwaInstallPrompt() {
               Toque em <strong>Compartilhar</strong> <span class="text-base">⎙</span> e depois em <strong>Adicionar à Tela de Início</strong>.
             </p>
           </div>
-        </div>
+        </section>
         <button
           onClick={handleDismiss}
           class="mt-3 w-full py-2.5 rounded-xl text-sm font-semibold"
@@ -135,38 +137,40 @@ export default function PwaInstallPrompt() {
   return (
     <div
       class="fixed bottom-6 left-4 right-4 z-[200] animate-slide-up"
-      style={{
-        background: 'var(--color-bg-primary)',
-        border: '1px solid var(--color-bg-card-border)',
-        borderRadius: '16px',
-        padding: '1.25rem',
-        boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
-        maxWidth: '400px',
-        margin: '0 auto'
-      }}
-    >
-      <button
-        onClick={handleDismiss}
-        class="absolute top-3 right-3 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
-        aria-label="Fechar"
+        role="dialog"
+        aria-label="Instalar aplicativo"
+        style={{
+          background: 'var(--color-bg-primary)',
+          border: '1px solid var(--color-bg-card-border)',
+          borderRadius: '16px',
+          padding: '1.25rem',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+          maxWidth: '400px',
+          margin: '0 auto'
+        }}
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
-      </button>
-      <div class="flex items-start gap-3">
-        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: 'rgba(0,212,170,0.1)' }}>
-          ☕
-        </div>
-        <div class="flex-1">
-          <p class="font-semibold text-sm text-[var(--color-text-primary)] mb-0.5">
-            Instale o Artigo com Café
-          </p>
-          <p class="text-xs text-[var(--color-text-secondary)]">
-            Adicione à tela de início para acessar rapidamente.
-          </p>
-        </div>
-      </div>
+        <button
+          onClick={handleDismiss}
+          class="absolute top-3 right-3 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+          aria-label="Fechar"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+        <section aria-label="Convite de instalação" class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: 'rgba(0,212,170,0.1)' }}>
+            ☕
+          </div>
+          <div class="flex-1">
+            <p class="font-semibold text-sm text-[var(--color-text-primary)] mb-0.5">
+              Instale o Artigo com Café
+            </p>
+            <p class="text-xs text-[var(--color-text-secondary)]">
+              Adicione à tela de início para acessar rapidamente.
+            </p>
+          </div>
+        </section>
       <div class="flex gap-2 mt-3">
         <button
           onClick={handleDismiss}
