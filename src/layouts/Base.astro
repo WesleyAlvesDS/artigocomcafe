@@ -239,12 +239,12 @@ const organizationJsonLd = {
         // Detect PWA installability - store prompt on window for components
         window.addEventListener('beforeinstallprompt', (e) => {
           e.preventDefault()
-          ;(window as any).__deferredPrompt = e
+          window.__deferredPrompt = e
           window.dispatchEvent(new CustomEvent('pwa-install-ready'))
         })
 
         window.addEventListener('appinstalled', () => {
-          ;(window as any).__deferredPrompt = null
+          window.__deferredPrompt = null
           window.dispatchEvent(new CustomEvent('pwa-installed'))
         })
       </script>
