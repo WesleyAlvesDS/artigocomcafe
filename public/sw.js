@@ -1,5 +1,5 @@
 // Artigo com Café - Service Worker
-// Versão: 2.0.0 (with Push Notifications)
+// Versão: 2.1.0 (with Push Notifications - resilient caching)
 const CACHE_NAME = 'artigocomcafe-v2'
 
 const PRECACHE_URLS = [
