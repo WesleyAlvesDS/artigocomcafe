@@ -75,6 +75,7 @@ function ProfileContent() {
         <a href="/biblioteca" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">Biblioteca</a>
         <a href="/graos" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">{vocab.currency}</a>
         <a href="/conquistas" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">Conquistas</a>
+        <a href="/missoes" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">🎯 Missões</a>
         <a href="/trilhas" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">Trilhas</a>
       </div>
     </div>

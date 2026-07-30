@@ -37,8 +37,16 @@ import UserMenu from './UserMenu'
     <a href="/sobre" class="mobile-link">Sobre</a>
     <a href="/contato" class="mobile-link">Contato</a>
     <a href="/newsletter" class="mobile-link">Newsletter</a>
-    <a href="/perfil" class="mobile-link">Perfil</a>
-    <a href="/biblioteca" class="mobile-link">Biblioteca</a>
+    <hr class="mobile-divider">
+    <span class="mobile-section-label">Gamificação</span>
+    <a href="/graos" class="mobile-link">🫘 Grãos</a>
+    <a href="/torrefacao" class="mobile-link">☕ Torrefação</a>
+    <a href="/missoes" class="mobile-link">🎯 Missões</a>
+    <a href="/conquistas" class="mobile-link">🏆 Conquistas</a>
+    <a href="/trilhas" class="mobile-link">🎓 Trilhas</a>
+    <hr class="mobile-divider">
+    <a href="/perfil" class="mobile-link">👤 Perfil</a>
+    <a href="/biblioteca" class="mobile-link">📚 Biblioteca</a>
   </nav>
 </header>
 
@@ -178,6 +186,22 @@ import UserMenu from './UserMenu'
   .mobile-link:hover {
     background: var(--color-bg-card);
     color: var(--color-accent);
+  }
+
+  .mobile-divider {
+    border: none;
+    border-top: 1px solid var(--color-bg-card-border);
+    margin: 0.25rem 0;
+  }
+
+  .mobile-section-label {
+    display: block;
+    padding: 0.5rem 1rem 0.25rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
   }
 
   @media (max-width: 768px) {

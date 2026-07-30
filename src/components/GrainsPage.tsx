@@ -38,7 +38,7 @@ function GrainsContent() {
       <div class="bg-card border border-border rounded-2xl p-6">
         <h2 class="font-semibold text-foreground mb-4">Histórico</h2>
         {!data?.recent?.length ? (
-          <p class="text-muted-foreground text-center py-8">Complete leituras para ganhar grãos.</p>
+          <p class="text-muted-foreground text-center py-8">Complete leituras para ganhar {vocab.currency.toLowerCase()}.</p>
         ) : (
           <div class="space-y-3">
             {data.recent.map(entry => (
