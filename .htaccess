@@ -13,12 +13,15 @@ RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule . - [L]
 
-# Páginas HTML do Astro (sem extensão)
-RewriteCond %{DOCUMENT_ROOT}/$1.html -f
-RewriteRule ^(.+)/?$ /$1.html [L]
+# Páginas HTML do Astro - diretórios viram /{path}/index.html
+RewriteCond %{DOCUMENT_ROOT}/$1/index.html -f
+RewriteRule ^(.+?)/?$ /$1/index.html [L]
 
 # Redirecionar /index para /
 RewriteRule ^index\.html$ / [R=301,L]
+
+# Redirecionar /{path}/index para /{path}/
+RewriteRule ^(.+)/index\.html$ /$1/ [R=301,L]
 </IfModule>
 
 # Página 404 customizada
