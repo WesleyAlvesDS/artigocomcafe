@@ -14,11 +14,24 @@ const PRECACHE_URLS = [
   '/apple-touch-icon.png'
 ]
 
+// Bump this version to force SW update
+const SW_VERSION = '2.1.0'
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
+    console.log('[SW] v' + SW_VERSION + ' installing...')
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_URLS)
-    }).then(() => self.skipWaiting())
+      // Cache each URL individually so one failure doesn't block install
+      const cachePromises = PRECACHE_URLS.map((url) => {
+        return cache.add(url).catch((err) => {
+          console.warn('[SW] Failed to cache', url, err)
+        })
+      })
+      return Promise.all(cachePromises)
+    }).then(() => {
+      console.log('[SW] v' + SW_VERSION + ' installed successfully')
+      return self.skipWaiting()
+    })
   )
 })
 
