@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro'
 import Hero from '../components/Hero.astro'
 import ArticleCard from '../components/ArticleCard.astro'
+import CafeDoDia from '../components/CafeDoDia'
 import SearchModal from '../components/SearchModal'
 import { getPosts, getCategories } from '../lib/laravel'
 
@@ -11,6 +12,13 @@ const categories = await getCategories()
 
 <Base title="Artigo com Café — Blog de Cafeteria Digital" description="Blog autoral sobre cafeteria digital. Conteúdo, experiência do usuário e monetização." canonical="/" breadcrumbs={[{ name: 'Início', slug: '/' }]}>
   <Hero />
+
+  {/* Café do Dia */}
+  <section class="section" data-reveal style="padding-top: 1rem; padding-bottom: 0;">
+    <div class="container" style="max-width: 720px;">
+      <CafeDoDia client:load />
+    </div>
+  </section>
 
   {categories.length > 0 && (
     <section class="section categories-section" data-reveal>

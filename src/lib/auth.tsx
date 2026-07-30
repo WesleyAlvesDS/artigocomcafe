@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext, useContext, type ReactNode } from 'react'
 import { api, setToken } from './api'
 import { applyThemeColors, resetThemeColors } from './themes'
+import { ToastProvider } from '../components/Toast'
 
 export interface User {
   id: number; name: string; username: string; email: string
@@ -69,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resetThemeColors()
   }
 
-  return <AuthContext.Provider value={{ user, loading, login, register, logout }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ user, loading, login, register, logout }}><ToastProvider>{children}</ToastProvider></AuthContext.Provider>
 }
 
 export function useAuth() {

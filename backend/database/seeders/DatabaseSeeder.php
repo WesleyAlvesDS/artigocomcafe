@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             AchievementSeeder::class,
             MissionSeeder::class,
             RewardSeeder::class,
+            TrailSeeder::class,
         ]);
     }
 }

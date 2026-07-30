@@ -55,6 +55,7 @@ export default function UserMenu() {
             <a href="/graos" class="dropdown-link">🫘 Grãos</a>
             <a href="/torrefacao" class="dropdown-link">☕ Torrefação</a>
             <a href="/conquistas" class="dropdown-link">Conquistas</a>
+            <a href="/missoes" class="dropdown-link">🎯 Missões</a>
             <a href="/trilhas" class="dropdown-link">Trilhas</a>
             <hr style={{ border: 'none', borderTop: '1px solid var(--color-bg-card-border)', margin: '0.3rem 0' }} />
             <a href="/entrar" class="dropdown-link" onClick={() => { localStorage.removeItem('auth_token'); setLoggedIn(false) }}

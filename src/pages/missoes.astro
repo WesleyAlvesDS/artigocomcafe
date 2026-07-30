@@ -1,0 +1,23 @@
+---
+import Base from '../layouts/Base.astro'
+import MissionsPage from '../components/MissionsPage'
+import SearchModal from '../components/SearchModal'
+---
+
+<Base
+  title="Missões — Artigo com Café"
+  description="Complete missões diárias e semanais para ganhar recompensas exclusivas."
+  canonical="/missoes/"
+  breadcrumbs={[
+    { name: 'Início', slug: '/' },
+    { name: 'Missões', slug: '/missoes/' }
+  ]}
+>
+  <section class="section">
+    <div class="container" style="max-width: 720px;">
+      <MissionsPage client:load />
+    </div>
+  </section>
+
+  <SearchModal client:load />
+</Base>
