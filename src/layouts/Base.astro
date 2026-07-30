@@ -27,7 +27,13 @@ const {
 const siteUrl = 'https://artigocomcafe.com'
 const fullTitle = title.includes('Artigo com Café') ? title : `${title} — Artigo com Café`
 const canonicalUrl = canonical ? `${siteUrl}${canonical}` : siteUrl
-const ogImage = image.startsWith('http') ? image : `${siteUrl}${image}`
+// Dynamic OG image: if image path ends with .png.ts or is og-default, rewrite
+// Otherwise use the provided image as-is (supports external URLs and local paths)
+const ogImage = image.startsWith('http') 
+  ? image 
+  : image.endsWith('.png.ts') 
+    ? `${siteUrl}${image.replace('.ts', '')}`
+    : `${siteUrl}${image}`
 
 // Build breadcrumb JSON-LD
 const breadcrumbJsonLd = breadcrumbs.length > 0 ? {
