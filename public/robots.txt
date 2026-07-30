@@ -1,0 +1,9 @@
+# Artigo com Café - Robots.txt
+User-agent: *
+Allow: /
+
+Sitemap: https://artigocomcafe.com/sitemap.xml
+
+# Disallow admin panels
+Disallow: /wp-admin/
+Disallow: /wp-login.php

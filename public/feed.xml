@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Artigo com Café</title>
+    <link>https://artigocomcafe.com</link>
+    <description>Conhecimento servido diariamente. Artigos sobre tecnologia, café, experiência do usuário e aprendizado contínuo.</description>
+    <language>pt-BR</language>
+    <lastBuildDate>Mon, 30 Jul 2026 12:00:00 GMT</lastBuildDate>
+    <atom:link href="https://artigocomcafe.com/feed.xml" rel="self" type="application/rss+xml"/>
+    <image>
+      <url>https://artigocomcafe.com/favicon.svg</url>
+      <title>Artigo com Café</title>
+      <link>https://artigocomcafe.com</link>
+    </image>
+    <item>
+      <title>Bem-vindo ao Artigo com Café — Sua pausa para o conhecimento</title>
+      <link>https://artigocomcafe.com/blog/bem-vindo-ao-artigocomcafe-sua-pausa-para-o-conhecimento/</link>
+      <guid>https://artigocomcafe.com/blog/bem-vindo-ao-artigocomcafe-sua-pausa-para-o-conhecimento/</guid>
+      <description>Descubra o Artigo com Café, sua nova plataforma de conhecimento personalizada. Uma pausa para aprender algo novo todos os dias.</description>
+      <category>Tecnologia</category>
+    </item>
+    <item>
+      <title>10 Produtos Aleatórios da Shopee Que Realmente Funcionam</title>
+      <link>https://artigocomcafe.com/blog/10-produtos-aleatorios-da-shopee-que-realmente-funcionam/</link>
+      <guid>https://artigocomcafe.com/blog/10-produtos-aleatorios-da-shopee-que-realmente-funcionam/</guid>
+      <description>Conheça 10 produtos aleatórios da Shopee que realmente funcionam e podem facilitar sua vida. Desde organizadores a utensílios.</description>
+      <category>Reviews</category>
+    </item>
+    <item>
+      <title>7 Truques Caseiros Inteligentes para o Lar que Economizam Dinheiro</title>
+      <link>https://artigocomcafe.com/blog/7-truques-caseiros-inteligentes-para-o-lar-que-economizam-dinheiro/</link>
+      <guid>https://artigocomcafe.com/blog/7-truques-caseiros-inteligentes-para-o-lar-que-economizam-dinheiro/</guid>
+      <description>Aprenda 7 truques caseiros inteligentes que vão economizar seu dinheiro e tornar sua rotina doméstica mais eficiente.</description>
+      <category>Casa</category>
+    </item>
+    <item>
+      <title>Como Fazer Hidratante Caseiro com Babosa de Forma Segura</title>
+      <link>https://artigocomcafe.com/blog/como-fazer-hidratante-caseiro-babosa-seguro/</link>
+      <guid>https://artigocomcafe.com/blog/como-fazer-hidratante-caseiro-babosa-seguro/</guid>
+      <description>Guia completo para fazer hidratante caseiro com babosa (Aloe vera) de forma segura, eficaz e com ingredientes acessíveis.</description>
+      <category>Saúde</category>
+    </item>
+    <item>
+      <title>Como se Formam as Impressões Digitais — Unicidade e Ciência</title>
+      <link>https://artigocomcafe.com/blog/como-se-formam-impressoes-digitais-unicidade-ciencia/</link>
+      <guid>https://artigocomcafe.com/blog/como-se-formam-impressoes-digitais-unicidade-ciencia/</guid>
+      <description>Descubra como se formam as impressões digitais, o que torna cada uma única e a ciência por trás desse fenômeno biológico fascinante.</description>
+      <category>Curiosidades</category>
+    </item>
+    <item>
+      <title>Sabão Líquido Caseiro 20 Litros — Receita Econômica</title>
+      <link>https://artigocomcafe.com/blog/sabao-liquido-caseiro-20-litros-receita-economica-rende-muito-e-pode-reduzir-seus-gastos-domesticos/</link>
+      <guid>https://artigocomcafe.com/blog/sabao-liquido-caseiro-20-litros-receita-economica-rende-muito-e-pode-reduzir-seus-gastos-domesticos/</guid>
+      <description>Aprenda a fazer sabão líquido caseiro de 20 litros com esta receita econômica que rende muito e reduz seus gastos domésticos.</description>
+      <category>Casa</category>
+    </item>
+    <item>
+      <title>Casca de Ovo nas Plantas — Cálcio Solúvel KNF</title>
+      <link>https://artigocomcafe.com/blog/casca-de-ovo-nas-plantas-calcio-soluvel-knf/</link>
+      <guid>https://artigocomcafe.com/blog/casca-de-ovo-nas-plantas-calcio-soluvel-knf/</guid>
+      <description>Aprenda a usar casca de ovo nas plantas como fonte de cálcio solúvel usando o método KNF (Agricultura Natural Coreana).</description>
+      <category>Curiosidades</category>
+    </item>
+    <item>
+      <title>O que é Aloína na Babosa — Como Retirar a Toxicidade</title>
+      <link>https://artigocomcafe.com/blog/o-que-e-aloina-babosa-como-retirar-toxicidade/</link>
+      <guid>https://artigocomcafe.com/blog/o-que-e-aloina-babosa-como-retirar-toxicidade/</guid>
+      <description>Saiba o que é aloína, a substância tóxica presente na babosa, e aprenda como retirar corretamente para uso seguro.</description>
+      <category>Saúde</category>
+    </item>
+    <item>
+      <title>Painéis Solares no Saara — Impacto na Amazônia e Geoengenharia</title>
+      <link>https://artigocomcafe.com/blog/paineis-solares-saara-impacto-amazonia-geoengenharia/</link>
+      <guid>https://artigocomcafe.com/blog/paineis-solares-saara-impacto-amazonia-geoengenharia/</guid>
+      <description>Descubra como painéis solares no deserto do Saara poderiam impactar o clima da Amazônia e os riscos da geoengenharia.</description>
+      <category>Ciência</category>
+    </item>
+    <item>
+      <title>Experimento dos Gatos no Presídio — Reabilitação Forense</title>
+      <link>https://artigocomcafe.com/blog/experimento-dos-gatos-no-presidio-reabilitacao-forense/</link>
+      <guid>https://artigocomcafe.com/blog/experimento-dos-gatos-no-presidio-reabilitacao-forense/</guid>
+      <description>Conheça o experimento dos gatos no presídio e como a reabilitação forense com animais pode transformar vidas.</description>
+      <category>Curiosidades</category>
+    </item>
+  </channel>
+</rss>

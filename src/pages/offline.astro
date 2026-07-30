@@ -1,0 +1,53 @@
+---
+import Base from '../layouts/Base.astro'
+---
+
+<Base title="Sem Conexão — Artigo com Café" description="Você está offline. Conecte-se à internet para continuar navegando." canonical="/offline/" disableTransitions>
+  <section class="section" style="min-height: 70vh; display: flex; align-items: center; justify-content: center; text-align: center;">
+    <div class="container">
+      <div class="offline-page" data-reveal>
+        <div class="offline-icon">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="1" y1="1" x2="23" y2="23" />
+            <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55" />
+            <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39" />
+            <path d="M10.71 5.05A16 16 0 0 1 22.56 9" />
+            <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88" />
+            <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+            <line x1="12" y1="20" x2="12.01" y2="20" />
+          </svg>
+        </div>
+        <h1 class="section-title">Sem Conexão</h1>
+        <p class="section-subtitle" style="margin: 1rem auto 2rem; max-width: 500px;">
+          Parece que você está offline no momento. Conecte-se à internet para continuar sua jornada de aprendizado.
+        </p>
+        <div class="offline-actions">
+          <button class="btn-primary" onclick="window.location.reload()">
+            Tentar Novamente
+          </button>
+          <a href="/" class="btn-ghost">Voltar ao Início</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .offline-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .offline-icon {
+    margin-bottom: 1.5rem;
+    opacity: 0.8;
+  }
+
+  .offline-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+</style>

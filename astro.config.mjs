@@ -6,9 +6,16 @@ export default defineConfig({
   site: 'https://artigocomcafe.com',
   integrations: [react()],
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    build: {
+      cssMinify: 'esbuild'
+    }
   },
   build: {
-    inlineStylesheets: 'auto'
-  }
+    inlineStylesheets: 'auto',
+    assets: '_astro',
+    format: 'directory'
+  },
+  compressHTML: true,
+  scopedStyleStrategy: 'where'
 });

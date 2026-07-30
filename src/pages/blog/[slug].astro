@@ -44,6 +44,11 @@ if (!post && !error) {
     image={post!.featuredImage ?? '/images/og-default.jpg'}
     type="article"
     canonical={`/blog/${post!.slug}/`}
+    breadcrumbs={[
+      { name: 'Início', slug: '/' },
+      { name: 'Blog', slug: '/blog/' },
+      { name: post!.title, slug: `/blog/${post!.slug}/` }
+    ]}
   >
     <script type="application/ld+json" set:html={JSON.stringify({
       "@context": "https://schema.org",

@@ -9,6 +9,8 @@ export interface Props {
   image?: string
   type?: string
   canonical?: string
+  breadcrumbs?: Array<{ name: string; slug: string }>
+  disableTransitions?: boolean
 }
 
 const {
@@ -16,13 +18,41 @@ const {
   description = 'Blog autoral sobre cafeteria digital. Conteúdo, experiência do usuário e monetização.',
   image = '/images/og-default.jpg',
   type = 'website',
-  canonical
+  canonical,
+  breadcrumbs = [],
+  disableTransitions = false
 } = Astro.props
 
 const siteUrl = 'https://artigocomcafe.com'
 const fullTitle = title.includes('Artigo com Café') ? title : `${title} — Artigo com Café`
 const canonicalUrl = canonical ? `${siteUrl}${canonical}` : siteUrl
 const ogImage = image.startsWith('http') ? image : `${siteUrl}${image}`
+
+// Build breadcrumb JSON-LD
+const breadcrumbJsonLd = breadcrumbs.length > 0 ? {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  'itemListElement': breadcrumbs.map((crumb, i) => ({
+    '@type': 'ListItem',
+    'position': i + 1,
+    'name': crumb.name,
+    'item': `${siteUrl}${crumb.slug}`
+  }))
+} : null
+
+// Organization JSON-LD (present on all pages)
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  'name': 'Artigo com Café',
+  'url': siteUrl,
+  'logo': `${siteUrl}/favicon.svg`,
+  'sameAs': [
+    'https://github.com/WesleyAlvesDS',
+    'https://www.linkedin.com/in/wesleyalvesds/'
+  ],
+  'description': 'Plataforma de conhecimento personalizada. Conteúdo, tecnologia e experiência do usuário.'
+}
 ---
 
 <!doctype html>
@@ -50,6 +80,8 @@ const ogImage = image.startsWith('http') ? image : `${siteUrl}${image}`
     <meta name="twitter:image" content={ogImage} />
 
     <link rel="canonical" href={canonicalUrl} />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+    <link rel="alternate" type="application/rss+xml" title="Artigo com Café - Feed RSS" href="/feed.xml" />
     <meta name="google-adsense-account" content="ca-pub-4516147510474933" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -57,6 +89,15 @@ const ogImage = image.startsWith('http') ? image : `${siteUrl}${image}`
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&family=JetBrains+Mono:wght@400..500&display=swap" rel="stylesheet" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    {breadcrumbJsonLd && (
+      <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} />
+    )}
+    <script type="application/ld+json" set:html={JSON.stringify(organizationJsonLd)} />
 
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-TMDJNM49Q6"></script>
     <script is:inline>
@@ -65,8 +106,65 @@ const ogImage = image.startsWith('http') ? image : `${siteUrl}${image}`
       gtag('js', new Date());
       gtag('config', 'G-TMDJNM49Q6');
     </script>
+
+    {!disableTransitions && (
+      <meta name="astro-view-transitions-enabled" content="true" />
+    )}
+
+    <style is:inline>
+      /* Skip-to-content link - hidden until focused */
+      .skip-to-content {
+        position: fixed;
+        top: -100%;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10000;
+        padding: 0.75rem 1.5rem;
+        background: var(--color-accent);
+        color: #0a0a0f;
+        font-weight: 700;
+        font-size: 0.9rem;
+        border-radius: 0 0 12px 12px;
+        text-decoration: none;
+        transition: top 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .skip-to-content:focus {
+        top: 0;
+      }
+
+      /* Smooth view transitions */
+      @media (prefers-reduced-motion: no-preference) {
+        @view-transition {
+          navigation: auto;
+        }
+      }
+
+      /* Focus visible for keyboard navigation */
+      :focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+        border-radius: 4px;
+      }
+
+      /* Smooth reveal animation guard */
+      [data-reveal] {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                    transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      [data-reveal].revealed {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    </style>
   </head>
   <body>
+    <a href="#main-content" class="skip-to-content">
+      Pular para o conteúdo
+    </a>
+
     <script is:inline>
       (function() {
         const theme = localStorage.getItem('theme')
@@ -89,13 +187,34 @@ const ogImage = image.startsWith('http') ? image : `${siteUrl}${image}`
 
       document.addEventListener('astro:page-load', () => {
         document.querySelectorAll('[data-reveal]').forEach(el => observer.observe(el))
+        // Re-focus skip link target after page transition
+        const main = document.getElementById('main-content')
+        if (main && !main.hasAttribute('tabindex')) {
+          main.setAttribute('tabindex', '-1')
+        }
       })
     </script>
 
     <Header />
-    <main>
+    <main id="main-content">
       <slot />
     </main>
     <Footer />
+
+    {!disableTransitions && (
+      <script is:inline>
+        // Add smooth page transition observer
+        document.addEventListener('astro:before-swap', () => {
+          document.documentElement.style.setProperty('--page-transition-duration', '300ms')
+        })
+
+        // Register service worker if supported
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').catch(() => {})
+          })
+        }
+      </script>
+    )}
   </body>
 </html>

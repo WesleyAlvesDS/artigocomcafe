@@ -9,7 +9,7 @@ const { posts } = await getPosts(1, 6)
 const categories = await getCategories()
 ---
 
-<Base title="Artigo com Café — Blog de Cafeteria Digital" description="Blog autoral sobre cafeteria digital. Conteúdo, experiência do usuário e monetização." canonical="/">
+<Base title="Artigo com Café — Blog de Cafeteria Digital" description="Blog autoral sobre cafeteria digital. Conteúdo, experiência do usuário e monetização." canonical="/" breadcrumbs={[{ name: 'Início', slug: '/' }]}>
   <Hero />
 
   {categories.length > 0 && (
@@ -100,6 +100,30 @@ const categories = await getCategories()
       </div>
     </div>
   </section>
+
+    <!-- BlogPosting JSON-LD Schema for homepage -->
+  {posts.length > 0 && (
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      'mainEntityOfPage': {
+        '@type': 'WebPage',
+        '@id': 'https://artigocomcafe.com'
+      },
+      'headline': 'Artigo com Café — Blog de Cafeteria Digital',
+      'description': 'Blog autoral sobre cafeteria digital. Conteúdo, experiência do usuário e monetização.',
+      'image': 'https://artigocomcafe.com/images/og-default.jpg',
+      'author': {
+        '@type': 'Person',
+        'name': 'Wesley Alves'
+      },
+      'publisher': {
+        '@type': 'Organization',
+        'name': 'Artigo com Café'
+      },
+      'dateModified': new Date(posts[0].date).toISOString()
+    })} />
+  )}
 
   <SearchModal client:load />
 </Base>

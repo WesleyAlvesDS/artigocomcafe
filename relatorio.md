@@ -372,3 +372,134 @@ ssh -p 1157 arti3263@br64-da.valueserver.net.br "find /home/arti3263/domains/art
 - [x] Categorias sem double-encoding
 - [x] Excerpts gerados do conteúdo
 - [x] Permissões de diretório corretas (755/644)
+
+---
+
+## 10. Melhorias Implementadas (v3.0-Stable)
+
+### 10.1 SEO & Dados Estruturados
+
+| # | Melhoria | Detalhes |
+|---|----------|---------|
+| ✅ | **BreadcrumbList JSON-LD** | Schema de navegação estrutural em todas as páginas |
+| ✅ | **Organization JSON-LD** | Schema da marca com logo, URL e redes sociais |
+| ✅ | **BlogPosting JSON-LD** | Schema na homepage para indexação do blog |
+| ✅ | **Sitemap.xml** | Sitemap index + sub-sitemaps (páginas + artigos) |
+| ✅ | **RSS Feed** | Feed RSS completo com 10 artigos e metadados |
+| ✅ | **Robots.txt** | Arquivo configurado com sitemap e regras de crawling |
+| ✅ | **Link rel sitemap** | Tag `<link rel="sitemap">` no `<head>` |
+| ✅ | **Link rel alternate (RSS)** | Tag `<link rel="alternate">` para RSS no `<head>` |
+
+### 10.2 UX/UI
+
+| # | Melhoria | Detalhes |
+|---|----------|---------|
+| ✅ | **View Transitions API** | Transições suaves entre páginas via CSS `@view-transition` |
+| ✅ | **Skip-to-content** | Link de acessibilidade "Pular para o conteúdo" ao tab |
+| ✅ | **Focus visible** | Estilos `:focus-visible` em todos os elementos interativos |
+| ✅ | **Keyboard navigation** | Suporte completo a navegação por teclado |
+| ✅ | **Favicon animado (SVG)** | Xícara de café com vapor animado e gradiente |
+| ✅ | **Service Worker** | Cache offline básico com fallback e estratégia network-first |
+| ✅ | **Página offline** | `/offline/` com mensagem amigável e botão reconectar |
+| ✅ | **Web App Manifest** | `site.webmanifest` para PWA com ícones |
+| ✅ | **Skeleton loader** | `@keyframes shimmer` para loading states |
+| ✅ | **Animação ripple** | Efeito ripple em botões via CSS |
+| ✅ | **Scrollbar customizada** | Scrollbar estilizada com cores do tema |
+| ✅ | **Seleção customizada** | `::selection` com cor accent |
+
+### 10.3 Performance
+
+| # | Melhoria | Detalhes |
+|---|----------|---------|
+| ✅ | **CSS minify** | `cssMinify: 'esbuild'` no Vite |
+| ✅ | **Compressão HTML** | `compressHTML: true` no Astro |
+| ✅ | **Scoped style strategy** | `scopedStyleStrategy: 'where'` para menor especificidade |
+| ✅ | **Build otimizado** | 24 páginas em 8s no build local |
+
+### 10.4 Backend (Laravel)
+
+| # | Melhoria | Detalhes |
+|---|----------|---------|
+| ✅ | **N+1 fix no Trail model** | Removido `$appends` problemático, agora usa `withCount()` |
+| ✅ | **Eager loading TrailController** | `loadCount()`, `withCount()` em todas as queries de trilhas |
+| ✅ | **Retorno enriquecido** | `completed_articles` e `total_required` no updateProgress |
+
+### 10.5 Novos Arquivos Criados
+
+```
+public/
+├── sitemap.xml              # Sitemap index
+├── sitemap-pages.xml        # Sitemap de páginas estáticas
+├── sitemap-articles.xml     # Sitemap de artigos
+├── feed.xml                 # RSS Feed
+├── robots.txt               # Instruções para crawlers
+├── site.webmanifest         # PWA manifest
+└── sw.js                    # Service Worker
+
+src/
+├── pages/offline.astro      # Página offline fallback
+└── layouts/Base.astro       # Atualizado: JSON-LD, breadcrumbs, acessibilidade
+```
+
+---
+
+## 11. Checklist v3.0-Stable
+
+### SEO
+- [x] BreadcrumbList JSON-LD
+- [x] Organization JSON-LD
+- [x] BlogPosting JSON-LD (homepage)
+- [x] Article JSON-LD (artigos)
+- [x] Sitemap.xml com sub-sitemaps
+- [x] RSS Feed
+- [x] Robots.txt
+- [x] Meta tags únicas + Open Graph + Twitter Cards
+- [x] Canonical URLs corretas
+- [x] rel next/prev na paginação
+
+### Performance
+- [x] Build otimizado (8s, 24 páginas)
+- [x] CSS minify com esbuild
+- [x] Compressão HTML automática
+- [x] Inline stylesheets automático
+- [x] Cache de assets (1 ano)
+- [x] Lazy loading de imagens
+
+### UX & Acessibilidade
+- [x] View Transitions API (navegação fluida)
+- [x] Skip-to-content link
+- [x] Focus visible indicators
+- [x] Service Worker (offline support)
+- [x] Página offline amigável
+- [x] PWA manifest
+- [x] Favicon animado
+- [x] Skeleton loaders
+- [x] Scrollbar customizada
+- [x] prefers-reduced-motion suportado
+
+### Backend
+- [x] API REST funcional
+- [x] Autenticação Sanctum
+- [x] Gamificação (grãos, conquistas, trilhas)
+- [x] Recomendações inteligentes
+- [x] Reading progress tracking
+- [x] N+1 queries eliminados (Trail)
+- [x] CORS configurado
+
+### Infraestrutura
+- [x] HTTPS ativo
+- [x] LiteSpeed + .htaccess
+- [x] Cache de assets
+- [x] Compressão Brotli/Gzip
+- [x] WordPress preservado em backup
+
+---
+
+## Próximos Passos (Recomendados)
+
+1. **Deploy automático CI/CD** — GitHub Actions para build + deploy via SCP
+2. **Sitemap dinâmico** — Gerar sitemap.xml via API Laravel em vez de estático
+3. **Temas personalizados** — Implementar seleção de tema visual no cadastro
+4. **Mapa do Conhecimento** — Visualização interativa da evolução do usuário
+5. **Imagens OG dinâmicas** — Template OG por artigo via SSG
+6. **Newsletter real** — Integrar API de email (MailerLite, Resend)
