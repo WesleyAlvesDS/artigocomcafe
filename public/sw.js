@@ -1,8 +1,7 @@
 // Artigo com Café - Service Worker
-// Versão: 1.0.0
-const CACHE_NAME = 'artigocomcafe-v1'
+// Versão: 2.0.0 (with Push Notifications)
+const CACHE_NAME = 'artigocomcafe-v2'
 
-// Assets to cache on install
 const PRECACHE_URLS = [
   '/',
   '/blog/',
@@ -15,18 +14,14 @@ const PRECACHE_URLS = [
   '/apple-touch-icon.png'
 ]
 
-// Install event - precache static assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(PRECACHE_URLS)
-    }).then(() => {
-      return self.skipWaiting()
-    })
+    }).then(() => self.skipWaiting())
   )
 })
 
-// Activate event - clean old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -35,36 +30,28 @@ self.addEventListener('activate', (event) => {
           .filter((name) => name !== CACHE_NAME)
           .map((name) => caches.delete(name))
       )
-    }).then(() => {
-      return self.clients.claim()
-    })
+    }).then(() => self.clients.claim())
   )
 })
 
-// Fetch event - network first, cache fallback
 self.addEventListener('fetch', (event) => {
-  // Only handle GET requests
   if (event.request.method !== 'GET') return
 
-  // Skip API and analytics requests
   const url = new URL(event.request.url)
   if (url.hostname.includes('google') || url.hostname.includes('googletagmanager') || url.hostname.includes('gstatic') || url.hostname.includes('fonts')) {
     return
   }
 
-  // For navigation requests, try network first
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          // Cache the latest version
           const clone = response.clone()
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
           return response
         })
         .catch(() => {
           return caches.match(event.request).then((cached) => {
-            // Fallback to cached page, or show the offline page, or show homepage
             return cached || caches.match('/offline/') || caches.match('/')
           })
         })
@@ -72,7 +59,6 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // For static assets, cache first
   event.respondWith(
     caches.match(event.request).then((cached) => {
       return cached || fetch(event.request).then((response) => {
@@ -81,7 +67,6 @@ self.addEventListener('fetch', (event) => {
           return response
         })
       }).catch(() => {
-        // For image assets, return a transparent placeholder
         if (event.request.destination === 'image') {
           return new Response('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1" width="1" height="1"><rect fill="transparent"/></svg>', {
             headers: { 'Content-Type': 'image/svg+xml' }
@@ -89,6 +74,75 @@ self.addEventListener('fetch', (event) => {
         }
         return new Response('Offline', { status: 503 })
       })
+    })
+  )
+})
+
+// ── Push Notifications ──────────────────────────────────────────
+
+self.addEventListener('push', (event) => {
+  if (!event.data) return
+
+  try {
+    const data = event.data.json()
+
+    const options = {
+      title: data.title || 'Artigo com Café',
+      body: data.body || '',
+      icon: data.icon || '/favicon-32x32.png',
+      badge: '/favicon-16x16.png',
+      image: data.image || undefined,
+      vibrate: [200, 100, 200],
+      data: {
+        url: data.url || '/',
+        articleSlug: data.articleSlug || null,
+        dateOfArrival: Date.now(),
+      },
+      actions: data.actions || [
+        { action: 'read', title: 'Ler agora' },
+        { action: 'close', title: 'Fechar' },
+      ],
+      tag: data.tag || 'default',
+      renotify: data.renotify || false,
+      requireInteraction: true,
+      silent: false,
+    }
+
+    event.waitUntil(self.registration.showNotification(options.title, options))
+  } catch (e) {
+    // Fallback for plain text payloads
+    event.waitUntil(
+      self.registration.showNotification('Artigo com Café', {
+        body: event.data.text(),
+        icon: '/favicon-32x32.png',
+        badge: '/favicon-16x16.png',
+      })
+    )
+  }
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+
+  const data = event.notification.data || {}
+  const urlToOpen = data.url || '/'
+
+  // Handle action buttons
+  if (event.action === 'close') return
+
+  // Open the URL or focus an existing tab
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      // Check if there's already a tab with this URL
+      for (const client of windowClients) {
+        if (client.url === urlToOpen && 'focus' in client) {
+          return client.focus()
+        }
+      }
+      // Open new tab
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen)
+      }
     })
   )
 })

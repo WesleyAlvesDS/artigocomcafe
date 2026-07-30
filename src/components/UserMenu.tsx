@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { isAuthenticated, api } from '../lib/api'
+import PushToggle from './PushToggle'
 
 export default function UserMenu() {
   const [loggedIn, setLoggedIn] = useState(false)
@@ -58,6 +59,7 @@ export default function UserMenu() {
             <a href="/missoes" class="dropdown-link">🎯 Missões</a>
             <a href="/trilhas" class="dropdown-link">Trilhas</a>
             <hr style={{ border: 'none', borderTop: '1px solid var(--color-bg-card-border)', margin: '0.3rem 0' }} />
+            <PushToggle />
             <a href="/entrar" class="dropdown-link" onClick={() => { localStorage.removeItem('auth_token'); setLoggedIn(false) }}
               style={{ color: 'var(--color-red, #ef4444)' }}>Sair</a>
           </div>

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\KnowledgeMapController;
 use App\Http\Controllers\Api\MissionController;
 use App\Http\Controllers\Api\ReadingProgressController;
 use App\Http\Controllers\Api\RecommendationController;
+use App\Http\Controllers\Api\PushSubscriptionController;
 use App\Http\Controllers\Api\RoasteryController;
 use App\Http\Controllers\Api\ThemeController;
 use App\Http\Controllers\Api\TrailController;
@@ -75,6 +76,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user/rewards/{reward}/roast', [RoasteryController::class, 'roast']);
     Route::post('/user/rewards/{reward}/toggle', [RoasteryController::class, 'toggle']);
     Route::get('/user/rewards/active-theme', [RoasteryController::class, 'activeTheme']);
+
+    Route::post('/user/push-subscription', [PushSubscriptionController::class, 'subscribe']);
+    Route::delete('/user/push-subscription', [PushSubscriptionController::class, 'unsubscribe']);
+    Route::get('/user/push-subscription/status', [PushSubscriptionController::class, 'status']);
 });
 
 Route::get('/knowledge-map/categories', [KnowledgeMapController::class, 'publicMap']);

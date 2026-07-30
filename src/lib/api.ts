@@ -54,7 +54,8 @@ export const api = {
     request<T>(endpoint, { method: 'POST', body: JSON.stringify(data) }),
   put: <T>(endpoint: string, data?: unknown) =>
     request<T>(endpoint, { method: 'PUT', body: JSON.stringify(data) }),
-  delete: <T>(endpoint: string) => request<T>(endpoint, { method: 'DELETE' }),
+  delete: <T>(endpoint: string, data?: unknown) =>
+    request<T>(endpoint, { method: 'DELETE', body: data ? JSON.stringify(data) : undefined }),
 }
 
 export function setToken(token: string | null) {
