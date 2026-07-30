@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\MissionController;
 use App\Http\Controllers\Api\ReadingProgressController;
 use App\Http\Controllers\Api\RecommendationController;
 use App\Http\Controllers\Api\RoasteryController;
+use App\Http\Controllers\Api\ThemeController;
 use App\Http\Controllers\Api\TrailController;
 use App\Http\Controllers\Api\UserDashboardController;
 use Illuminate\Support\Facades\Route;
@@ -77,3 +78,5 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::get('/knowledge-map/categories', [KnowledgeMapController::class, 'publicMap']);
+
+Route::get('/themes', [ThemeController::class, 'index']);

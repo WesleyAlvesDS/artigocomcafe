@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { api } from '../lib/api'
 import AuthPage from './AuthPage'
+import { getCurrentVocabulary } from '../lib/themes'
 
 interface Reward {
   id: number; name: string; slug: string; description: string | null
@@ -110,6 +111,7 @@ function RoasteryContent() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<string>('themes')
   const [roastTarget, setRoastTarget] = useState<Reward | null>(null)
+  const [vocab, setVocab] = useState(getCurrentVocabulary())
 
   const loadData = () => {
     api.get<RoasteryData>('/user/rewards')
@@ -118,7 +120,10 @@ function RoasteryContent() {
       .finally(() => setLoading(false))
   }
 
-  useEffect(loadData, [])
+  useEffect(() => {
+    loadData()
+    setVocab(getCurrentVocabulary())
+  }, [])
 
   if (loading) {
     return (
@@ -150,8 +155,7 @@ function RoasteryContent() {
     <div class="space-y-8">
       {/* Header */}
       <div class="text-center">
-        <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">☕ Torrefação</h1>
-        <p class="text-[var(--color-text-secondary)] mt-2">Transforme seus grãos em recompensas exclusivas</p>
+        <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">{vocab.roasting === 'Torrefação' ? '☕' : vocab.currency_icon} {vocab.roasting}</h1>          <p class="text-[var(--color-text-secondary)] mt-2">Transforme seus {vocab.currency.toLowerCase()} em recompensas exclusivas</p>
       </div>
 
       {/* Balance card */}
@@ -161,10 +165,10 @@ function RoasteryContent() {
         <div class="relative">
           <div class="text-5xl mb-2">🫘</div>
           <div class="text-4xl font-bold text-amber-500">{data.balance}</div>
-          <div class="text-sm text-[var(--color-text-muted)]">grãos disponíveis</div>
+          <div class="text-sm text-[var(--color-text-muted)]">{vocab.currency.toLowerCase()} disponíveis</div>
           <div class="flex justify-center gap-4 mt-3 text-xs text-[var(--color-text-muted)]">
-            <span>Ganhos: <strong class="text-green-500">+{data.total_earned}</strong></span>
-            <span>Torrados: <strong class="text-amber-500">-{data.total_spent}</strong></span>
+            <span>{vocab.harvest}: <strong class="text-green-500">+{data.total_earned}</strong></span>
+            <span>{vocab.roast_action}: <strong class="text-amber-500">-{data.total_spent}</strong></span>
             <span>Desbloqueados: <strong class="text-[var(--color-accent)]">{data.unlocked_count}/{data.total_count}</strong></span>
           </div>
         </div>
@@ -243,7 +247,7 @@ function RoasteryContent() {
                         style={{ background: `${rarityColor}22`, color: rarityColor }}>
                         {RARITY_LABELS[reward.rarity]}
                       </span>
-                      <span class="text-xs text-amber-500 font-medium">🫘 {reward.grain_cost}</span>
+                      <span class="text-xs text-amber-500 font-medium">{vocab.currency_icon} {reward.grain_cost}</span>
                     </div>
 
                     {!isUnlocked ? (
@@ -254,7 +258,7 @@ function RoasteryContent() {
                           disabled:opacity-40 disabled:hover:scale-100"
                         disabled={data.balance < reward.grain_cost}
                       >
-                        Torrar
+                        {vocab.roast_action}
                       </button>
                     ) : reward.type !== 'special' ? (
                       <button onClick={async () => {

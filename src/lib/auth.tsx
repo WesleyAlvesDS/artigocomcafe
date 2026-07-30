@@ -1,7 +1,8 @@
 import { useState, useEffect, createContext, useContext, type ReactNode } from 'react'
 import { api, setToken } from './api'
+import { applyThemeColors, resetThemeColors } from './themes'
 
-interface User {
+export interface User {
   id: number; name: string; username: string; email: string
   bio: string | null; avatar: string | null; theme: string
   reading_time_total: number; articles_read_count: number
@@ -12,7 +13,7 @@ interface User {
 interface AuthCtx {
   user: User | null; loading: boolean
   login: (email: string, password: string) => Promise<void>
-  register: (name: string, username: string, email: string, password: string) => Promise<void>
+  register: (name: string, username: string, email: string, password: string, theme?: string) => Promise<void>
   logout: () => Promise<void>
 }
 
@@ -26,27 +27,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const token = localStorage.getItem('auth_token')
     if (token) {
       api.get<{ user: User }>('/auth/me')
-        .then(d => setUser(d.user))
-        .catch(() => setToken(null))
+        .then(d => {
+          setUser(d.user)
+          applyThemeColors(d.user.theme)
+        })
+        .catch(() => {
+          setToken(null)
+          resetThemeColors()
+        })
         .finally(() => setLoading(false))
     } else {
+      // Apply stored theme even when not logged in
+      const storedTheme = localStorage.getItem('user_theme')
+      if (storedTheme) applyThemeColors(storedTheme)
       setLoading(false)
     }
   }, [])
 
   const login = async (email: string, password: string) => {
     const d = await api.post<{ user: User; token: string }>('/auth/login', { email, password })
-    setToken(d.token); setUser(d.user)
+    setToken(d.token)
+    setUser(d.user)
+    applyThemeColors(d.user.theme)
   }
 
-  const register = async (name: string, username: string, email: string, password: string) => {
-    const d = await api.post<{ user: User; token: string }>('/auth/register', { name, username, email, password, password_confirmation: password })
-    setToken(d.token); setUser(d.user)
+  const register = async (name: string, username: string, email: string, password: string, theme?: string) => {
+    const d = await api.post<{ user: User; token: string }>('/auth/register', {
+      name, username, email, password,
+      password_confirmation: password,
+      theme: theme || 'cafe',
+    })
+    setToken(d.token)
+    setUser(d.user)
+    applyThemeColors(d.user.theme)
   }
 
   const logout = async () => {
     try { await api.post('/auth/logout') } catch {}
-    setToken(null); setUser(null)
+    setToken(null)
+    setUser(null)
+    resetThemeColors()
   }
 
   return <AuthContext.Provider value={{ user, loading, login, register, logout }}>{children}</AuthContext.Provider>
