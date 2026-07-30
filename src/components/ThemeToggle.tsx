@@ -45,6 +45,7 @@ export default function ThemeToggle() {
       style={btnStyle}
       aria-label={theme === 'dark' ? 'Ativar modo claro' : 'Ativar modo escuro'}
       title={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
+      data-testid="theme-toggle"
       onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--color-accent)'; e.currentTarget.style.color = 'var(--color-accent)' }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--color-bg-card-border)'; e.currentTarget.style.color = 'var(--color-text-secondary)' }}
     >
