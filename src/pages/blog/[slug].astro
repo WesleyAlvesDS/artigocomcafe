@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro'
 import SearchModal from '../../components/SearchModal'
 import ReadingTracker from '../../components/ReadingTracker'
+import ArticleCard from '../../components/ArticleCard.astro'
 import { formatDate } from '../../lib/utils'
 import { getPost, getAllSlugs } from '../../lib/laravel'
 import type { BlogPost } from '../../lib/types'
@@ -13,15 +14,18 @@ export async function getStaticPaths() {
 
 const { slug } = Astro.params
 let post: BlogPost | null = null
+let related: BlogPost[] = []
 let error = false
 
 try {
-  post = await getPost(slug!)
+  const result = await getPost(slug!)
+  if (result) {
+    post = result.post
+    related = result.related
+  } else {
+    error = true
+  }
 } catch {
-  error = true
-}
-
-if (!post && !error) {
   error = true
 }
 ---
@@ -112,6 +116,18 @@ if (!post && !error) {
           <div class="article-layout">
             <div class="article-content prose" set:html={post!.content} />
             <aside class="article-sidebar">
+              {/* Actions */}
+              <div class="sidebar-card glass-card" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <button id="complete-reading" data-article-id={post!.id}
+                  class="w-full py-2.5 px-4 rounded-xl font-medium text-sm transition-all bg-gradient-to-r from-green-600 to-emerald-500 text-white hover:from-green-500 hover:to-emerald-400">
+                  ✅ Concluir Leitura
+                </button>
+                <button id="save-article" data-article-id={post!.id}
+                  class="w-full py-2.5 px-4 rounded-xl font-medium text-sm transition-all bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] text-[var(--color-text-secondary)] hover:border-accent">
+                  📚 Salvar na Biblioteca
+                </button>
+              </div>
+
               {post!.categories.length > 0 && (
                 <div class="sidebar-card glass-card">
                   <h3 class="sidebar-title">Categorias</h3>
@@ -181,6 +197,23 @@ if (!post && !error) {
       </div>
     </article>
 
+    {/* Related Articles */}
+    {related.length > 0 && (
+      <section class="section" data-reveal>
+        <div class="container">
+          <div class="section-header">
+            <span class="section-label">Continue Lendo</span>
+            <h2 class="section-title">Artigos Relacionados</h2>
+          </div>
+          <div class="articles-grid">
+            {related.slice(0, 4).map(r => (
+              <ArticleCard post={r} />
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
     <SearchModal client:load />
     <ReadingTracker articleId={post!.id} articleTitle={post!.title} client:load />
 
@@ -196,6 +229,77 @@ if (!post && !error) {
               copyBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
               setTimeout(() => { copyBtn.innerHTML = original }, 2000)
             } catch {}
+          }
+        })
+      }
+
+      const API_BASE = document.body.getAttribute('data-api-base') || 'https://back.artigocomcafe.com/api'
+
+      // Reading complete button
+      const completeBtn = document.getElementById('complete-reading')
+      if (completeBtn) {
+        completeBtn.addEventListener('click', async () => {
+          const articleId = completeBtn.getAttribute('data-article-id')
+          const token = localStorage.getItem('auth_token')
+          if (!token) {
+            window.location.href = '/entrar'
+            return
+          }
+          completeBtn.disabled = true
+          completeBtn.innerHTML = '⏳ Concluindo...'
+          try {
+            const res = await fetch(API_BASE + '/articles/' + articleId + '/complete', {
+              method: 'POST',
+              headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            })
+            if (res.ok) {
+              completeBtn.innerHTML = '✅ Leitura Concluída!'
+              completeBtn.style.opacity = '0.6'
+            } else {
+              completeBtn.disabled = false
+              completeBtn.innerHTML = '❌ Erro - Tente novamente'
+              setTimeout(() => { completeBtn.innerHTML = '✅ Concluir Leitura' }, 3000)
+            }
+          } catch {
+            completeBtn.disabled = false
+            completeBtn.innerHTML = '❌ Erro - Tente novamente'
+            setTimeout(() => { completeBtn.innerHTML = '✅ Concluir Leitura' }, 3000)
+          }
+        })
+      }
+
+      // Save to library button
+      const saveBtn = document.getElementById('save-article')
+      if (saveBtn) {
+        saveBtn.addEventListener('click', async () => {
+          const token = localStorage.getItem('auth_token')
+          if (!token) {
+            window.location.href = '/entrar'
+            return
+          }
+          saveBtn.disabled = true
+          saveBtn.innerHTML = '⏳ Salvando...'
+          try {
+            const res = await fetch(API_BASE + '/user/collections', {
+              method: 'POST',
+              headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+              body: JSON.stringify({
+                title: 'Leituras Salvos',
+                article_ids: [Number(saveBtn.getAttribute('data-article-id'))],
+              }),
+            })
+            if (res.ok) {
+              saveBtn.innerHTML = '✅ Salvo!'
+              saveBtn.style.opacity = '0.6'
+            } else {
+              saveBtn.disabled = false
+              saveBtn.innerHTML = '❌ Erro - Tente novamente'
+              setTimeout(() => { saveBtn.innerHTML = '📚 Salvar na Biblioteca' }, 3000)
+            }
+          } catch {
+            saveBtn.disabled = false
+            saveBtn.innerHTML = '❌ Erro - Tente novamente'
+            setTimeout(() => { saveBtn.innerHTML = '📚 Salvar na Biblioteca' }, 3000)
           }
         })
       }

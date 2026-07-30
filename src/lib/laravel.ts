@@ -72,11 +72,14 @@ export async function getAllSlugs(): Promise<string[]> {
   return json.data.map(a => a.slug)
 }
 
-export async function getPost(slug: string): Promise<BlogPost | null> {
+export async function getPost(slug: string): Promise<{ post: BlogPost; related: BlogPost[] } | null> {
   const res = await fetch(`${API_BASE}/articles/${encodeURIComponent(slug)}`, { headers: { Accept: 'application/json' } })
   if (!res.ok) return null
   const json = await res.json()
-  return mapArticle(json.article)
+  return {
+    post: mapArticle(json.article),
+    related: (json.related || []).map(mapArticle),
+  }
 }
 
 export async function searchArticles(query: string): Promise<{ id: number; title: string; slug: string; date: string }[]> {

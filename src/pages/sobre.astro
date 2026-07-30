@@ -3,7 +3,10 @@ import Base from '../layouts/Base.astro'
 import SearchModal from '../components/SearchModal'
 ---
 
-<Base title="Sobre — Artigo com Café" description="Conheça o projeto Artigo com Café, um blog autoral sobre cafeteria digital." canonical="/sobre/">
+<Base title="Sobre — Artigo com Café" description="Conheça o projeto Artigo com Café, um blog autoral sobre cafeteria digital." canonical="/sobre/" breadcrumbs={[
+    { name: 'Início', slug: '/' },
+    { name: 'Sobre', slug: '/sobre/' }
+  ]}>
   <section class="section page-header">
     <div class="container">
       <div data-reveal>
