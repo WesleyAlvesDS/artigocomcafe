@@ -162,15 +162,30 @@ import UserMenu from './UserMenu'
   }
 
   .mobile-menu {
-    display: none;
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
     flex-direction: column;
-    padding: 1rem;
-    background: var(--color-bg-primary);
+    padding: 1.5rem;
+    background: color-mix(in srgb, var(--color-bg-primary) 97%, transparent);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border-bottom: 1px solid var(--color-bg-card-border);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    z-index: 99;
   }
 
   .mobile-menu[aria-hidden="false"] {
-    display: flex;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
   }
 
   .mobile-link {
@@ -213,6 +228,12 @@ import UserMenu from './UserMenu'
       display: flex;
     }
   }
+
+  @media (min-width: 769px) {
+    .mobile-menu {
+      display: none !important;
+    }
+  }
 </style>
 
 <script>
@@ -220,18 +241,55 @@ import UserMenu from './UserMenu'
   const mobileMenu = document.getElementById('mobile-menu')
 
   if (hamburger && mobileMenu) {
-    hamburger.addEventListener('click', () => {
-      const isOpen = hamburger.classList.toggle('active')
-      hamburger.setAttribute('aria-expanded', String(isOpen))
-      mobileMenu.setAttribute('aria-hidden', String(!isOpen))
+    function closeMenu() {
+      hamburger.classList.remove('active')
+      hamburger.setAttribute('aria-expanded', 'false')
+      mobileMenu.setAttribute('aria-hidden', 'true')
+      document.body.style.overflow = ''
+    }
+
+    function openMenu() {
+      hamburger.classList.add('active')
+      hamburger.setAttribute('aria-expanded', 'true')
+      mobileMenu.setAttribute('aria-hidden', 'false')
+      document.body.style.overflow = 'hidden'
+    }
+
+    hamburger.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const isOpen = hamburger.classList.contains('active')
+      if (isOpen) {
+        closeMenu()
+      } else {
+        openMenu()
+      }
     })
 
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (hamburger.classList.contains('active')) {
+        const target = e.target
+        if (target instanceof Node && !hamburger.contains(target) && !mobileMenu.contains(target)) {
+          closeMenu()
+        }
+      }
+    })
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && hamburger.classList.contains('active')) {
+        closeMenu()
+      }
+    })
+
+    // Close when link is clicked
     mobileMenu.querySelectorAll('.mobile-link').forEach(link => {
       link.addEventListener('click', () => {
-        hamburger.classList.remove('active')
-        hamburger.setAttribute('aria-expanded', 'false')
-        mobileMenu.setAttribute('aria-hidden', 'true')
+        closeMenu()
       })
     })
+
+    // Re-enable scroll on page transition
+    document.addEventListener('astro:before-swap', closeMenu)
   }
 </script>

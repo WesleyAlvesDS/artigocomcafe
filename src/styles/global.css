@@ -243,6 +243,31 @@ body {
   50% { box-shadow: 0 0 30px rgba(0, 212, 170, 0.2); }
 }
 
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  25% { background-position: 50% 0%; }
+  50% { background-position: 100% 50%; }
+  75% { background-position: 50% 100%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes float-particle {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  50% { transform: translateY(-40px) translateX(15px); }
+}
+
+@keyframes pulse-opacity {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 .animate-fade-in {
   animation: fade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -254,6 +279,32 @@ body {
 .animate-pulse-glow {
   animation: pulse-glow 3s ease-in-out infinite;
 }
+
+.animate-scale-in {
+  animation: scale-in 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* Staggered animation utility */
+.animate-stagger > * {
+  opacity: 0;
+  animation: fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-stagger > *:nth-child(1)  { animation-delay: 0ms; }
+.animate-stagger > *:nth-child(2)  { animation-delay: 80ms; }
+.animate-stagger > *:nth-child(3)  { animation-delay: 160ms; }
+.animate-stagger > *:nth-child(4)  { animation-delay: 240ms; }
+.animate-stagger > *:nth-child(5)  { animation-delay: 320ms; }
+.animate-stagger > *:nth-child(6)  { animation-delay: 400ms; }
+.animate-stagger > *:nth-child(7)  { animation-delay: 480ms; }
+.animate-stagger > *:nth-child(8)  { animation-delay: 560ms; }
+.animate-stagger > *:nth-child(9)  { animation-delay: 640ms; }
+.animate-stagger > *:nth-child(10) { animation-delay: 720ms; }
 
 /* Ripple effect for buttons */
 .ripple {

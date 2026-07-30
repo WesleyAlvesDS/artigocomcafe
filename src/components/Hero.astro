@@ -3,7 +3,23 @@ import NewsletterForm from './NewsletterForm'
 ---
 
 <section class="hero">
-  <div class="hero-bg"></div>
+  <div class="hero-bg">
+    <div class="hero-gradient-sphere sphere-1"></div>
+    <div class="hero-gradient-sphere sphere-2"></div>
+    <div class="hero-gradient-sphere sphere-3"></div>
+    <div class="hero-particles">
+      <div class="particle" style="--x: 10%; --y: 20%; --delay: 0s;"></div>
+      <div class="particle" style="--x: 25%; --y: 60%; --delay: 0.5s;"></div>
+      <div class="particle" style="--x: 45%; --y: 30%; --delay: 1s;"></div>
+      <div class="particle" style="--x: 60%; --y: 70%; --delay: 0.3s;"></div>
+      <div class="particle" style="--x: 75%; --y: 25%; --delay: 0.8s;"></div>
+      <div class="particle" style="--x: 85%; --y: 65%; --delay: 1.5s;"></div>
+      <div class="particle" style="--x: 35%; --y: 80%; --delay: 0.2s;"></div>
+      <div class="particle" style="--x: 55%; --y: 15%; --delay: 1.2s;"></div>
+      <div class="particle" style="--x: 15%; --y: 45%; --delay: 0.7s;"></div>
+      <div class="particle" style="--x: 90%; --y: 50%; --delay: 0.4s;"></div>
+    </div>
+  </div>
   <div class="hero-content container">
     <div class="hero-text">
       <div class="hero-availability">
@@ -47,10 +63,76 @@ import NewsletterForm from './NewsletterForm'
   .hero-bg {
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse at 20% 50%, rgba(0, 212, 170, 0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 20%, rgba(124, 58, 237, 0.06) 0%, transparent 50%),
-                radial-gradient(ellipse at 50% 80%, rgba(0, 212, 170, 0.04) 0%, transparent 50%);
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(0, 212, 170, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(124, 58, 237, 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, rgba(0, 212, 170, 0.04) 0%, transparent 50%);
     pointer-events: none;
+    overflow: hidden;
+  }
+
+  .hero-gradient-sphere {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0;
+    animation: float-particle 8s ease-in-out infinite;
+    animation-fill-mode: backwards;
+  }
+
+  .hero-gradient-sphere.sphere-1 {
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(0, 212, 170, 0.15), transparent);
+    top: -10%;
+    left: -5%;
+    animation-delay: 0s;
+  }
+
+  .hero-gradient-sphere.sphere-2 {
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.12), transparent);
+    bottom: -5%;
+    right: 10%;
+    animation-delay: -3s;
+  }
+
+  .hero-gradient-sphere.sphere-3 {
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(0, 212, 170, 0.08), transparent);
+    top: 40%;
+    left: 60%;
+    animation-delay: -6s;
+  }
+
+  .hero-particles {
+    position: absolute;
+    inset: 0;
+  }
+
+  .particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    opacity: 0;
+    left: var(--x);
+    top: var(--y);
+    animation: float-particle 6s ease-in-out infinite;
+    animation-delay: var(--delay);
+  }
+
+  .particle::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    background: inherit;
+    filter: blur(2px);
+    opacity: 0.5;
   }
 
   .hero-content {

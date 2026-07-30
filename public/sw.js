@@ -1,21 +1,24 @@
 // Artigo com Café - Service Worker
 // Versão: 2.1.0 (with Push Notifications - resilient caching)
-const CACHE_NAME = 'artigocomcafe-v2'
+const CACHE_NAME = 'artigocomcafe-v3'
 
 const PRECACHE_URLS = [
   '/',
   '/blog/',
   '/sobre/',
   '/contato/',
+  '/newsletter/',
   '/offline/',
   '/favicon.svg',
   '/favicon-32x32.png',
   '/favicon-16x16.png',
-  '/apple-touch-icon.png'
+  '/apple-touch-icon.png',
+  '/favicon.ico',
+  '/site.webmanifest'
 ]
 
 // Bump this version to force SW update
-const SW_VERSION = '2.1.0'
+const SW_VERSION = '3.0.0'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -55,35 +58,61 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
+  // Navigation requests (HTML pages)
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
+          // Cache the HTML response for offline use
           const clone = response.clone()
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
+          caches.open(CACHE_NAME).then((cache) => {
+            // Only cache successful HTML responses
+            if (response.ok) {
+              cache.put(event.request, clone)
+            }
+          })
           return response
         })
         .catch(() => {
+          // Try cache first, then fallback to offline page
           return caches.match(event.request).then((cached) => {
-            return cached || caches.match('/offline/') || caches.match('/')
+            if (cached) return cached
+            // For blog/article pages, return homepage as fallback
+            if (url.pathname.startsWith('/blog/')) {
+              return caches.match('/blog/') || caches.match('/')
+            }
+            return caches.match('/offline/') || caches.match('/')
           })
         })
     )
     return
   }
 
+  // Non-navigation requests (CSS, JS, images, fonts)
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      return cached || fetch(event.request).then((response) => {
-        return caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, response.clone())
-          return response
-        })
-      }).catch(() => {
-        if (event.request.destination === 'image') {
-          return new Response('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1" width="1" height="1"><rect fill="transparent"/></svg>', {
-            headers: { 'Content-Type': 'image/svg+xml' }
+      // Return cached if available (cache-first for static assets)
+      if (cached) return cached
+
+      return fetch(event.request).then((response) => {
+        // Only cache successful responses
+        if (response.ok && response.type === 'basic') {
+          const clone = response.clone()
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, clone)
           })
+        }
+        return response
+      }).catch(() => {
+        // Offline fallback for images
+        if (event.request.destination === 'image') {
+          return new Response(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">' +
+            '<rect fill="var(--color-bg-card, #1a1a2e)" width="400" height="300"/>' +
+            '<text x="200" y="150" font-family="system-ui" font-size="16" text-anchor="middle" fill="#888">' +
+            'Imagem offline</text></svg>',
+            { headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'no-cache' } }
+          )
         }
         return new Response('Offline', { status: 503 })
       })
