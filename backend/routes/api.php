@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CollectionController;
 use App\Http\Controllers\Api\GrainController;
+use App\Http\Controllers\Api\KnowledgeMapController;
 use App\Http\Controllers\Api\MissionController;
 use App\Http\Controllers\Api\ReadingProgressController;
 use App\Http\Controllers\Api\RecommendationController;
@@ -65,4 +66,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user/recommendations', [RecommendationController::class, 'recommendations']);
     Route::get('/user/continue-reading', [RecommendationController::class, 'continueReading']);
     Route::get('/user/discover', [RecommendationController::class, 'discover']);
+
+    Route::get('/user/knowledge-map', [KnowledgeMapController::class, 'index']);
 });
+
+Route::get('/knowledge-map/categories', [KnowledgeMapController::class, 'publicMap']);

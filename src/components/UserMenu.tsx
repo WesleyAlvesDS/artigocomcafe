@@ -50,6 +50,7 @@ export default function UserMenu() {
             boxShadow: '0 8px 32px rgba(0,0,0,0.2)', marginTop: '0.25rem'
           }}>
             <a href="/perfil" class="dropdown-link">Meu Perfil</a>
+            <a href="/mapa" class="dropdown-link">🗺️ Mapa do Conhecimento</a>
             <a href="/biblioteca" class="dropdown-link">Biblioteca</a>
             <a href="/graos" class="dropdown-link">Grãos</a>
             <a href="/conquistas" class="dropdown-link">Conquistas</a>

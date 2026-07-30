@@ -88,7 +88,7 @@ export async function searchArticles(query: string): Promise<{ id: number; title
 }
 
 export async function getCategories(): Promise<LaravelCategory[]> {
-  const res = await fetch(`${API_BASE}/articles/categories`, { headers: { Accept: 'application/json' } })
+  const res = await fetch(`${API_BASE}/categories`, { headers: { Accept: 'application/json' } })
   if (!res.ok) return []
   const json = await res.json()
   return json.categories
