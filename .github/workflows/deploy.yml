@@ -1,0 +1,134 @@
+name: Deploy to ValueHost
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Build Astro
+        run: npm run build
+        env:
+          NODE_TLS_REJECT_UNAUTHORIZED: 0
+
+      # ── Frontend ──────────────────────────────────────────────
+      - name: Deploy Frontend
+        uses: burnett01/rsync-deployments@7.0.2
+        with:
+          switches: -avz --delete --checksum
+          path: dist/
+          remote_path: ${{ secrets.DEPLOY_PATH }}
+          remote_host: ${{ secrets.DEPLOY_HOST }}
+          remote_port: ${{ secrets.DEPLOY_PORT }}
+          remote_user: ${{ secrets.DEPLOY_USER }}
+          remote_key: ${{ secrets.DEPLOY_KEY }}
+
+      # ── Backend PHP files (no --delete to preserve vendor, storage, .env) ──
+      - name: Deploy Backend Controllers
+        uses: burnett01/rsync-deployments@7.0.2
+        with:
+          switches: -avz --checksum
+          path: backend/app/Http/Controllers/
+          remote_path: ${{ secrets.BACKEND_PATH }}/app/Http/Controllers/
+          remote_host: ${{ secrets.DEPLOY_HOST }}
+          remote_port: ${{ secrets.DEPLOY_PORT }}
+          remote_user: ${{ secrets.DEPLOY_USER }}
+          remote_key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Deploy Backend Models
+        uses: burnett01/rsync-deployments@7.0.2
+        with:
+          switches: -avz --checksum
+          path: backend/app/Models/
+          remote_path: ${{ secrets.BACKEND_PATH }}/app/Models/
+          remote_host: ${{ secrets.DEPLOY_HOST }}
+          remote_port: ${{ secrets.DEPLOY_PORT }}
+          remote_user: ${{ secrets.DEPLOY_USER }}
+          remote_key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Deploy Backend Database
+        uses: burnett01/rsync-deployments@7.0.2
+        with:
+          switches: -avz --checksum
+          path: backend/database/
+          remote_path: ${{ secrets.BACKEND_PATH }}/database/
+          remote_host: ${{ secrets.DEPLOY_HOST }}
+          remote_port: ${{ secrets.DEPLOY_PORT }}
+          remote_user: ${{ secrets.DEPLOY_USER }}
+          remote_key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Deploy Backend Routes
+        uses: burnett01/rsync-deployments@7.0.2
+        with:
+          switches: -avz --checksum
+          path: backend/routes/
+          remote_path: ${{ secrets.BACKEND_PATH }}/routes/
+          remote_host: ${{ secrets.DEPLOY_HOST }}
+          remote_port: ${{ secrets.DEPLOY_PORT }}
+          remote_user: ${{ secrets.DEPLOY_USER }}
+          remote_key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Deploy composer.json
+        uses: burnett01/rsync-deployments@7.0.2
+        with:
+          switches: -avz --checksum
+          path: backend/composer.json
+          remote_path: ${{ secrets.BACKEND_PATH }}/composer.json
+          remote_host: ${{ secrets.DEPLOY_HOST }}
+          remote_port: ${{ secrets.DEPLOY_PORT }}
+          remote_user: ${{ secrets.DEPLOY_USER }}
+          remote_key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Deploy composer.lock
+        uses: burnett01/rsync-deployments@7.0.2
+        with:
+          switches: -avz --checksum
+          path: backend/composer.lock
+          remote_path: ${{ secrets.BACKEND_PATH }}/composer.lock
+          remote_host: ${{ secrets.DEPLOY_HOST }}
+          remote_port: ${{ secrets.DEPLOY_PORT }}
+          remote_user: ${{ secrets.DEPLOY_USER }}
+          remote_key: ${{ secrets.DEPLOY_KEY }}
+
+      # ── Backend commands ──────────────────────────────────────
+      - name: Run Backend Commands
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            cd ${{ secrets.BACKEND_PATH }}
+            composer install --no-dev -o --no-interaction 2>&1
+            php artisan optimize:clear 2>&1
+            php artisan migrate --force 2>&1 || true
+            echo "BACKEND_DEPLOY_OK"
+
+      # ── Permissions ───────────────────────────────────────────
+      - name: Fix Permissions
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            find ${{ secrets.DEPLOY_PATH }} -type d -exec chmod 755 {} +
+            find ${{ secrets.DEPLOY_PATH }} -type f -exec chmod 644 {} +
+            echo "PERMISSIONS_OK"
