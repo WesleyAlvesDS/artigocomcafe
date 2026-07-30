@@ -36,6 +36,9 @@ artigocomcafe/
 │   │   ├── biblioteca.astro   # Coleções (React, autenticado)
 │   │   ├── graos.astro        # Sistema de XP (React, autenticado)
 │   │   ├── conquistas.astro   # Achievements (React, autenticado)
+│   ├── mapa.astro          # Mapa do Conhecimento (React, autenticado)
+│   ├── torrefacao.astro    # Torrefação de grãos (React, autenticado)
+│   ├── missoes.astro       # Missões diárias (React, autenticado)
 │   │   └── trilhas.astro      # Trilhas aprendizado (React, autenticado)
 │   ├── components/
 │   │   ├── Header.astro       # Nav fixa com vidro fosco + menu mobile
@@ -102,6 +105,7 @@ artigocomcafe/
 | `/graos/` | 200 ✅ | Meus Grãos — Artigo com Café | ✅ | ✅ | `/graos/` |
 | `/trilhas/` | 200 ✅ | Trilhas de Conhecimento — Artigo com Café | ✅ | ✅ | `/trilhas/` |
 | `/newsletter/` | 200 ✅ | Newsletter — Artigo com Café | ✅ | ✅ | `/newsletter/` |
+| `/missoes/` | 200 ✅ | Missões — Artigo com Café | ✅ | ✅ | `/missoes/` |
 | Artigos (10) | 200 ✅ | Título do artigo — Artigo com Café | ✅ | ✅ | `/blog/{slug}/` |
 | `/nao-existe/` | 404 ✅ | 404 customizada | ✅ | ✅ | `/404/` |
 
@@ -495,11 +499,98 @@ src/
 
 ---
 
+## 12. Últimas Melhorias (v3.1)
+
+### 12.1 Café do Dia
+
+| # | Melhoria | Detalhes |
+|---|----------|---------|
+| ✅ | **Componente CafeDoDia** | Card interativo na homepage com loading skeleton e hover state |
+| ✅ | **Endpoint API** | `GET /api/articles/cafe-do-dia` com fallback randômico |
+| ✅ | **Artigo do dia** | Artigo #10 "Bem-vindo ao Artigocomcafé" marcado no servidor |
+
+### 12.2 Reading Progress Tracker
+
+| # | Melhoria | Detalhes |
+|---|----------|---------|
+| ✅ | **Scroll tracking** | Rastreamento via requestAnimationFrame sem stale closure |
+| ✅ | **API progress** | Envia progresso a cada 15s via `POST /articles/{id}/progress` |
+| ✅ | **Auto-complete** | Completa leitura aos 90% scroll + 30s, concede grãos |
+| ✅ | **Barra visual** | Barra gradiente no rodapé com `aria-valuenow` |
+| ✅ | **SSR-safe** | Usa `isAuthenticated()` em vez de contexto React |
+
+### 12.3 Toast Notification System
+
+| # | Melhoria | Detalhes |
+|---|----------|---------|
+| ✅ | **5 tipos** | success, error, info, grain, achievement com cores e ícones |
+| ✅ | **Auto-dismiss** | Fecha após 4s com animação slide-up |
+| ✅ | **Provider + Context** | Integrado ao AuthProvider, disponível em todas as páginas autenticadas |
+| ✅ | **Defensivo** | `useToast()` retorna no-op sem provider, não quebra ilhas React |
+
+### 12.4 Página de Missões
+
+| # | Melhoria | Detalhes |
+|---|----------|---------|
+| ✅ | **/missoes/** | Nova página com layout Base e breadcrumbs |
+| ✅ | **Abas diárias/semanais** | Filtro com badges de contagem |
+| ✅ | **Progress bars** | Barras animadas com gradiente e contador |
+| ✅ | **Claim rewards** | Botão "Resgatar" com toast de confirmação |
+| ✅ | **Vocabulário dinâmico** | Nomes de moedas e ações seguem o tema do usuário |
+
+### 12.5 Trail Seeder
+
+| # | Trilha | Artigos | Dificuldade | Recompensa |
+|---|--------|---------|-------------|------------|
+| ✅ | **Vida Sustentável** | 4 artigos (casca de ovo, sabão, babosa, truques) | Iniciante | 50 grãos |
+| ✅ | **Ciência do Cotidiano** | 4 artigos (gatos, impressões, saara, boas-vindas) | Intermediário | 75 grãos |
+| ✅ | **Beleza Natural** | 4 artigos (hidratante, babosa, shopee, truques) | Iniciante | 50 grãos |
+
+### 12.6 Novos Arquivos
+
+```
+src/
+├── components/
+│   ├── CafeDoDia.tsx        # Card do Café do Dia na homepage
+│   ├── MissionsPage.tsx     # Página de missões diárias/semanais
+│   ├── ReadingTracker.tsx   # Rastreador de progresso de leitura
+│   └── Toast.tsx            # Sistema de notificações toast
+└── pages/
+    └── missoes.astro        # Página de missões
+
+backend/database/seeders/
+└── TrailSeeder.php          # 3 trilhas com 12 conexões artigo-trila
+```
+
+---
+
+## 13. Dados Atualizados (Produção)
+
+| Item | Quantidade |
+|------|-----------|
+| **Categorias** | 34 |
+| **Artigos** | 10 |
+| **Tags** | 146 |
+| **Missões** | 6 (3 diárias, 3 semanais) |
+| **Conquistas** | 15 |
+| **Trilhas** | 3 (12 conexões artigo-trila) |
+| **Recompensas** | 23 |
+| **Páginas** | 27 (todas 200) |
+| **Rotas API** | 43 |
+
+---
+
+## 14. Build Atual
+
+```
+✓ 27 page(s) built in 8.99s
+✓ 0 errors
+```
+
+---
+
 ## Próximos Passos (Recomendados)
 
 1. **Deploy automático CI/CD** — GitHub Actions para build + deploy via SCP
-2. **Sitemap dinâmico** — Gerar sitemap.xml via API Laravel em vez de estático
-3. **Temas personalizados** — Implementar seleção de tema visual no cadastro
-4. **Mapa do Conhecimento** — Visualização interativa da evolução do usuário
-5. **Imagens OG dinâmicas** — Template OG por artigo via SSG
-6. **Newsletter real** — Integrar API de email (MailerLite, Resend)
+2. **Newsletter real** — Integrar API de email (MailerLite, Resend)
+3. **Imagens OG dinâmicas** — Template OG por artigo via SSG
