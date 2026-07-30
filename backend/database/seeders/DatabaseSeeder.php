@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             AchievementSeeder::class,
             MissionSeeder::class,
+            RewardSeeder::class,
         ]);
     }
 }

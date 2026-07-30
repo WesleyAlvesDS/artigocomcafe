@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\KnowledgeMapController;
 use App\Http\Controllers\Api\MissionController;
 use App\Http\Controllers\Api\ReadingProgressController;
 use App\Http\Controllers\Api\RecommendationController;
+use App\Http\Controllers\Api\RoasteryController;
 use App\Http\Controllers\Api\TrailController;
 use App\Http\Controllers\Api\UserDashboardController;
 use Illuminate\Support\Facades\Route;
@@ -68,6 +69,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user/discover', [RecommendationController::class, 'discover']);
 
     Route::get('/user/knowledge-map', [KnowledgeMapController::class, 'index']);
+
+    Route::get('/user/rewards', [RoasteryController::class, 'index']);
+    Route::post('/user/rewards/{reward}/roast', [RoasteryController::class, 'roast']);
+    Route::post('/user/rewards/{reward}/toggle', [RoasteryController::class, 'toggle']);
+    Route::get('/user/rewards/active-theme', [RoasteryController::class, 'activeTheme']);
 });
 
 Route::get('/knowledge-map/categories', [KnowledgeMapController::class, 'publicMap']);

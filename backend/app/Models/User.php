@@ -71,6 +71,13 @@ class User extends Authenticatable
         return $this->hasMany(Article::class, 'user_id');
     }
 
+    public function rewards()
+    {
+        return $this->belongsToMany(Reward::class, 'user_reward')
+            ->withPivot(['is_active', 'unlocked_at', 'activated_at'])
+            ->orderBy('user_reward.unlocked_at', 'desc');
+    }
+
     public function getTotalGrainsAttribute()
     {
         return $this->grains()

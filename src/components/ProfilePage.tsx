@@ -64,9 +64,10 @@ function ProfileContent() {
       </div>
 
       <div class="flex flex-wrap gap-3">
-        <a href="/mapa" class="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-90 transition-opacity">🗺️ Mapa do Conhecimento</a>
-        <a href="/biblioteca" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">Minha Biblioteca</a>
-        <a href="/graos" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">Meus Grãos</a>
+        <a href="/mapa" class="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-90 transition-opacity">🗺️ Mapa</a>
+        <a href="/torrefacao" class="px-5 py-2.5 bg-amber-500 text-black rounded-xl font-medium hover:opacity-90 transition-opacity">☕ Torrefação</a>
+        <a href="/biblioteca" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">Biblioteca</a>
+        <a href="/graos" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">Grãos</a>
         <a href="/conquistas" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">Conquistas</a>
         <a href="/trilhas" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">Trilhas</a>
       </div>

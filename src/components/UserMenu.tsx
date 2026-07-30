@@ -52,7 +52,8 @@ export default function UserMenu() {
             <a href="/perfil" class="dropdown-link">Meu Perfil</a>
             <a href="/mapa" class="dropdown-link">🗺️ Mapa do Conhecimento</a>
             <a href="/biblioteca" class="dropdown-link">Biblioteca</a>
-            <a href="/graos" class="dropdown-link">Grãos</a>
+            <a href="/graos" class="dropdown-link">🫘 Grãos</a>
+            <a href="/torrefacao" class="dropdown-link">☕ Torrefação</a>
             <a href="/conquistas" class="dropdown-link">Conquistas</a>
             <a href="/trilhas" class="dropdown-link">Trilhas</a>
             <hr style={{ border: 'none', borderTop: '1px solid var(--color-bg-card-border)', margin: '0.3rem 0' }} />
