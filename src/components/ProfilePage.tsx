@@ -2,6 +2,7 @@ import AuthPage from './AuthPage'
 import { useAuth } from '../lib/auth'
 import { api } from '../lib/api'
 import { useState, useEffect } from 'react'
+import { getCurrentVocabulary } from '../lib/themes'
 
 interface DashboardData {
   evolution: {
@@ -14,9 +15,14 @@ interface DashboardData {
 function ProfileContent() {
   const { user, logout } = useAuth()
   const [dash, setDash] = useState<DashboardData | null>(null)
+  const [vocab, setVocab] = useState(getCurrentVocabulary())
 
   useEffect(() => {
     api.get<DashboardData>('/user/dashboard').then(setDash).catch(() => {})
+    setVocab(getCurrentVocabulary())
+    const handler = () => setVocab(getCurrentVocabulary())
+    window.addEventListener('storage', handler)
+    return () => window.removeEventListener('storage', handler)
   }, [])
 
   const s = dash?.evolution
@@ -38,7 +44,7 @@ function ProfileContent() {
 
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Grãos', value: s?.total_grains || 0, icon: '🫘' },
+          { label: vocab.currency, value: s?.total_grains || 0, icon: vocab.currency_icon },
           { label: 'Artigos Lidos', value: s?.articles_read || 0, icon: '📖' },
           { label: 'Horas de Leitura', value: s?.reading_time_hours || 0, icon: '⏱️' },
           { label: 'Trilhas Completas', value: s?.trails_completed || 0, icon: '🎯' },
@@ -67,7 +73,7 @@ function ProfileContent() {
         <a href="/mapa" class="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-90 transition-opacity">🗺️ Mapa</a>
         <a href="/torrefacao" class="px-5 py-2.5 bg-amber-500 text-black rounded-xl font-medium hover:opacity-90 transition-opacity">☕ Torrefação</a>
         <a href="/biblioteca" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">Biblioteca</a>
-        <a href="/graos" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">Grãos</a>
+        <a href="/graos" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">{vocab.currency}</a>
         <a href="/conquistas" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">Conquistas</a>
         <a href="/trilhas" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">Trilhas</a>
       </div>

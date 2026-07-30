@@ -1,11 +1,16 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { api, setToken } from '../lib/api'
+import { applyThemeColors, getStoredTheme } from '../lib/themes'
 
 export default function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    applyThemeColors(getStoredTheme())
+  }, [])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()

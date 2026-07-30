@@ -36,6 +36,7 @@ const TYPE_LABELS: Record<string, string> = {
 function RoastModal({ reward, balance, onClose, onRoast }: {
   reward: Reward; balance: number; onClose: () => void; onRoast: () => void
 }) {
+  const vocab = getCurrentVocabulary()
   const [roasting, setRoasting] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
@@ -49,7 +50,7 @@ function RoastModal({ reward, balance, onClose, onRoast }: {
       setDone(true)
       setTimeout(() => { onRoast(); onClose() }, 2000)
     } catch (err: any) {
-      setError(err.message || 'Erro ao torrar grãos')
+      setError(err.message || `Erro ao ${vocab.roast_action.toLowerCase()}`)
     } finally {
       setRoasting(false)
     }
@@ -70,7 +71,7 @@ function RoastModal({ reward, balance, onClose, onRoast }: {
                 {RARITY_LABELS[reward.rarity]}
               </span>
               <span class="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-500 text-xs font-semibold">
-                🫘 {reward.grain_cost} grãos
+                {vocab.currency_icon} {reward.grain_cost} {vocab.currency.toLowerCase()}
               </span>
             </div>
             {error && (
@@ -86,11 +87,11 @@ function RoastModal({ reward, balance, onClose, onRoast }: {
               onMouseEnter={e => { if (canAfford) e.currentTarget.style.transform = 'scale(1.02)' }}
               onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
             >
-              {roasting ? '☕ Torrando...' : `☕ Torrar ${reward.grain_cost} grãos`}
+              {roasting ? `${vocab.roast_action}...` : `${vocab.currency_icon} ${vocab.roast_action} ${reward.grain_cost} ${vocab.currency.toLowerCase()}`}
             </button>
             {!canAfford && !error && (
               <p class="text-xs text-[var(--color-text-muted)] mt-2">
-                Faltam {reward.grain_cost - balance} grãos
+                Faltam {reward.grain_cost - balance} {vocab.currency.toLowerCase()}
               </p>
             )}
           </>

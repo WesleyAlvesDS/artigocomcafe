@@ -1,7 +1,7 @@
 import AuthPage from './AuthPage'
 import { api } from '../lib/api'
 import { useState, useEffect } from 'react'
-import { vocKey, getCurrentVocabulary } from '../lib/themes'
+import { getCurrentVocabulary } from '../lib/themes'
 
 interface GrainEntry { id: number; amount: number; type: string; source: string; description: string; created_at: string }
 interface GrainData { balance: number; total_earned: number; total_spent: number; recent: GrainEntry[] }

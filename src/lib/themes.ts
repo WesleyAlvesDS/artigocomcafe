@@ -118,7 +118,3 @@ export function getCurrentVocabulary(): ThemeVocabulary {
   return getTheme(getStoredTheme()).vocabulary
 }
 
-/** Translate a vocabulary key using the current theme */
-export function vocKey(key: keyof ThemeVocabulary): string {
-  return getCurrentVocabulary()[key]
-}
