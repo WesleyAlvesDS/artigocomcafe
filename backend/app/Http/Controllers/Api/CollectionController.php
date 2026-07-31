@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Article;
 use App\Models\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -108,6 +109,25 @@ class CollectionController extends Controller
         $collection->articles()->detach($articleId);
 
         return response()->json(['message' => 'Artigo removido da coleção.']);
+    }
+
+    public function saveToLibrary(Request $request, $articleId): JsonResponse
+    {
+        $article = Article::findOrFail($articleId);
+
+        $collection = $request->user()->collections()->firstOrCreate(
+            ['name' => 'Minha Biblioteca'],
+            ['description' => 'Artigos salvos automaticamente', 'icon' => '📚', 'color' => '#8b5a2b']
+        );
+
+        if (!$collection->articles()->where('article_id', $articleId)->exists()) {
+            $collection->articles()->attach($articleId);
+        }
+
+        return response()->json([
+            'message' => 'Artigo salvo na biblioteca.',
+            'collection' => $collection,
+        ]);
     }
 
     public function myLibrary(Request $request): JsonResponse

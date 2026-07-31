@@ -2,9 +2,23 @@ import { useState, useEffect, type FormEvent } from 'react'
 import { api, setToken } from '../lib/api'
 import { applyThemeColors, getStoredTheme } from '../lib/themes'
 
+interface LoginResponse {
+  token: string
+  user: { theme?: string }
+}
+
+function getRedirectTarget(): string {
+  if (typeof window === 'undefined') return '/'
+  const url = new URL(window.location.href)
+  const next = url.searchParams.get('next')
+  if (next && next.startsWith('/') && !next.startsWith('//')) return next
+  return '/'
+}
+
 export default function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -17,11 +31,16 @@ export default function LoginForm() {
     setError('')
     setLoading(true)
     try {
-      const data = await api.post<{ token: string }>('/auth/login', { email, password })
+      const data = await api.post<LoginResponse>('/auth/login', { email, password })
       setToken(data.token)
-      window.location.href = '/'
+      if (data.user?.theme) applyThemeColors(data.user.theme)
+      window.location.href = getRedirectTarget()
     } catch (err: any) {
-      setError(err.message || 'Erro ao entrar')
+      if (err.errors?.email) {
+        setError(Array.isArray(err.errors.email) ? err.errors.email[0] : String(err.errors.email))
+      } else {
+        setError(err.message || 'Erro ao entrar')
+      }
     } finally {
       setLoading(false)
     }
@@ -30,17 +49,37 @@ export default function LoginForm() {
   return (
     <form onSubmit={handleSubmit} class="space-y-5">
       {error && (
-        <div class="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-950/30 dark:text-red-400 rounded-lg border border-red-200 dark:border-red-800">{error}</div>
+        <div class="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-950/30 dark:text-red-400 rounded-lg border border-red-200 dark:border-red-800" role="alert">{error}</div>
       )}
       <div>
-        <label for="email" class="block text-sm font-medium text-foreground mb-1.5">Email</label>
-        <input id="email" type="email" required value={email} onChange={e => setEmail(e.target.value)}
+        <label for="login-email" class="block text-sm font-medium text-foreground mb-1.5">Email</label>
+        <input id="login-email" type="email" required autoComplete="email" value={email} onChange={e => setEmail(e.target.value)}
           class="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-shadow" placeholder="seu@email.com" />
       </div>
       <div>
-        <label for="password" class="block text-sm font-medium text-foreground mb-1.5">Senha</label>
-        <input id="password" type="password" required value={password} onChange={e => setPassword(e.target.value)}
-          class="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-shadow" placeholder="Sua senha" />
+        <div class="flex items-center justify-between mb-1.5">
+          <label for="login-password" class="block text-sm font-medium text-foreground">Senha</label>
+          <a href="/recuperar-senha" class="text-xs text-primary hover:underline">Esqueceu a senha?</a>
+        </div>
+        <div class="relative">
+          <input id="login-password" type={showPassword ? 'text' : 'password'} required autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)}
+            class="w-full px-4 py-2.5 pr-11 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-shadow" placeholder="Sua senha" />
+          <button type="button" onClick={() => setShowPassword(v => !v)} tabIndex={-1}
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}>
+            {showPassword ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
       <button type="submit" disabled={loading}
         class="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50">

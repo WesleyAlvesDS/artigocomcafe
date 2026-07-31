@@ -194,6 +194,14 @@ const organizationJsonLd = {
         transform: translateY(0);
       }
     </style>
+    <noscript>
+      <style>
+        [data-reveal] {
+          opacity: 1 !important;
+          transform: none !important;
+        }
+      </style>
+    </noscript>
   </head>
   <body data-api-base="https://back.artigocomcafe.com/api">
     <a href="#main-content" class="skip-to-content">
@@ -220,13 +228,34 @@ const organizationJsonLd = {
         })
       }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' })
 
-      document.addEventListener('astro:page-load', () => {
+      function revealAll() {
+        document.querySelectorAll('[data-reveal]').forEach(el => el.classList.add('revealed'))
+      }
+
+      function initReveal() {
         document.querySelectorAll('[data-reveal]').forEach(el => observer.observe(el))
         // Re-focus skip link target after page transition
         const main = document.getElementById('main-content')
         if (main && !main.hasAttribute('tabindex')) {
           main.setAttribute('tabindex', '-1')
         }
+      }
+
+      document.addEventListener('astro:page-load', initReveal)
+
+      // Static site without ClientRouter: astro:page-load never fires on
+      // first load, so observe right away once the DOM is ready.
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initReveal)
+      } else {
+        initReveal()
+      }
+
+      // Safety fallback: if the reveal animation script fails or the page
+      // loads with JavaScript blocked/broken, force everything visible so
+      // the site never stays "off"/hidden. Runs once after hydration window.
+      window.addEventListener('load', () => {
+        setTimeout(revealAll, 2500)
       })
     </script>
 

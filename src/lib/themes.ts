@@ -79,20 +79,38 @@ export function getTheme(id?: string): ThemeDefinition {
   return THEMES[id || 'cafe'] || THEMES.cafe
 }
 
+const LIGHT_DARKEN_FACTOR: Record<string, number> = {
+  cafe: 0.55,
+  livros: 0.71,
+  tecnologia: 0.62,
+  natureza: 0.60,
+  espaco: 0.80,
+  games: 0.78,
+  musica: 0.76,
+}
+
+function darkenColor(hex: string, factor: number): string {
+  const h = hex.replace('#', '')
+  const c = [0, 2, 4].map(i => Math.round(parseInt(h.substr(i, 2), 16) * factor))
+  return '#' + c.map(x => x.toString(16).padStart(2, '0')).join('')
+}
+
 /** Apply theme colors to CSS custom properties on document root */
 export function applyThemeColors(themeId: string, isDark: boolean = true) {
   const theme = getTheme(themeId)
   const root = document.documentElement
   const { colors } = theme
+  const light = root.classList.contains('light') || !isDark
+  const darken = light ? (LIGHT_DARKEN_FACTOR[themeId] ?? 0.65) : 1
 
-  root.style.setProperty('--color-accent', colors.primary)
-  root.style.setProperty('--color-accent-dark', colors.primary)
-  root.style.setProperty('--color-accent-secondary', colors.secondary)
-  root.style.setProperty('--color-accent-secondary-dark', colors.secondary)
+  root.style.setProperty('--color-accent', darkenColor(colors.primary, darken))
+  root.style.setProperty('--color-accent-dark', darkenColor(colors.primary, darken))
+  root.style.setProperty('--color-accent-secondary', darkenColor(colors.secondary, darken))
+  root.style.setProperty('--color-accent-secondary-dark', darkenColor(colors.secondary, darken))
 
   // Update gradient text
-  root.style.setProperty('--gradient-from', colors.gradient_from)
-  root.style.setProperty('--gradient-to', colors.gradient_to)
+  root.style.setProperty('--gradient-from', darkenColor(colors.gradient_from, darken))
+  root.style.setProperty('--gradient-to', darkenColor(colors.gradient_to, darken))
 
   // Update shadow glow
   root.style.setProperty('--shadow-glow', `0 0 40px ${colors.primary}15`)

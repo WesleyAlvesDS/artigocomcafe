@@ -1,0 +1,36 @@
+---
+import Base from '../layouts/Base.astro'
+import ForgotPasswordForm from '../components/ForgotPasswordForm.tsx'
+import ResetPasswordForm from '../components/ResetPasswordForm.tsx'
+---
+
+<Base title="Recuperar Senha — Artigo com Café" description="Recupere o acesso à sua conta no Artigo com Café" canonical="/recuperar-senha/" breadcrumbs={[
+    { name: 'Início', slug: '/' },
+    { name: 'Recuperar Senha', slug: '/recuperar-senha/' }
+  ]}>
+  <section class="min-h-screen flex items-center justify-center px-4 py-20" aria-label="Recuperação de senha">
+    <div class="w-full max-w-md">
+      <div class="text-center mb-8">
+        <h1 data-reveal class="text-3xl font-bold text-foreground">
+          {Astro.url.searchParams.get('token') ? 'Redefinir Senha' : 'Recuperar Senha'}
+        </h1>
+        <p data-reveal class="mt-2 text-muted-foreground">
+          {Astro.url.searchParams.get('token')
+            ? 'Escolha uma nova senha para a sua conta'
+            : 'Informe seu e-mail e enviaremos instruções para redefinir sua senha'}
+        </p>
+      </div>
+      <div data-reveal class="bg-card border border-border rounded-2xl p-8 shadow-sm">
+        {Astro.url.searchParams.get('token') ? (
+          <ResetPasswordForm client:load />
+        ) : (
+          <ForgotPasswordForm client:load />
+        )}
+        <p class="mt-6 text-center text-sm text-muted-foreground">
+          Lembrou a senha?{' '}
+          <a href="/entrar" class="text-primary hover:underline font-medium">Voltar para o login</a>
+        </p>
+      </div>
+    </div>
+  </section>
+</Base>

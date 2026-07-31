@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { applyThemeColors, getStoredTheme } from '../lib/themes'
 
 function getInitialTheme(): 'dark' | 'light' {
   if (typeof document === 'undefined') return 'dark'
@@ -33,6 +34,7 @@ export default function ThemeToggle() {
       root.classList.remove('light')
     }
     localStorage.setItem('theme', theme)
+    applyThemeColors(getStoredTheme(), theme === 'dark')
   }, [theme])
 
   function toggle() {

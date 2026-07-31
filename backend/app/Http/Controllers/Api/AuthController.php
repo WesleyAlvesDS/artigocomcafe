@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -102,8 +104,59 @@ class AuthController extends Controller
         return response()->json(['user' => $user, 'message' => 'Perfil atualizado.']);
     }
 
-    private function updateStreak(User $user): void
+    public function forgotPassword(Request $request): JsonResponse
     {
+        $validated = $request->validate([
+            'email' => 'required|string|email|exists:users,email',
+        ]);
+
+        $token = Str::random(64);
+
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $validated['email']],
+            ['token' => Hash::make($token), 'created_at' => now()]
+        );
+
+        return response()->json([
+            'message' => 'Se existir uma conta com este e-mail, enviaremos um link para redefinir sua senha.',
+            'reset_token' => $token,
+        ]);
+    }
+
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => 'required|string|email|exists:users,email',
+            'token' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $record = DB::table('password_reset_tokens')
+            ->where('email', $validated['email'])
+            ->first();
+
+        if (!$record || !Hash::check($validated['token'], $record->token)) {
+            throw ValidationException::withMessages([
+                'token' => ['Token inválido ou expirado.'],
+            ]);
+        }
+
+        if (now()->diffInMinutes($record->created_at) > 60) {
+            throw ValidationException::withMessages([
+                'token' => ['Token expirado. Solicite um novo link.'],
+            ]);
+        }
+
+        $user = User::where('email', $validated['email'])->firstOrFail();
+        $user->password = Hash::make($validated['password']);
+        $user->save();
+
+        DB::table('password_reset_tokens')->where('email', $validated['email'])->delete();
+
+        return response()->json(['message' => 'Senha redefinida com sucesso. Faça login com a nova senha.']);
+    }
+
+    private function updateStreak(User $user): void    {
         $today = now()->toDateString();
         $yesterday = now()->subDay()->toDateString();
 

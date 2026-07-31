@@ -80,8 +80,8 @@ const { posts, pagination } = await getPosts(currentPage, 9, categoryId || undef
       {posts.length > 0 ? (
         <>
           <div class="articles-grid">
-            {posts.map(post => (
-              <ArticleCard post={post} />
+            {posts.map((post, i) => (
+              <ArticleCard post={post} revealDelay={`delay-${(i % 4) + 1}`} />
             ))}
           </div>
           {pagination.totalPages > 1 && (

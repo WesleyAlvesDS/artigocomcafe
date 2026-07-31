@@ -1,6 +1,6 @@
 // Artigo com Café - Service Worker
 // Versão: 2.1.0 (with Push Notifications - resilient caching)
-const CACHE_NAME = 'artigocomcafe-v3'
+const CACHE_NAME = 'artigocomcafe-v4'
 
 const PRECACHE_URLS = [
   '/',
@@ -18,7 +18,7 @@ const PRECACHE_URLS = [
 ]
 
 // Bump this version to force SW update
-const SW_VERSION = '3.0.0'
+const SW_VERSION = '4.0.0'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

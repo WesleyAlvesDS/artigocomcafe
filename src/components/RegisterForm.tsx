@@ -104,8 +104,8 @@ export default function RegisterForm() {
                 {Object.values(THEMES[selectedTheme].vocabulary).slice(0, 4).map(word => (
                   <span key={word} class="text-[10px] px-2 py-0.5 rounded-full"
                     style={{
-                      background: `${THEMES[selectedTheme].colors.primary}22`,
-                      color: THEMES[selectedTheme].colors.primary,
+                      background: 'color-mix(in srgb, var(--color-accent) 14%, transparent)',
+                      color: 'var(--color-accent)',
                     }}>
                     {word}
                   </span>

@@ -4,12 +4,13 @@ import { formatDate } from '../lib/utils'
 
 export interface Props {
   post: BlogPost
+  revealDelay?: string
 }
 
-const { post } = Astro.props
+const { post, revealDelay } = Astro.props
 ---
 
-<a href={`/blog/${post.slug}`} class="article-card glass-card" data-reveal>
+<a href={`/blog/${post.slug}`} class="article-card glass-card" data-reveal={revealDelay || ''}>
   {post.featuredImage && (
     <div class="article-image-wrapper">
       <img

@@ -22,6 +22,8 @@ Route::get('/test', function () {
 
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
+Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
 
 Route::get('/articles', [ArticleController::class, 'index']);
 Route::get('/articles/cafe-do-dia', [ArticleController::class, 'cafeDoDia']);
@@ -42,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user/dashboard', [UserDashboardController::class, 'index']);
 
     Route::get('/user/library', [CollectionController::class, 'myLibrary']);
+    Route::post('/user/library/{article}', [CollectionController::class, 'saveToLibrary']);
     Route::get('/user/collections', [CollectionController::class, 'index']);
     Route::post('/user/collections', [CollectionController::class, 'store']);
     Route::get('/user/collections/{collection}', [CollectionController::class, 'show']);

@@ -13,6 +13,10 @@ RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule . - [L]
 
+# Imagens de artigos - proxy para o backend (frontend é estático)
+RewriteCond %{REQUEST_URI} ^/storage/articles/
+RewriteRule ^storage/ storage-proxy.php [L]
+
 # Páginas HTML do Astro - diretórios viram /{path}/index.html
 RewriteCond %{DOCUMENT_ROOT}/$1/index.html -f
 RewriteRule ^(.+?)/?$ /$1/index.html [L]

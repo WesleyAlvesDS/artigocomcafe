@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { isAuthenticated, api } from '../lib/api'
+import { isAuthenticated, api, setToken } from '../lib/api'
+import { resetThemeColors } from '../lib/themes'
 import PushToggle from './PushToggle'
 
 export default function UserMenu() {
@@ -22,6 +23,15 @@ export default function UserMenu() {
         Entrar
       </a>
     )
+  }
+
+  const logout = async () => {
+    try { await api.post('/auth/logout') } catch {}
+    setToken(null)
+    resetThemeColors()
+    setLoggedIn(false)
+    setOpen(false)
+    window.location.href = '/'
   }
 
   return (
@@ -60,8 +70,8 @@ export default function UserMenu() {
             <a href="/trilhas" class="dropdown-link">Trilhas</a>
             <hr style={{ border: 'none', borderTop: '1px solid var(--color-bg-card-border)', margin: '0.3rem 0' }} />
             <PushToggle />
-            <a href="/entrar" class="dropdown-link" onClick={() => { localStorage.removeItem('auth_token'); setLoggedIn(false) }}
-              style={{ color: 'var(--color-red, #ef4444)' }}>Sair</a>
+            <button onClick={logout} class="dropdown-link logout-link"
+              style={{ color: 'var(--color-red, #ef4444)', background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', font: 'inherit' }}>Sair</button>
           </div>
         </>
       )}
