@@ -26,6 +26,11 @@
     <changefreq>weekly</changefreq>
   </url>
   <url>
+    <loc>https://artigocomcafe.com/cookies/</loc>
+    <priority>0.2</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
     <loc>https://artigocomcafe.com/entrar/</loc>
     <priority>0.3</priority>
     <changefreq>monthly</changefreq>

@@ -51,7 +51,7 @@ function mapArticle(a: LaravelArticle): BlogPost {
         : null,
     featuredImageAlt: a.title,
     categories: a.category ? [{ id: a.category.id, name: a.category.name, slug: a.category.slug }] : [],
-    tags: a.tags.map(t => ({ id: t.id, name: t.name, slug: t.slug })),
+    tags: (a.tags || []).map(t => ({ id: t.id, name: t.name, slug: t.slug })),
     readingTime: parseInt(a.reading_time) || 5,
   }
 }

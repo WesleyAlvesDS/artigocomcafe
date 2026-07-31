@@ -124,7 +124,7 @@ export default function PwaInstallPrompt() {
           class="mt-3 w-full py-2.5 rounded-xl text-sm font-semibold"
           style={{
             background: 'linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary))',
-            color: '#0a0a0f'
+            color: 'var(--color-btn-text)'
           }}
         >
           Entendi!
@@ -188,7 +188,7 @@ export default function PwaInstallPrompt() {
           class="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-90"
           style={{
             background: 'linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary))',
-            color: '#0a0a0f'
+            color: 'var(--color-btn-text)'
           }}
         >
           Instalar

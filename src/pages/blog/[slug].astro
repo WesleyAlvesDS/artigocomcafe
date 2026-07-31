@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro'
 import SearchModal from '../../components/SearchModal'
 import ReadingTracker from '../../components/ReadingTracker'
+import ReaderAssistant from '../../components/ReaderAssistant'
 import ArticleCard from '../../components/ArticleCard.astro'
 import { formatDate } from '../../lib/utils'
 import { getPost, getAllSlugs } from '../../lib/laravel'
@@ -63,8 +64,8 @@ try {
       "image": post!.featuredImage,
       "datePublished": post!.date,
       "author": {
-        "@type": "Person",
-        "name": "Wesley Alves"
+        "@type": "Organization",
+        "name": "Artigo com Café"
       },
       "publisher": {
         "@type": "Organization",
@@ -216,6 +217,7 @@ try {
 
     <SearchModal client:load />
     <ReadingTracker articleId={post!.id} articleTitle={post!.title} client:load />
+    <ReaderAssistant client:load />
 
     <script>
       const copyBtn = document.getElementById('copy-link')

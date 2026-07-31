@@ -80,8 +80,8 @@ function RoastModal({ reward, balance, onClose, onRoast }: {
             <button onClick={handleRoast} disabled={roasting || !canAfford}
               class="w-full py-3 px-6 rounded-xl font-bold text-lg transition-all disabled:opacity-40"
               style={{
-                background: canAfford ? 'linear-gradient(135deg, #d97706, #f59e0b)' : 'var(--color-bg-card)',
-                color: canAfford ? '#0a0a0f' : 'var(--color-text-muted)',
+                background: canAfford ? 'linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary))' : 'var(--color-bg-card)',
+                color: canAfford ? 'var(--color-btn-text)' : 'var(--color-text-muted)',
                 border: canAfford ? 'none' : '1px solid var(--color-bg-card-border)',
               }}
               onMouseEnter={e => { if (canAfford) e.currentTarget.style.transform = 'scale(1.02)' }}

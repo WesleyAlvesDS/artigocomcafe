@@ -45,7 +45,7 @@ const DEFAULT_ICONS: Record<string, string> = {
 
 // Deterministic color from slug
 function colorFromSlug(slug: string): string {
-  const colors = ['#00d4aa', '#7c3aed', '#f59e0b', '#ef4444', '#3b82f6', '#ec4899', '#14b8a6', '#f97316', '#8b5cf6', '#06b6d4']
+  const colors = ['#d4a373', '#c68a53', '#b87333', '#a0522d', '#8b5a2b', '#96783f', '#c08552', '#d2a679', '#a9714b', '#b8860b']
   let hash = 0
   for (let i = 0; i < slug.length; i++) hash = ((hash << 5) - hash) + slug.charCodeAt(i)
   return colors[Math.abs(hash) % colors.length]
@@ -282,7 +282,7 @@ function MapContent() {
                   {cat.completed_articles > 0 && (
                     <g>
                       <rect x={cat.x + cat.nodeRadius - 8} y={cat.y - cat.nodeRadius - 6} width={16} height={16} rx="8" fill={cat.catColor} />
-                      <text x={cat.x + cat.nodeRadius} y={cat.y - cat.nodeRadius + 5} textAnchor="middle" fontSize="8" fill="#0a0a0f" fontWeight="700">
+                      <text x={cat.x + cat.nodeRadius} y={cat.y - cat.nodeRadius + 5} textAnchor="middle" fontSize="8" fill="#1a1209" fontWeight="700">
                         {cat.completed_articles}
                       </text>
                     </g>

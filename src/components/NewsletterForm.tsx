@@ -28,7 +28,7 @@ const btnStyle: React.CSSProperties = {
   borderRadius: '8px',
   border: 'none',
   background: 'linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary))',
-  color: '#0a0a0f',
+  color: 'var(--color-btn-text)',
   fontWeight: 600,
   fontSize: '0.875rem',
   cursor: 'pointer',

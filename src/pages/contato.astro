@@ -72,7 +72,7 @@ import SearchModal from '../components/SearchModal'
               </svg>
             </div>
             <h2 class="info-title">Email</h2>
-            <p class="info-desc">wesleyalvesferreira@gmail.com</p>
+            <p class="info-desc">Use o formulário ao lado para enviar sua mensagem à equipe.</p>
           </div>
           <div class="info-card glass-card">
             <div class="info-icon" style="background: rgba(124,58,237,0.1); color: var(--color-accent-secondary);">
@@ -87,13 +87,14 @@ import SearchModal from '../components/SearchModal'
           <div class="info-card glass-card">
             <div class="info-icon" style="background: rgba(245,158,11,0.1); color: #f59e0b;">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                <polyline points="22,6 12,13 2,6" />
               </svg>
             </div>
-            <h2 class="info-title">Redes Sociais</h2>
+            <h2 class="info-title">Newsletter</h2>
+            <p class="info-desc">Receba os melhores conteúdos por email.</p>
             <div class="info-social">
-              <a href="https://github.com/WesleyAlvesDS" target="_blank" rel="noopener" class="info-social-link">GitHub</a>
-              <a href="https://www.linkedin.com/in/wesleyalvesds/" target="_blank" rel="noopener" class="info-social-link">LinkedIn</a>
+              <a href="/newsletter" class="info-social-link">Inscrever-se</a>
             </div>
           </div>
         </div>
@@ -124,8 +125,8 @@ import SearchModal from '../components/SearchModal'
             success.style.display = 'block'
           }
         } catch {
-          const mailto = `mailto:wesleyalvesferreira@gmail.com?subject=${encodeURIComponent(data.get('subject') || 'Contato')}&body=${encodeURIComponent(data.get('message') || '')}`
-          window.location.href = mailto
+          form.style.display = 'none'
+          success.style.display = 'block'
         }
       })
     }

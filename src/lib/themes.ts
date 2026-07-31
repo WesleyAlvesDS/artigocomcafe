@@ -33,7 +33,7 @@ export const THEMES: Record<string, ThemeDefinition> = {
     name: 'Café',
     icon: '☕',
     description: 'A essência do conhecimento com sabor de café',
-    colors: { primary: '#00d4aa', secondary: '#7c3aed', accent: '#f59e0b', gradient_from: '#00d4aa', gradient_to: '#7c3aed' },
+    colors: { primary: '#d4a373', secondary: '#8b5a2b', accent: '#b07d3f', gradient_from: '#d4a373', gradient_to: '#8b5a2b' },
     vocabulary: { currency: 'Grãos', currency_icon: '🫘', roasting: 'Torrefação', roast_action: 'Torrar', collection: 'Coleção', blend: 'Blend', machine: 'Cafeteira', brew: 'Preparo', harvest: 'Colheita' },
   },
   livros: {

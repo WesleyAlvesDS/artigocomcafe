@@ -134,7 +134,7 @@ export default function RegisterForm() {
           class="w-full py-3 px-6 rounded-xl font-bold text-base transition-all"
           style={{
             background: `linear-gradient(135deg, ${THEMES[selectedTheme].colors.gradient_from}, ${THEMES[selectedTheme].colors.gradient_to})`,
-            color: '#0a0a0f',
+            color: 'var(--color-btn-text)',
           }}
           onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.opacity = '0.95' }}
           onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.opacity = '1' }}
@@ -196,7 +196,7 @@ export default function RegisterForm() {
         class="w-full py-2.5 px-4 rounded-xl font-medium transition-all disabled:opacity-50"
         style={{
           background: `linear-gradient(135deg, ${THEMES[selectedTheme].colors.gradient_from}, ${THEMES[selectedTheme].colors.gradient_to})`,
-          color: '#0a0a0f',
+          color: 'var(--color-btn-text)',
         }}
         onMouseEnter={e => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '0.95' } }}
         onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.opacity = '1' }}

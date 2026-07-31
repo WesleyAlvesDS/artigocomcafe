@@ -70,7 +70,7 @@ $subscribers[] = [
 file_put_contents($filePath, json_encode($subscribers, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 
 // Try to send email notification to admin
-$adminEmail = 'wesleyalvesferreira@gmail.com';
+$adminEmail = 'newsletter@artigocomcafe.com';
 $subject = '📬 Nova inscrição na Newsletter - Artigo com Café';
 $message = "Nova inscrição na newsletter!\n\n";
 $message .= "Email: $email\n";

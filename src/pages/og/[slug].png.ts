@@ -68,7 +68,7 @@ export const GET: APIRoute = async ({ props }) => {
     console.error('[OG] Generation error:', error)
     // Return a simple fallback PNG
     return new Response(
-      '<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630"><rect width="1200" height="630" fill="#0a0a0f"/><text x="600" y="315" font-family="sans-serif" font-size="48" fill="#00d4aa" text-anchor="middle" dominant-baseline="middle">Artigo com Café</text></svg>',
+      '<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630"><rect width="1200" height="630" fill="#16110c"/><text x="600" y="315" font-family="sans-serif" font-size="48" fill="#d4a373" text-anchor="middle" dominant-baseline="middle">Artigo com Café</text></svg>',
       {
         status: 200,
         headers: {

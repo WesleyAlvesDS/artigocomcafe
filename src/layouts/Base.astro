@@ -2,6 +2,7 @@
 import '../styles/global.css'
 import Header from '../components/Header.astro'
 import Footer from '../components/Footer.astro'
+import CookieConsent from '../components/CookieConsent.astro'
 import PwaInstallPrompt from '../components/PwaInstallPrompt'
 
 export interface Props {
@@ -54,10 +55,6 @@ const organizationJsonLd = {
   'name': 'Artigo com Café',
   'url': siteUrl,
   'logo': `${siteUrl}/favicon.svg`,
-  'sameAs': [
-    'https://github.com/WesleyAlvesDS',
-    'https://www.linkedin.com/in/wesleyalvesds/'
-  ],
   'description': 'Plataforma de conhecimento personalizada. Conteúdo, tecnologia e experiência do usuário.'
 }
 ---
@@ -68,8 +65,8 @@ const organizationJsonLd = {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#0a0a0f" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#16110c" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#faf6f0" media="(prefers-color-scheme: light)" />
     <meta name="robots" content="index, follow" />
 
     <!-- iOS PWA Support -->
@@ -111,11 +108,11 @@ const organizationJsonLd = {
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="mask-icon" href="/favicon.svg" color="#00d4aa" />
+    <link rel="mask-icon" href="/favicon.svg" color="#d4a373" />
     <link rel="manifest" href="/site.webmanifest" />
 
     <!-- Windows Tiles -->
-    <meta name="msapplication-TileColor" content="#0a0a0f" />
+    <meta name="msapplication-TileColor" content="#16110c" />
     <meta name="msapplication-TileImage" content="/favicon-144x144.png" />
     <meta name="msapplication-config" content="none" />
 
@@ -124,12 +121,25 @@ const organizationJsonLd = {
     )}
     <script type="application/ld+json" set:html={JSON.stringify(organizationJsonLd)} />
 
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TMDJNM49Q6"></script>
     <script is:inline>
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-TMDJNM49Q6');
+      function gtag(){ dataLayer.push(arguments); }
+      window.__enableAnalytics = function() {
+        if (window.__gtagLoaded) return;
+        window.__gtagLoaded = true;
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-TMDJNM49Q6';
+        document.head.appendChild(s);
+        gtag('js', new Date());
+        gtag('config', 'G-TMDJNM49Q6');
+      };
+      (function() {
+        try {
+          var consent = JSON.parse(localStorage.getItem('cookie-consent') || 'null');
+          if (consent && consent.analytics) window.__enableAnalytics();
+        } catch (e) {}
+      })();
     </script>
 
     {!disableTransitions && (
@@ -146,7 +156,7 @@ const organizationJsonLd = {
         z-index: 10000;
         padding: 0.75rem 1.5rem;
         background: var(--color-accent);
-        color: #0a0a0f;
+        color: var(--color-btn-text);
         font-weight: 700;
         font-size: 0.9rem;
         border-radius: 0 0 12px 12px;
@@ -226,6 +236,7 @@ const organizationJsonLd = {
     </main>
     <Footer />
 
+    <CookieConsent />
     <PwaInstallPrompt client:load />
 
     {!disableTransitions && (

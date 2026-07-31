@@ -1,0 +1,164 @@
+---
+import Base from '../layouts/Base.astro'
+import SearchModal from '../components/SearchModal'
+---
+
+<Base title="Política de Cookies — Artigo com Café" description="Saiba como o Artigo com Café utiliza cookies e como você pode controlar o seu consentimento." canonical="/cookies/" breadcrumbs={[
+    { name: 'Início', slug: '/' },
+    { name: 'Política de Cookies', slug: '/cookies/' }
+  ]}>
+  <section class="section page-header">
+    <div class="container">
+      <div data-reveal>
+        <span class="section-label">Privacidade</span>
+        <h1 class="section-title">Política de Cookies</h1>
+        <p class="section-subtitle">
+          Entenda como usamos cookies e como você controla o seu consentimento.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="cookies-content prose" data-reveal>
+        <h2>1. O que são cookies?</h2>
+        <p>
+          Cookies são pequenos arquivos de texto armazenados no seu navegador quando você visita um site.
+          Eles permitem que o site lembre de suas preferências, entenda como você interage com o conteúdo
+          e melhore a sua experiência de navegação.
+        </p>
+
+        <h2>2. Cookies que utilizamos</h2>
+        <p>No <strong>Artigo com Café</strong> utilizamos duas categorias de cookies:</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Categoria</th>
+              <th>Finalidade</th>
+              <th>Exemplos</th>
+              <th>Consentimento</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Essenciais</strong></td>
+              <td>Necessários para o funcionamento do site: tema (claro/escuro), login, preferências.</td>
+              <td><code>theme</code>, <code>user_theme</code>, token de autenticação</td>
+              <td>Sempre ativos</td>
+            </tr>
+            <tr>
+              <td><strong>Estatística</strong></td>
+              <td>Medem o tráfego e o comportamento de navegação de forma agregada via Google Analytics (GA4).</td>
+              <td><code>_ga</code>, <code>_gid</code>, <code>_gat</code></td>
+              <td>Somente com sua autorização</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2>3. Como controlar os cookies</h2>
+        <p>
+          Ao acessar o site pela primeira vez, você verá um aviso de consentimento com as opções
+          <strong>“Aceitar todos”</strong> ou <strong>“Rejeitar”</strong>. A sua escolha fica salva no seu
+          navegador e você pode alterá-la a qualquer momento clicando no botão abaixo:
+        </p>
+        <p>
+          <button type="button" class="btn-primary cookie-reset-btn" id="cookie-reset">
+            Gerenciar consentimento de cookies
+          </button>
+        </p>
+        <p>
+          Se você rejeitar os cookies de estatística, apenas os cookies essenciais permanecerão ativos e
+          nenhum dado de navegação será enviado ao Google Analytics.
+        </p>
+
+        <h2>4. Como rejeitar cookies no navegador</h2>
+        <p>
+          Além do nosso aviso de consentimento, você pode bloquear ou excluir cookies diretamente nas
+          configurações do seu navegador:
+        </p>
+        <ul>
+          <li><strong>Chrome:</strong> Configurações → Privacidade e segurança → Cookies e dados de sites.</li>
+          <li><strong>Firefox:</strong> Opções → Privacidade e segurança → Proteção contra rastreamento.</li>
+          <li><strong>Safari:</strong> Preferências → Privacidade → Gerenciar dados de websites.</li>
+          <li><strong>Edge:</strong> Configurações → Cookies e permissões de site.</li>
+        </ul>
+
+        <h2>5. Google Analytics</h2>
+        <p>
+          Usamos o Google Analytics 4 (GA4) para entender, de forma agregada e anônima, como os visitantes
+          utilizam o site — páginas mais acessadas, tempo de leitura e origem do tráfego. Esses dados nos
+          ajudam a melhorar o conteúdo e a experiência de navegação.
+        </p>
+        <p>
+          O GA4 é carregado <strong>somente após a sua autorização</strong>. Ao rejeitar, o script do
+          Google Analytics não é executado em nenhuma página do site. Saiba mais sobre o tratamento de
+          dados do Google em
+          <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">
+            políticas de privacidade do Google
+          </a>.
+        </p>
+
+        <h2>6. Privacidade e LGPD</h2>
+        <p>
+          O tratamento de dados do <strong>Artigo com Café</strong> segue os princípios da
+          <strong>Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018)</strong>. Você pode solicitar,
+          a qualquer momento, informações sobre os dados que tratamos ou o exercício dos seus direitos
+          entrando em contato pela página de
+          <a href="/contato/">contato</a>.
+        </p>
+
+        <h2>7. Contato</h2>
+        <p>
+          Em caso de dúvidas sobre esta política, fale conosco pela página de
+          <a href="/contato/">contato</a>.
+        </p>
+
+        <p class="cookies-updated">
+          Última atualização: 31 de julho de 2026.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <SearchModal client:load />
+</Base>
+
+<style>
+  .page-header {
+    padding-bottom: 1rem;
+  }
+
+  .cookies-content {
+    max-width: 720px;
+  }
+
+  .cookies-content h2:first-child {
+    margin-top: 0;
+  }
+
+  .cookie-reset-btn {
+    border: none;
+    cursor: pointer;
+  }
+
+  .cookies-updated {
+    margin-top: 2.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-bg-card-border);
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+</style>
+
+<script>
+  const resetBtn = document.getElementById('cookie-reset')
+
+  resetBtn?.addEventListener('click', () => {
+    try {
+      localStorage.removeItem('cookie-consent')
+    } catch (e) {}
+    window.location.reload()
+  })
+</script>
