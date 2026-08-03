@@ -21,6 +21,12 @@ import UserMenu from './UserMenu'
       <a href="/newsletter" class="nav-cta btn-primary">Newsletter</a>
       <UserMenu client:load />
       <ThemeToggle client:load />
+      <button class="nav-icon-btn" id="search-toggle" data-testid="search-toggle" aria-label="Buscar artigos" title="Buscar (Ctrl+K)" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+      </button>
     </nav>
 
     <button class="hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false">
@@ -37,6 +43,16 @@ import UserMenu from './UserMenu'
     <a href="/sobre" class="mobile-link">Sobre</a>
     <a href="/contato" class="mobile-link">Contato</a>
     <a href="/newsletter" class="mobile-link">Newsletter</a>
+    <div class="mobile-actions">
+      <button class="mobile-icon-btn" id="search-toggle-mobile" data-testid="search-toggle-mobile" aria-label="Buscar artigos" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <span>Buscar</span>
+      </button>
+      <div class="mobile-theme"><ThemeToggle client:load /></div>
+    </div>
     <hr class="mobile-divider">
     <span class="mobile-section-label">Gamificação</span>
     <a href="/graos" class="mobile-link">🫘 Grãos</a>
@@ -128,6 +144,58 @@ import UserMenu from './UserMenu'
 
   .nav-cta {
     margin-left: 0.5rem;
+  }
+
+  .nav-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    margin-left: 0.35rem;
+    transition: all 0.3s;
+  }
+
+  .nav-icon-btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  .mobile-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .mobile-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1rem;
+    border-radius: 8px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .mobile-icon-btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  .mobile-theme {
+    display: flex;
+    align-items: center;
   }
 
   .hamburger {
@@ -292,4 +360,23 @@ import UserMenu from './UserMenu'
     // Re-enable scroll on page transition
     document.addEventListener('astro:before-swap', closeMenu)
   }
+
+  // Open global search modal (SearchModal listens for 'search:open')
+  const searchToggle = document.getElementById('search-toggle')
+  const searchToggleMobile = document.getElementById('search-toggle-mobile')
+
+  function openSearch() {
+    window.dispatchEvent(new CustomEvent('search:open'))
+    if (hamburger) {
+      hamburger.classList.remove('active')
+      hamburger.setAttribute('aria-expanded', 'false')
+    }
+    if (mobileMenu) {
+      mobileMenu.setAttribute('aria-hidden', 'true')
+      document.body.style.overflow = ''
+    }
+  }
+
+  searchToggle?.addEventListener('click', openSearch)
+  searchToggleMobile?.addEventListener('click', openSearch)
 </script>

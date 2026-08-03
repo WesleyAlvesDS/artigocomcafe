@@ -83,8 +83,16 @@ export default function SearchModal() {
       }
     }
 
+    function handleOpenEvent() {
+      setOpen(true)
+    }
+
     document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
+    window.addEventListener('search:open', handleOpenEvent)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('search:open', handleOpenEvent)
+    }
   }, [])
 
   useEffect(() => {

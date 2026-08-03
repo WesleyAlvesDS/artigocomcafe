@@ -1,9 +1,7 @@
 <?php
 
-use App\Providers\AppServiceProvider;
-use Laravel\Sanctum\SanctumServiceProvider;
-
 return [
-    AppServiceProvider::class,
-    SanctumServiceProvider::class,
+    App\Providers\AppServiceProvider::class,
+    App\Providers\Filament\AdminPanelProvider::class,
+    Laravel\Sanctum\SanctumServiceProvider::class,
 ];
