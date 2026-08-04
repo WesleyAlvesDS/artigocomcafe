@@ -169,27 +169,27 @@ export default function RegisterForm() {
         <div class="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-950/30 dark:text-red-400 rounded-lg border border-red-200 dark:border-red-800">{error}</div>
       )}
       <div>
-        <label for="name" class="block text-sm font-medium text-foreground mb-1">Nome</label>
+        <label for="name" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Nome</label>
         <input id="name" type="text" required value={name} onChange={e => setName(e.target.value)}
-          class="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 transition-shadow"
+          class="w-full px-4 py-2.5 rounded-xl border border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 transition-shadow"
           placeholder="Seu nome" />
       </div>
       <div>
-        <label for="username" class="block text-sm font-medium text-foreground mb-1">Usuário</label>
+        <label for="username" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Usuário</label>
         <input id="username" type="text" required value={username} onChange={e => setUsername(e.target.value)}
-          class="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 transition-shadow"
+          class="w-full px-4 py-2.5 rounded-xl border border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 transition-shadow"
           placeholder="seu_usuario" />
       </div>
       <div>
-        <label for="email" class="block text-sm font-medium text-foreground mb-1">Email</label>
+        <label for="email" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Email</label>
         <input id="email" type="email" required value={email} onChange={e => setEmail(e.target.value)}
-          class="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 transition-shadow"
+          class="w-full px-4 py-2.5 rounded-xl border border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 transition-shadow"
           placeholder="seu@email.com" />
       </div>
       <div>
-        <label for="password" class="block text-sm font-medium text-foreground mb-1">Senha (mín. 8 caracteres)</label>
+        <label for="password" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Senha (mín. 8 caracteres)</label>
         <input id="password" type="password" required value={password} onChange={e => setPassword(e.target.value)}
-          class="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 transition-shadow"
+          class="w-full px-4 py-2.5 rounded-xl border border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 transition-shadow"
           placeholder="Sua senha" />
       </div>
       <button type="submit" disabled={loading}

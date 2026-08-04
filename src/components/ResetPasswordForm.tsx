@@ -62,17 +62,17 @@ export default function ResetPasswordForm() {
         <div class="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-950/30 dark:text-red-400 rounded-lg border border-red-200 dark:border-red-800" role="alert">{error}</div>
       )}
       <div>
-        <label for="reset-password" class="block text-sm font-medium text-foreground mb-1.5">Nova senha</label>
+        <label for="reset-password" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">Nova senha</label>
         <input id="reset-password" type="password" required autoComplete="new-password" value={password} onChange={e => setPassword(e.target.value)}
-          class="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-shadow" placeholder="Mín. 8 caracteres" />
+          class="w-full px-4 py-2.5 rounded-xl border border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50 transition-shadow" placeholder="Mín. 8 caracteres" />
       </div>
       <div>
-        <label for="reset-password-confirmation" class="block text-sm font-medium text-foreground mb-1.5">Confirmar nova senha</label>
+        <label for="reset-password-confirmation" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">Confirmar nova senha</label>
         <input id="reset-password-confirmation" type="password" required autoComplete="new-password" value={passwordConfirmation} onChange={e => setPasswordConfirmation(e.target.value)}
-          class="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-shadow" placeholder="Repita a senha" />
+          class="w-full px-4 py-2.5 rounded-xl border border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50 transition-shadow" placeholder="Repita a senha" />
       </div>
       <button type="submit" disabled={loading}
-        class="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50">
+        class="w-full py-2.5 px-4 bg-[var(--color-accent)] text-[var(--color-btn-text)] rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50">
         {loading ? 'Redefinindo...' : 'Redefinir senha'}
       </button>
     </form>

@@ -70,7 +70,7 @@ function RoastModal({ reward, balance, onClose, onRoast }: {
                 style={{ background: `${RARITY_COLORS[reward.rarity]}22`, color: RARITY_COLORS[reward.rarity] }}>
                 {RARITY_LABELS[reward.rarity]}
               </span>
-              <span class="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-500 text-xs font-semibold">
+              <span class="px-2.5 py-1 rounded-full bg-[var(--color-accent)]/20 text-[var(--color-accent)] text-xs font-semibold">
                 {vocab.currency_icon} {reward.grain_cost} {vocab.currency.toLowerCase()}
               </span>
             </div>
@@ -156,7 +156,7 @@ function RoasteryContent() {
     <div class="space-y-8">
       {/* Header */}
       <div class="text-center">
-        <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">{vocab.roasting === 'Torrefação' ? '☕' : vocab.currency_icon} {vocab.roasting}</h1>          <p class="text-[var(--color-text-secondary)] mt-2">Transforme seus {vocab.currency.toLowerCase()} em recompensas exclusivas</p>
+        <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">{vocab.roasting}</h1>          <p class="text-[var(--color-text-secondary)] mt-2">Transforme seus {vocab.currency.toLowerCase()} em recompensas exclusivas</p>
       </div>
 
       {/* Balance card */}
@@ -165,11 +165,11 @@ function RoasteryContent() {
           style={{ background: 'radial-gradient(circle at 50% 0%, #f59e0b 0%, transparent 70%)' }} />
         <div class="relative">
           <div class="text-5xl mb-2">🫘</div>
-          <div class="text-4xl font-bold text-amber-500">{data.balance}</div>
+          <div class="text-4xl font-bold text-[var(--color-accent)]">{data.balance}</div>
           <div class="text-sm text-[var(--color-text-muted)]">{vocab.currency.toLowerCase()} disponíveis</div>
           <div class="flex justify-center gap-4 mt-3 text-xs text-[var(--color-text-muted)]">
-            <span>{vocab.harvest}: <strong class="text-green-500">+{data.total_earned}</strong></span>
-            <span>{vocab.roast_action}: <strong class="text-amber-500">-{data.total_spent}</strong></span>
+            <span>{vocab.harvest}: <strong class="text-green-400">+{data.total_earned}</strong></span>
+            <span>{vocab.roast_action}: <strong class="text-[var(--color-accent)]">-{data.total_spent}</strong></span>
             <span>Desbloqueados: <strong class="text-[var(--color-accent)]">{data.unlocked_count}/{data.total_count}</strong></span>
           </div>
         </div>
@@ -180,7 +180,7 @@ function RoasteryContent() {
         <h3 class="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Progresso</h3>
         <div class="flex items-center gap-3">
           <div class="flex-1 h-2 rounded-full bg-[var(--color-bg-card-border)] overflow-hidden">
-            <div class="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-300"
+            <div class="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-[var(--color-accent)] via-[var(--color-accent-secondary)] to-[var(--color-accent)]"
               style={{ width: `${(data.unlocked_count / Math.max(1, data.total_count)) * 100}%` }} />
           </div>
           <span class="text-xs font-mono text-[var(--color-text-muted)] whitespace-nowrap">
@@ -198,8 +198,8 @@ function RoasteryContent() {
             <button key={key} onClick={() => setActiveTab(key)}
               class={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                 activeTab === key
-                  ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30'
-                  : 'bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] border border-[var(--color-bg-card-border)] hover:border-amber-500/30'
+                  ? 'bg-[var(--color-accent)]/20 text-[var(--color-accent)] border border-[var(--color-accent)]/30'
+                  : 'bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] border border-[var(--color-bg-card-border)] hover:border-[var(--color-accent)]/30'
               }`}
             >
               {label}
@@ -219,7 +219,7 @@ function RoasteryContent() {
           return (
             <div key={reward.id}
               class={`glass-card p-4 transition-all duration-300 ${
-                isActive ? 'ring-2 ring-amber-500/50' : ''
+                isActive ? 'ring-2 ring-[var(--color-accent)]/50' : ''
               } ${isUnlocked ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`}
             >
               <div class="flex items-start gap-3">
@@ -271,7 +271,7 @@ function RoasteryContent() {
                         class={`text-[11px] px-2.5 py-1 rounded-lg font-medium transition-all ${
                           isActive
                             ? 'bg-[var(--color-bg-card)] text-[var(--color-text-muted)] border border-[var(--color-bg-card-border)]'
-                            : 'bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] border border-[var(--color-bg-card-border)] hover:border-amber-500/50'
+                            : 'bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] border border-[var(--color-bg-card-border)] hover:border-[var(--color-accent)]/50'
                         }`}
                       >
                         {isActive ? 'Desativar' : 'Ativar'}

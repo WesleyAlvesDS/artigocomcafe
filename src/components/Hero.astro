@@ -61,15 +61,15 @@ import NewsletterForm from './NewsletterForm'
   }
 
   .hero-bg {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse at 20% 50%, rgba(212, 163, 115, 0.1) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 20%, rgba(139, 90, 43, 0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 80%, rgba(212, 163, 115, 0.05) 0%, transparent 50%);
-    pointer-events: none;
-    overflow: hidden;
-  }
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(var(--color-accent-rgb), 0.1) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(var(--color-accent-dark-rgb), 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, rgba(var(--color-accent-rgb), 0.05) 0%, transparent 50%);
+      pointer-events: none;
+      overflow: hidden;
+    }
 
   .hero-gradient-sphere {
     position: absolute;

@@ -27,7 +27,7 @@ export default function CafeDoDia() {
     return (
       <div class="glass-card p-6" style={{ minHeight: '100px' }}>
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-amber-500/20 animate-pulse" />
+          <div class="w-10 h-10 rounded-full bg-[var(--color-accent)]/20 animate-pulse" />
           <div class="flex-1 space-y-2">
             <div class="h-4 bg-[var(--color-bg-card-border)] rounded w-1/3 animate-pulse" />
             <div class="h-3 bg-[var(--color-bg-card-border)] rounded w-2/3 animate-pulse" />
@@ -52,7 +52,7 @@ export default function CafeDoDia() {
 
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-1">
-            <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-500">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
               Café do Dia
             </span>
             {article.category && (
@@ -63,7 +63,7 @@ export default function CafeDoDia() {
             )}
           </div>
 
-          <h2 class="text-lg font-bold text-[var(--color-text-primary)] group-hover:text-amber-500 transition-colors line-clamp-2 mb-1">
+          <h2 class="text-lg font-bold text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors line-clamp-2 mb-1">
             {article.title}
           </h2>
 

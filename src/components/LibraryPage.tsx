@@ -31,19 +31,19 @@ function LibraryContent() {
     <div class="space-y-6">
       <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold text-foreground">Minha Biblioteca</h1>
-        <button onClick={() => setShowForm(!showForm)}
-          class="px-4 py-2 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-90 text-sm">
-          + Nova Coleção
-        </button>
-      </div>
-      {showForm && (
-        <div class="flex gap-2">
-          <input value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key === 'Enter' && create()}
-            placeholder="Nome da coleção..."
-            class="flex-1 px-4 py-2 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
-          <button onClick={create} class="px-4 py-2 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-90">Criar</button>
+          <button onClick={() => setShowForm(!showForm)}
+            class="px-4 py-2 bg-[var(--color-accent)] text-[var(--color-btn-text)] rounded-xl font-medium hover:opacity-90 text-sm">
+            + Nova Coleção
+          </button>
         </div>
-      )}
+        {showForm && (
+          <div class="flex gap-2">
+            <input value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key === 'Enter' && create()}
+              placeholder="Nome da coleção..."
+              class="flex-1 px-4 py-2 rounded-xl border border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50" />
+            <button onClick={create} class="px-4 py-2 bg-[var(--color-accent)] text-[var(--color-btn-text)] rounded-xl font-medium hover:opacity-90">Criar</button>
+          </div>
+        )}
       {collections.length === 0 ? (
         <div class="text-center py-16 text-muted-foreground">
           <p class="text-4xl mb-4">📚</p>

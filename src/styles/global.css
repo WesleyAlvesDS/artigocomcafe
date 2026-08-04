@@ -3,32 +3,53 @@
 @theme {
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+  --font-serif: 'Cormorant Garamond', serif;
 
   --color-accent: #d4a373;
   --color-accent-dark: #b9855c;
   --color-accent-secondary: #8b5a2b;
   --color-accent-secondary-dark: #6f4420;
+  --color-accent-glow: rgba(212, 163, 115, 0.2);
 
-  --color-bg-primary: #16110c;
-  --color-bg-secondary: #201811;
-  --color-bg-card: rgba(212, 163, 115, 0.04);
-  --color-bg-card-hover: rgba(212, 163, 115, 0.09);
+  --color-accent-rgb: 212, 163, 115;
+  --color-accent-dark-rgb: 185, 133, 92;
+  --color-accent-secondary-rgb: 139, 90, 43;
+  --color-accent-secondary-dark-rgb: 111, 68, 32;
+
+  --color-bg-primary: #0a0805;
+  --color-bg-secondary: #110e09;
+  --color-bg-card: rgba(212, 163, 115, 0.03);
+  --color-bg-card-hover: rgba(212, 163, 115, 0.06);
   --color-bg-card-border: rgba(212, 163, 115, 0.1);
+  --color-bg-card-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
 
-  --color-text-primary: #ece5db;
-  --color-text-secondary: #a89c8c;
-  --color-text-muted: #7d7163;
+  --color-text-primary: #f8f5f0;
+  --color-text-secondary: #d8cebd;
+  --color-text-muted: #b8b0a3;
+  --color-text-muted-dark: #8a7f72;
 
-  --color-glass-bg: rgba(212, 163, 115, 0.06);
-  --color-glass-border: rgba(212, 163, 115, 0.14);
+  --color-glass-bg: rgba(212, 163, 115, 0.04);
+  --color-glass-border: rgba(212, 163, 115, 0.1);
+  --color-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 
-  --color-btn-text: #1a1209;
+  --color-btn-text: #0a0805;
+  --color-btn-text-light: #f8f5f0;
 
-  --radius-card: 12px;
-  --radius-card-lg: 20px;
+  --radius-card: 14px;
+  --radius-card-lg: 24px;
+  --radius-pill: 100px;
 
-  --shadow-glow: 0 0 40px rgba(212, 163, 115, 0.1);
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.45);
+  --shadow-glow: 0 0 40px rgba(212, 163, 115, 0.15);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.5);
+  --shadow-card-hover: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  --radius-input: 10px;
+  --radius-button: 10px;
 }
 
 .light {
@@ -295,7 +316,6 @@ body {
   opacity: 0;
   animation: fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
-
 .animate-stagger > *:nth-child(1)  { animation-delay: 0ms; }
 .animate-stagger > *:nth-child(2)  { animation-delay: 80ms; }
 .animate-stagger > *:nth-child(3)  { animation-delay: 160ms; }
@@ -421,6 +441,7 @@ body {
   100% { transform: scale(2); opacity: 0; }
 }
 
+/* Prose styling */
 .prose {
   max-width: 720px;
   line-height: 1.8;

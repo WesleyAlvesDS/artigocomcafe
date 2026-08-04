@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback, type KeyboardEvent } from 'react'
 
+const API_URL = '/api-proxy.php'
+
 interface SearchResult {
   id: number
   title: string
@@ -115,7 +117,7 @@ export default function SearchModal() {
     setLoading(true)
     try {
       const response = await fetch(
-        `${import.meta.env.PUBLIC_API_URL || 'https://back.artigocomcafe.com/api'}/articles?search=${encodeURIComponent(q)}&per_page=5`
+        `${API_URL}/articles?search=${encodeURIComponent(q)}&per_page=5`
       )
       if (response.ok) {
         const data = await response.json()

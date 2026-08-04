@@ -32,10 +32,11 @@ function MissionsContent() {
 
   const loadMissions = () => {
     setLoading(true)
-    api.get<{ missions: Mission[] }>('/user/missions/daily')
-      .then(d => setMissions(d.missions || []))
-      .catch(() => setMissions([]))
-      .finally(() => setLoading(false))
+    const daily = api.get<{ missions: Mission[] }>('/user/missions/daily').then(d => d.missions || [])
+    const weekly = api.get<{ missions: Mission[] }>('/user/missions/weekly').then(d => d.missions || [])
+    Promise.all([daily, weekly]).then(([dailyMissions, weeklyMissions]) => {
+      setMissions([...dailyMissions, ...weeklyMissions])
+    }).catch(() => setMissions([])).finally(() => setLoading(false))
   }
 
   useEffect(() => { loadMissions() }, [])
@@ -99,12 +100,12 @@ function MissionsContent() {
         {(['daily', 'weekly'] as const).map(type => {
           const count = missions.filter(m => m.type === type && !m.is_completed).length
           return (
-            <button key={type} onClick={() => setActiveTab(type)}
-              class={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                activeTab === type
-                  ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30'
-                  : 'bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] border border-[var(--color-bg-card-border)] hover:border-amber-500/30'
-              }`}
+              <button key={type} onClick={() => setActiveTab(type)}
+                class={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  activeTab === type
+                    ? 'bg-[var(--color-accent)]/20 text-[var(--color-accent)] border border-[var(--color-accent)]/30'
+                    : 'bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] border border-[var(--color-bg-card-border)] hover:border-[var(--color-accent)]/30'
+                }`}
             >
               {TYPE_ICONS[type]} {type === 'daily' ? 'Diárias' : 'Semanais'}
               {count > 0 && (
@@ -129,17 +130,17 @@ function MissionsContent() {
             return (
               <div key={mission.id}
                 class={`glass-card p-5 transition-all ${
-                  mission.is_completed ? 'ring-1 ring-green-500/30' : ''
+                  mission.is_completed ? 'ring-1 ring-green-500/20' : ''
                 }`}
               >
                 <div class="flex items-start gap-4">
                   <div class={`text-3xl ${mission.is_completed ? '' : 'opacity-70'}`}>{mission.icon}</div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between mb-1">
-                      <h3 class={`font-semibold text-[var(--color-text-primary)] ${mission.is_completed ? 'line-through text-green-500' : ''}`}>
+                      <h3 class={`font-semibold text-[var(--color-text-primary)] ${mission.is_completed ? 'line-through text-green-400' : ''}`}>
                         {mission.title}
                       </h3>
-                      <span class="text-xs font-medium text-amber-500 whitespace-nowrap">
+                      <span class="text-xs font-medium text-[var(--color-accent)] whitespace-nowrap">
                         +{mission.grain_reward} {vocab.currency_icon}
                       </span>
                     </div>
@@ -153,7 +154,7 @@ function MissionsContent() {
                             width: `${Math.min(100, percent)}%`,
                             background: mission.is_completed
                               ? 'linear-gradient(90deg, #22c55e, #16a34a)'
-                              : 'linear-gradient(90deg, #f59e0b, #d97706)',
+                              : 'linear-gradient(90deg, var(--color-accent), var(--color-accent-secondary))',
                           }}
                         />
                       </div>
@@ -167,7 +168,7 @@ function MissionsContent() {
                   <div class="flex-shrink-0">
                     {mission.is_completed ? (
                       <button onClick={() => handleClaim(mission)}
-                        class="px-4 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-green-600 to-green-500 text-white hover:from-green-500 hover:to-green-400 transition-all hover:scale-105"
+                        class="px-4 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-green-600 to-emerald-500 text-white hover:from-green-500 hover:to-emerald-400 transition-all hover:scale-105"
                       >
                         Resgatar 🎉
                       </button>
@@ -185,7 +186,7 @@ function MissionsContent() {
       )}
 
       {/* Tips */}
-      <div class="glass-card p-5 bg-gradient-to-br from-amber-500/5 to-amber-600/5 border-amber-500/10">
+      <div class="glass-card p-5 bg-gradient-to-br from-[var(--color-accent)]/5 to-[var(--color-accent-secondary)]/5 border-[var(--color-accent)]/10">
         <h3 class="text-sm font-semibold text-[var(--color-text-primary)] mb-2">💡 Dicas</h3>
         <ul class="text-xs text-[var(--color-text-secondary)] space-y-1">
           <li>• Missões diárias renovam a cada 24 horas</li>

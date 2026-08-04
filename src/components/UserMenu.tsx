@@ -62,6 +62,7 @@ export default function UserMenu() {
           }}>
             <a href="/perfil" class="dropdown-link">Meu Perfil</a>
             <a href="/mapa" class="dropdown-link">🗺️ Mapa do Conhecimento</a>
+            <a href="/jornada" class="dropdown-link">📊 Jornada</a>
             <a href="/biblioteca" class="dropdown-link">Biblioteca</a>
             <a href="/graos" class="dropdown-link">🫘 Grãos</a>
             <a href="/torrefacao" class="dropdown-link">☕ Torrefação</a>

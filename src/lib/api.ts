@@ -1,5 +1,3 @@
-// Use proxy to avoid SSL cert issues on back.artigocomcafe.com
-// SSR pages (laravel.ts) use the full URL directly with NODE_TLS_REJECT_UNAUTHORIZED=0
 const API_URL = '/api-proxy.php'
 
 class ApiError extends Error {

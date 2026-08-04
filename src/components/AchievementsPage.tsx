@@ -8,10 +8,10 @@ interface Achievement {
 }
 
 const rarityColors: Record<string, string> = {
-  common: 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600',
-  uncommon: 'bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-700',
-  rare: 'bg-blue-50 dark:bg-blue-950/30 border-blue-300 dark:border-blue-700',
-  epic: 'bg-purple-50 dark:bg-purple-950/30 border-purple-300 dark:border-purple-700',
+  common: 'background: var(--color-bg-card); border-color: var(--color-bg-card-border)',
+  uncommon: 'background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.3)',
+  rare: 'background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.3)',
+  epic: 'background: rgba(168,85,247,0.08); border-color: rgba(168,85,247,0.3)',
 }
 
 function AchievementsContent() {

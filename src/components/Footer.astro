@@ -39,6 +39,7 @@ import NewsletterForm from './NewsletterForm'
 
       <div class="footer-links">
         <h2 class="footer-heading">Gamificação</h2>
+        <a href="/jornada" class="footer-link">📊 Jornada</a>
         <a href="/graos" class="footer-link">🫘 Grãos</a>
         <a href="/torrefacao" class="footer-link">☕ Torrefação</a>
         <a href="/missoes" class="footer-link">🎯 Missões</a>
@@ -167,8 +168,18 @@ import NewsletterForm from './NewsletterForm'
 
   @media (max-width: 768px) {
     .footer-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: 2rem;
+    }
+
+    .footer-newsletter {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .footer-grid {
+      grid-template-columns: 1fr;
     }
   }
 </style>

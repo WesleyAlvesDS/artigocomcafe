@@ -31,15 +31,15 @@ function ProfileContent() {
     <div class="space-y-8">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-4">
-          <div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center text-2xl font-bold text-primary">
+          <div class="w-16 h-16 rounded-full bg-[var(--color-accent)]/20 flex items-center justify-center text-2xl font-bold text-[var(--color-accent)]">
             {user?.name?.charAt(0)?.toUpperCase()}
           </div>
           <div>
-            <h1 class="text-2xl font-bold text-foreground">{user?.name}</h1>
-            <p class="text-muted-foreground">@{user?.username} &middot; {s?.daily_streak || 0} dias seguidos 🔥</p>
+            <h1 class="text-2xl font-bold text-[var(--color-text-primary)]">{user?.name}</h1>
+            <p class="text-[var(--color-text-secondary)]">@{user?.username} &middot; {s?.daily_streak || 0} dias seguidos 🔥</p>
           </div>
         </div>
-        <button onClick={logout} class="px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl border border-border transition-colors">Sair</button>
+        <button onClick={logout} class="px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl border border-[var(--color-bg-card-border)] transition-colors">Sair</button>
       </div>
 
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -52,31 +52,31 @@ function ProfileContent() {
           { label: 'Coleções', value: s?.collections_count || 0, icon: '📚' },
           { label: 'Categorias', value: s?.categories_explored || 0, icon: '🌍' },
         ].map(stat => (
-          <div class="bg-card border border-border rounded-2xl p-4 text-center">
+          <div class="bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] rounded-2xl p-4 text-center">
             <div class="text-2xl mb-1">{stat.icon}</div>
-            <div class="text-2xl font-bold text-foreground">{stat.value}</div>
-            <div class="text-xs text-muted-foreground">{stat.label}</div>
+            <div class="text-2xl font-bold text-[var(--color-text-primary)]">{stat.value}</div>
+            <div class="text-xs text-[var(--color-text-muted)]">{stat.label}</div>
           </div>
         ))}
       </div>
 
-      <div class="bg-card border border-border rounded-2xl p-6">
-        <h2 class="text-lg font-semibold text-foreground mb-4">Índice de Evolução</h2>
-        <p class="text-muted-foreground">
-          Você já investiu <strong class="text-foreground">{s?.reading_time_hours || 0} horas</strong> em aprendizado,
-          concluiu <strong class="text-foreground">{s?.trails_completed || 0} trilhas</strong>
-          e explorou <strong class="text-foreground">{s?.categories_explored || 0} categorias</strong>.
+      <div class="bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] rounded-2xl p-6">
+        <h2 class="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Índice de Evolução</h2>
+        <p class="text-[var(--color-text-secondary)]">
+          Você já investiu <strong class="text-[var(--color-text-primary)]">{s?.reading_time_hours || 0} horas</strong> em aprendizado,
+          concluiu <strong class="text-[var(--color-text-primary)]">{s?.trails_completed || 0} trilhas</strong>
+          e explorou <strong class="text-[var(--color-text-primary)]">{s?.categories_explored || 0} categorias</strong>.
         </p>
       </div>
 
       <div class="flex flex-wrap gap-3">
-        <a href="/mapa" class="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-90 transition-opacity">🗺️ Mapa</a>
+        <a href="/mapa" class="px-5 py-2.5 bg-[var(--color-accent)] text-[var(--color-btn-text)] rounded-xl font-medium hover:opacity-90 transition-opacity">🗺️ Mapa</a>
         <a href="/torrefacao" class="px-5 py-2.5 bg-amber-500 text-black rounded-xl font-medium hover:opacity-90 transition-opacity">☕ Torrefação</a>
-        <a href="/biblioteca" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">Biblioteca</a>
-        <a href="/graos" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">{vocab.currency}</a>
-        <a href="/conquistas" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">Conquistas</a>
-        <a href="/missoes" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">🎯 Missões</a>
-        <a href="/trilhas" class="px-5 py-2.5 bg-card border border-border text-foreground rounded-xl font-medium hover:bg-accent transition-colors">Trilhas</a>
+        <a href="/biblioteca" class="px-5 py-2.5 bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] text-[var(--color-text-primary)] rounded-xl font-medium hover:bg-[var(--color-bg-card-hover)] transition-colors">Biblioteca</a>
+        <a href="/graos" class="px-5 py-2.5 bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] text-[var(--color-text-primary)] rounded-xl font-medium hover:bg-[var(--color-bg-card-hover)] transition-colors">{vocab.currency}</a>
+        <a href="/conquistas" class="px-5 py-2.5 bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] text-[var(--color-text-primary)] rounded-xl font-medium hover:bg-[var(--color-bg-card-hover)] transition-colors">Conquistas</a>
+        <a href="/missoes" class="px-5 py-2.5 bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] text-[var(--color-text-primary)] rounded-xl font-medium hover:bg-[var(--color-bg-card-hover)] transition-colors">🎯 Missões</a>
+        <a href="/trilhas" class="px-5 py-2.5 bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] text-[var(--color-text-primary)] rounded-xl font-medium hover:bg-[var(--color-bg-card-hover)] transition-colors">Trilhas</a>
       </div>
     </div>
   )

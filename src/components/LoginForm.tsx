@@ -52,18 +52,18 @@ export default function LoginForm() {
         <div class="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-950/30 dark:text-red-400 rounded-lg border border-red-200 dark:border-red-800" role="alert">{error}</div>
       )}
       <div>
-        <label for="login-email" class="block text-sm font-medium text-foreground mb-1.5">Email</label>
+        <label for="login-email" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">Email</label>
         <input id="login-email" type="email" required autoComplete="email" value={email} onChange={e => setEmail(e.target.value)}
-          class="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-shadow" placeholder="seu@email.com" />
+          class="w-full px-4 py-2.5 rounded-xl border border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50 transition-shadow" placeholder="seu@email.com" />
       </div>
       <div>
         <div class="flex items-center justify-between mb-1.5">
-          <label for="login-password" class="block text-sm font-medium text-foreground">Senha</label>
-          <a href="/recuperar-senha" class="text-xs text-primary hover:underline">Esqueceu a senha?</a>
+          <label for="login-password" class="block text-sm font-medium text-[var(--color-text-primary)]">Senha</label>
+          <a href="/recuperar-senha" class="text-xs text-[var(--color-accent)] hover:underline">Esqueceu a senha?</a>
         </div>
         <div class="relative">
           <input id="login-password" type={showPassword ? 'text' : 'password'} required autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)}
-            class="w-full px-4 py-2.5 pr-11 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-shadow" placeholder="Sua senha" />
+            class="w-full px-4 py-2.5 pr-11 rounded-xl border border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50 transition-shadow" placeholder="Sua senha" />
           <button type="button" onClick={() => setShowPassword(v => !v)} tabIndex={-1}
             class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}>
@@ -82,7 +82,7 @@ export default function LoginForm() {
         </div>
       </div>
       <button type="submit" disabled={loading}
-        class="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50">
+        class="w-full py-2.5 px-4 bg-[var(--color-accent)] text-[var(--color-btn-text)] rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50">
         {loading ? 'Entrando...' : 'Entrar'}
       </button>
     </form>

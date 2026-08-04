@@ -586,6 +586,12 @@ API pública
 Marketplace de módulos
 Aplicativo administrativo
 Minha recomendação de arquitetura
+Fase 6
+implementação do receitas.md.
+impleementação das api's e reutilização das apis que estão na pagina do projeto(reformular todos arquivos das apis e integra-las ao sistema) as apis tem como objetivo de forma dinamica e em tempo real apimorar ainda mais a experiencia de quem usa o Dash.
+
+Fase 7
+verificação e teste (elevar o projeto na correção de erros e bugs(fazer com que a aplicação se torne estavel e trazer a melhor esperiencia de todas.))
 
 Em vez de pensar no Dashboard apenas como uma "área administrativa", trate-o como um produto independente dentro do mesmo projeto Laravel.
 
