@@ -32,6 +32,29 @@ class MissionController extends Controller
         return response()->json(['missions' => $missions]);
     }
 
+    public function weekly(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $startOfWeek = now()->startOfWeek()->toDateString();
+        $endOfWeek = now()->endOfWeek()->toDateString();
+
+        $missions = Mission::weekly()->get()->map(function ($mission) use ($user, $startOfWeek, $endOfWeek) {
+            $userMission = $user->missions()
+                ->where('mission_id', $mission->id)
+                ->whereBetween('assigned_date', [$startOfWeek, $endOfWeek])
+                ->first();
+
+            $mission->progress = $userMission ? $userMission->pivot->progress : 0;
+            $mission->target = $mission->conditions['target'] ?? 1;
+            $mission->is_completed = $userMission ? (bool) $userMission->pivot->is_completed : false;
+            $mission->reward_claimed = $userMission && $userMission->pivot->is_completed;
+
+            return $mission;
+        });
+
+        return response()->json(['missions' => $missions]);
+    }
+
     public function progress(Request $request, Mission $mission): JsonResponse
     {
         $user = $request->user();

@@ -1,9 +1,8 @@
----
+﻿---
 import Base from '../layouts/Base.astro'
 import Hero from '../components/Hero.astro'
 import ArticleCard from '../components/ArticleCard.astro'
 import CafeDoDia from '../components/CafeDoDia'
-import SearchModal from '../components/SearchModal'
 import { getPosts, getCategories } from '../lib/laravel'
 
 const { posts } = await getPosts(1, 6)
@@ -133,7 +132,6 @@ const categories = await getCategories()
     })} />
   )}
 
-  <SearchModal client:load />
 </Base>
 
 <style>
@@ -174,7 +172,7 @@ const categories = await getCategories()
 
   .category-chip:hover,
   .category-chip.active {
-    background: rgba(212, 163, 115, 0.12);
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
     border-color: var(--color-accent);
     color: var(--color-accent);
   }

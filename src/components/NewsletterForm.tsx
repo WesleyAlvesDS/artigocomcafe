@@ -13,19 +13,19 @@ const inputGroupStyle: React.CSSProperties = {
 const inputStyle: React.CSSProperties = {
   flex: 1,
   padding: '0.7rem 1rem',
-  borderRadius: '8px',
+  borderRadius: 'var(--radius-input)',
   border: '1px solid var(--color-bg-card-border)',
   background: 'var(--color-bg-card)',
   color: 'var(--color-text-primary)',
   fontSize: '0.9rem',
   fontFamily: 'var(--font-sans)',
   outline: 'none',
-  transition: 'border-color 0.3s'
+  transition: 'border-color 0.25s, box-shadow 0.25s, background-color 0.25s'
 }
 
 const btnStyle: React.CSSProperties = {
   padding: '0.7rem 1.25rem',
-  borderRadius: '8px',
+  borderRadius: 'var(--radius-button)',
   border: 'none',
   background: 'linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary))',
   color: 'var(--color-btn-text)',
@@ -34,7 +34,8 @@ const btnStyle: React.CSSProperties = {
   cursor: 'pointer',
   whiteSpace: 'nowrap',
   fontFamily: 'var(--font-sans)',
-  transition: 'all 0.3s'
+  boxShadow: '0 4px 20px color-mix(in srgb, var(--color-accent) 25%, transparent)',
+  transition: 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s, opacity 0.25s'
 }
 
 export default function NewsletterForm({ variant = 'inline' }: Props) {

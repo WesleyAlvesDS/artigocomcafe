@@ -28,7 +28,8 @@ export default function PushToggle() {
 
   const handleToggle = async () => {
     if (!auth) {
-      window.location.href = '/entrar'
+      const next = window.location.pathname + window.location.search
+      window.location.href = `/entrar?next=${encodeURIComponent(next)}`
       return
     }
 

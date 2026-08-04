@@ -7,6 +7,7 @@ export default function RegisterForm() {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [passwordConfirmation, setPasswordConfirmation] = useState('')
   const [selectedTheme, setSelectedTheme] = useState('cafe')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -15,11 +16,19 @@ export default function RegisterForm() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError('')
+    if (password.length < 8) {
+      setError('A senha deve ter no mínimo 8 caracteres.')
+      return
+    }
+    if (password !== passwordConfirmation) {
+      setError('As senhas não coincidem.')
+      return
+    }
     setLoading(true)
     try {
       const data = await api.post<{ token: string }>('/auth/register', {
         name, username, email, password,
-        password_confirmation: password,
+        password_confirmation: passwordConfirmation,
         theme: selectedTheme,
       })
       // Apply theme colors immediately
@@ -188,9 +197,22 @@ export default function RegisterForm() {
       </div>
       <div>
         <label for="password" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Senha (mín. 8 caracteres)</label>
-        <input id="password" type="password" required value={password} onChange={e => setPassword(e.target.value)}
+        <input id="password" type="password" required minLength={8} value={password} onChange={e => setPassword(e.target.value)}
           class="w-full px-4 py-2.5 rounded-xl border border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 transition-shadow"
           placeholder="Sua senha" />
+      </div>
+      <div>
+        <label for="password_confirmation" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Confirmar senha</label>
+        <input id="password_confirmation" type="password" required value={passwordConfirmation} onChange={e => setPasswordConfirmation(e.target.value)}
+          class={`w-full px-4 py-2.5 rounded-xl border bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 transition-shadow ${
+            passwordConfirmation && passwordConfirmation !== password
+              ? 'border-red-500/60 focus:ring-red-500/30'
+              : 'border-[var(--color-bg-card-border)]'
+          }`}
+          placeholder="Repita sua senha" />
+        {passwordConfirmation && passwordConfirmation !== password && (
+          <p class="text-xs text-red-400 mt-1.5">As senhas não coincidem.</p>
+        )}
       </div>
       <button type="submit" disabled={loading}
         class="w-full py-2.5 px-4 rounded-xl font-medium transition-all disabled:opacity-50"

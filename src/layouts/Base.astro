@@ -4,6 +4,7 @@ import Header from '../components/Header.astro'
 import Footer from '../components/Footer.astro'
 import CookieConsent from '../components/CookieConsent.astro'
 import PwaInstallPrompt from '../components/PwaInstallPrompt'
+import SearchModal from '../components/SearchModal'
 
 export interface Props {
   title?: string
@@ -60,12 +61,12 @@ const organizationJsonLd = {
 ---
 
 <!doctype html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#16110c" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#0a0805" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#faf6f0" media="(prefers-color-scheme: light)" />
     <meta name="robots" content="index, follow" />
 
@@ -112,7 +113,7 @@ const organizationJsonLd = {
     <link rel="manifest" href="/site.webmanifest" />
 
     <!-- Windows Tiles -->
-    <meta name="msapplication-TileColor" content="#16110c" />
+    <meta name="msapplication-TileColor" content="#0a0805" />
     <meta name="msapplication-TileImage" content="/favicon-144x144.png" />
     <meta name="msapplication-config" content="none" />
 
@@ -267,6 +268,7 @@ const organizationJsonLd = {
 
     <CookieConsent />
     <PwaInstallPrompt client:load />
+    <SearchModal client:load />
 
     {!disableTransitions && (
       <script is:inline>

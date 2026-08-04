@@ -15,7 +15,7 @@ const btnStyle: React.CSSProperties = {
   justifyContent: 'center',
   width: '36px',
   height: '36px',
-  borderRadius: '8px',
+  borderRadius: 'var(--radius-button)',
   background: 'var(--color-bg-card)',
   border: '1px solid var(--color-bg-card-border)',
   color: 'var(--color-text-secondary)',

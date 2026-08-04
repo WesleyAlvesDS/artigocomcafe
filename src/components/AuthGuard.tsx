@@ -6,7 +6,8 @@ export default function AuthGuard({ children, fallback }: { children: ReactNode;
 
   useEffect(() => {
     if (!loading && !user && !fallback) {
-      window.location.href = '/entrar'
+      const next = window.location.pathname + window.location.search
+      window.location.href = `/entrar?next=${encodeURIComponent(next)}`
     }
   }, [user, loading, fallback])
 

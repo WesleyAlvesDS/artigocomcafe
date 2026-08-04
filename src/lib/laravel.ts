@@ -56,10 +56,11 @@ function mapArticle(a: LaravelArticle): BlogPost {
   }
 }
 
-export async function getPosts(page = 1, perPage = 9, category?: string, search?: string): Promise<BlogListResponse> {
+export async function getPosts(page = 1, perPage = 9, category?: string, search?: string, tag?: string): Promise<BlogListResponse> {
   const params = new URLSearchParams({ page: String(page), per_page: String(perPage) })
   if (category) params.set('category', category)
   if (search) params.set('search', search)
+  if (tag) params.set('tag', tag)
 
   const res = await fetch(`${API_BASE}/articles?${params}`, { headers: { Accept: 'application/json' } })
   if (!res.ok) return { posts: [], pagination: { total: 0, totalPages: 0, page } }

@@ -66,6 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/trails/{trail}/progress', [TrailController::class, 'updateProgress']);
 
     Route::get('/user/missions/daily', [MissionController::class, 'daily']);
+    Route::get('/user/missions/weekly', [MissionController::class, 'weekly']);
     Route::post('/missions/{mission}/progress', [MissionController::class, 'progress']);
     Route::post('/missions/{mission}/claim', [MissionController::class, 'claimReward']);
 

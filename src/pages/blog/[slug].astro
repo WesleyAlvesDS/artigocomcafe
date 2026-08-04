@@ -1,11 +1,11 @@
 ---
 import Base from '../../layouts/Base.astro'
-import SearchModal from '../../components/SearchModal'
 import ReadingTracker from '../../components/ReadingTracker'
 import ReaderAssistant from '../../components/ReaderAssistant'
 import ArticleCard from '../../components/ArticleCard.astro'
 import ArticleActions from '../../components/ArticleActions'
 import ArticleToc from '../../components/ArticleToc'
+import { ToastProvider } from '../../components/Toast'
 import { formatDate } from '../../lib/utils'
 import { getPost, getAllSlugs } from '../../lib/laravel'
 import type { BlogPost } from '../../lib/types'
@@ -317,8 +317,9 @@ if (post) {
       </svg>
     </button>
 
-    <SearchModal client:load />
-    <ReadingTracker articleId={post!.id} articleTitle={post!.title} client:load />
+    <ToastProvider>
+      <ReadingTracker articleId={post!.id} articleTitle={post!.title} client:load />
+    </ToastProvider>
     <ReaderAssistant client:load />
 
     <script>

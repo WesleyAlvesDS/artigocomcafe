@@ -2,7 +2,6 @@
 import Base from '../../layouts/Base.astro'
 import ArticleCard from '../../components/ArticleCard.astro'
 import Pagination from '../../components/Pagination.astro'
-import SearchModal from '../../components/SearchModal'
 import { getPosts, getCategories } from '../../lib/laravel'
 
 export async function getStaticPaths() {
@@ -13,6 +12,7 @@ const url = new URL(Astro.request.url)
 const currentPage = Number(url.searchParams.get('page')) || 1
 const search = url.searchParams.get('busca') || ''
 const categorySlug = url.searchParams.get('categoria') || ''
+const tagSlug = url.searchParams.get('tag') || ''
 
 const categories = await getCategories()
 
@@ -22,15 +22,15 @@ if (categorySlug) {
   if (found) categoryId = String(found.id)
 }
 
-const { posts, pagination } = await getPosts(currentPage, 9, categoryId || undefined, search || undefined)
+const { posts, pagination } = await getPosts(currentPage, 9, categoryId || undefined, search || undefined, tagSlug || undefined)
 ---
 
 <Base title="Blog — Artigo com Café" description="Artigos sobre cafeteria digital, tecnologia, experiência do usuário e monetização." canonical="/blog/" breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Blog', slug: '/blog/' }]}>
   {pagination.totalPages > 1 && currentPage < pagination.totalPages && (
-    <link rel="next" href={`/blog?page=${currentPage + 1}${categorySlug ? `&categoria=${categorySlug}` : ''}`} />
+    <link rel="next" href={`/blog?page=${currentPage + 1}${categorySlug ? `&categoria=${categorySlug}` : ''}${search ? `&busca=${encodeURIComponent(search)}` : ''}${tagSlug ? `&tag=${tagSlug}` : ''}`} />
   )}
   {pagination.totalPages > 1 && currentPage > 1 && (
-    <link rel="prev" href={`/blog?page=${currentPage - 1}${categorySlug ? `&categoria=${categorySlug}` : ''}`} />
+    <link rel="prev" href={`/blog?page=${currentPage - 1}${categorySlug ? `&categoria=${categorySlug}` : ''}${search ? `&busca=${encodeURIComponent(search)}` : ''}${tagSlug ? `&tag=${tagSlug}` : ''}`} />
   )}
   <section class="section blog-header">
     <div class="container">
@@ -57,13 +57,14 @@ const { posts, pagination } = await getPosts(currentPage, 9, categoryId || undef
             aria-label="Buscar artigos"
           />
           {categorySlug && <input type="hidden" name="categoria" value={categorySlug} />}
+          {tagSlug && <input type="hidden" name="tag" value={tagSlug} />}
         </form>
 
         <div class="categories-filter">
-          <a href="/blog" class={`cat-chip ${!categorySlug ? 'active' : ''}`}>Todos</a>
+          <a href="/blog" class={`cat-chip ${!categorySlug && !tagSlug ? 'active' : ''}`}>Todos</a>
           {categories.slice(0, 12).map(cat => (
             <a
-              href={`/blog?categoria=${cat.slug}${search ? `&busca=${search}` : ''}`}
+              href={`/blog?categoria=${cat.slug}${search ? `&busca=${search}` : ''}${tagSlug ? `&tag=${tagSlug}` : ''}`}
               class={`cat-chip ${categorySlug === cat.slug ? 'active' : ''}`}
             >
               {cat.name}
@@ -71,6 +72,12 @@ const { posts, pagination } = await getPosts(currentPage, 9, categoryId || undef
             </a>
           ))}
         </div>
+        {tagSlug && (
+          <div class="tag-filter-bar">
+            <span>Filtrando por tag:</span>
+            <a href="/blog" class="tag-filter-chip">#{tagSlug}</a>
+          </div>
+        )}
       </div>
     </div>
   </section>
@@ -89,6 +96,10 @@ const { posts, pagination } = await getPosts(currentPage, 9, categoryId || undef
               currentPage={currentPage}
               totalPages={pagination.totalPages}
               basePath="/blog"
+              queryParams={{
+                ...(categorySlug ? { categoria: categorySlug } : {}),
+                ...(search ? { busca: search } : {}),
+              }}
             />
           )}
         </>
@@ -110,7 +121,6 @@ const { posts, pagination } = await getPosts(currentPage, 9, categoryId || undef
     </div>
   </section>
 
-  <SearchModal client:load />
 </Base>
 
 <style>
@@ -190,7 +200,7 @@ const { posts, pagination } = await getPosts(currentPage, 9, categoryId || undef
 
   .cat-chip:hover,
   .cat-chip.active {
-    background: rgba(212, 163, 115, 0.12);
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
     border-color: var(--color-accent);
     color: var(--color-accent);
   }
@@ -199,6 +209,37 @@ const { posts, pagination } = await getPosts(currentPage, 9, categoryId || undef
     font-size: 0.7rem;
     opacity: 0.7;
     font-family: var(--font-mono);
+  }
+
+  .tag-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--color-text-secondary);
+  }
+
+  .tag-filter-bar span {
+    color: var(--color-text-muted);
+  }
+
+  .tag-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 100px;
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);
+    color: var(--color-accent);
+    font-weight: 600;
+    font-family: var(--font-mono);
+    text-decoration: none;
+    transition: all 0.25s;
+  }
+
+  .tag-filter-chip:hover {
+    background: color-mix(in srgb, var(--color-accent) 20%, transparent);
   }
 
   .articles-grid {

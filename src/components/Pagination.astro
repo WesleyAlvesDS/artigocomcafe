@@ -3,13 +3,17 @@ export interface Props {
   currentPage: number
   totalPages: number
   basePath: string
+  queryParams?: Record<string, string>
 }
 
-const { currentPage, totalPages, basePath } = Astro.props
+const { currentPage, totalPages, basePath, queryParams = {} } = Astro.props
 
 function pageUrl(page: number): string {
-  if (page <= 1) return basePath
-  return `${basePath}?page=${page}`
+  const params = new URLSearchParams(queryParams)
+  if (page > 1) params.set('page', String(page))
+  const query = params.toString()
+  if (!query) return basePath
+  return `${basePath}?${query}`
 }
 
 function getPageNumbers(): (number | 'ellipsis')[] {

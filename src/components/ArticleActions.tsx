@@ -23,7 +23,8 @@ function ActionsContent({ articleId }: Props) {
 
   const requireAuth = (): boolean => {
     if (isAuthenticated()) return true
-    window.location.href = '/entrar'
+    const next = window.location.pathname + window.location.search
+    window.location.href = `/entrar?next=${encodeURIComponent(next)}`
     return false
   }
 

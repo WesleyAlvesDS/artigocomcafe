@@ -432,14 +432,14 @@
 .ra-explain mark,
 .ra-prose mark,
 mark.ra-mark {
-  background: rgba(212, 163, 115, 0.45);
+  background: color-mix(in srgb, var(--color-accent, #d4a373) 45%, transparent);
   color: inherit;
   border-radius: 3px;
   padding: 0 2px;
 }
 
 mark.ra-mark.ra-mark-active {
-  background: rgba(212, 163, 115, 0.85);
+  background: color-mix(in srgb, var(--color-accent, #d4a373) 85%, transparent);
 }
 
 .ra-empty {
