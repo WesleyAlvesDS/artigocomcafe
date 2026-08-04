@@ -3,6 +3,10 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Widgets\StatsOverview;
+use App\Filament\Widgets\Analytics\CategoryDistributionWidget;
+use App\Filament\Widgets\Analytics\ReaderEngagementWidget;
+use App\Filament\Widgets\Analytics\ReadingActivityWidget;
+use App\Filament\Widgets\Analytics\TopArticlesWidget;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -41,6 +45,10 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 AccountWidget::class,
                 StatsOverview::class,
+                ReaderEngagementWidget::class,
+                TopArticlesWidget::class,
+                ReadingActivityWidget::class,
+                CategoryDistributionWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

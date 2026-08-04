@@ -12,6 +12,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use App\Models\Article;
 
 class ArticlesTable
 {
@@ -24,6 +25,15 @@ class ArticlesTable
                     ->searchable()
                     ->sortable()
                     ->limit(50),
+                TextColumn::make('seo_score')
+                    ->label('SEO')
+                    ->badge()
+                    ->sortable(query: fn ($query, $direction) => $query->orderByRaw(
+                        "JSON_LENGTH(meta) {$direction}"
+                    ))
+                    ->getStateUsing(fn (Article $record): int => self::seoScore($record->meta))
+                    ->formatStateUsing(fn (int $state): string => "SEO {$state}%")
+                    ->color(fn (int $state): string => $state >= 80 ? 'success' : ($state >= 50 ? 'warning' : 'danger')),
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -86,5 +96,37 @@ class ArticlesTable
                     RestoreBulkAction::make(),
                 ]),
             ]);
+    }
+
+    protected static function seoScore(?array $meta): int
+    {
+        if (empty($meta)) {
+            return 0;
+        }
+
+        $required = [
+            'title' => 25,
+            'description' => 25,
+            'canonical' => 15,
+            'og_title' => 10,
+            'og_image' => 10,
+            'robots' => 5,
+            'schema_type' => 5,
+            'slug_source' => 5,
+        ];
+
+        $score = 0;
+
+        foreach ($required as $key => $weight) {
+            $value = $meta[$key] ?? null;
+
+            if (is_string($value) && trim($value) !== '') {
+                $score += $weight;
+            } elseif ($value !== null && $value !== '') {
+                $score += $weight;
+            }
+        }
+
+        return $score;
     }
 }

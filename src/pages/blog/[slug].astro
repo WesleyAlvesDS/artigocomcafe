@@ -164,6 +164,7 @@ if (post) {
                 alt={post!.featuredImageAlt}
                 class="cover-image"
                 loading="eager"
+                fetchpriority="high"
                 decoding="async"
               />
               <div class="cover-shine"></div>
@@ -320,7 +321,7 @@ if (post) {
     <ToastProvider>
       <ReadingTracker articleId={post!.id} articleTitle={post!.title} client:load />
     </ToastProvider>
-    <ReaderAssistant client:load />
+    <ReaderAssistant client:visible />
 
     <script>
       const copyBtn = document.getElementById('copy-link')

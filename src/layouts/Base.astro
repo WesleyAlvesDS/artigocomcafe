@@ -105,6 +105,10 @@ const organizationJsonLd = {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&family=JetBrains+Mono:wght@400..500&display=swap" rel="stylesheet" />
 
+    <!-- API / imagens dos artigos -->
+    <link rel="preconnect" href="https://back.artigocomcafe.com" crossorigin />
+    <link rel="dns-prefetch" href="https://back.artigocomcafe.com" />
+
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
@@ -267,7 +271,7 @@ const organizationJsonLd = {
     <Footer />
 
     <CookieConsent />
-    <PwaInstallPrompt client:load />
+    <PwaInstallPrompt client:visible />
     <SearchModal client:load />
 
     {!disableTransitions && (

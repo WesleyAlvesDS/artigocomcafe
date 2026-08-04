@@ -669,3 +669,27 @@ body {
   border-top: 1px solid var(--color-bg-card-border);
   margin: 2rem 0;
 }
+
+/* Performance mobile: pula renderização de blocos fora da viewport */
+.articles-grid,
+.features-grid,
+.contact-grid,
+.about-grid {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 420px;
+}
+
+.articles-grid > *,
+.features-grid > * {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 360px;
+}
+
+@media (max-width: 768px) {
+  .articles-grid,
+  .features-grid,
+  .contact-grid,
+  .about-grid {
+    contain-intrinsic-size: auto 480px;
+  }
+}
