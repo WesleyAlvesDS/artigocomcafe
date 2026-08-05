@@ -12,6 +12,14 @@
   --color-accent-glow: rgba(212, 163, 115, 0.2);
 
   --color-accent-rgb: 212, 163, 115;
+  --color-foreground: var(--color-text-primary);
+  --color-card: var(--color-bg-card);
+  --color-card-foreground: var(--color-text-primary);
+  --color-primary: var(--color-accent);
+  --color-primary-foreground: var(--color-btn-text);
+  --color-muted: var(--color-bg-card);
+  --color-muted-foreground: var(--color-text-muted);
+  --color-border: var(--color-bg-card-border);
   --color-accent-dark-rgb: 185, 133, 92;
   --color-accent-secondary-rgb: 139, 90, 43;
   --color-accent-secondary-dark-rgb: 111, 68, 32;

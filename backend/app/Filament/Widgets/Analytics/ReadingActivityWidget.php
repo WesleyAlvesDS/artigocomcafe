@@ -33,7 +33,7 @@ class ReadingActivityWidget extends BarChartWidget
             'datasets' => [
                 [
                     'label' => 'Leituras',
-                    'data' => $days->map(fn (string $d) => (int) $counts[$d] ?? 0)->all(),
+                    'data' => $days->map(fn (string $d) => (int) ($counts[$d] ?? 0))->all(),
                     'backgroundColor' => array_fill(0, count($labels), Color::Amber[500]),
                     'borderColor' => array_fill(0, count($labels), Color::Amber[600]),
                 ],
