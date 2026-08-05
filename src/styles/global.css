@@ -71,27 +71,28 @@
   --color-bg-card-border: rgba(90, 60, 30, 0.12);
 
   --color-text-primary: #2b231a;
-  --color-text-secondary: #5a5045;
-  --color-text-muted: #8a7f72;
+  --color-text-secondary: #4e463b;
+  --color-text-muted: #6e6355;
+  --color-text-muted-dark: #5f5547;
 
   --color-glass-bg: rgba(255, 255, 255, 0.75);
   --color-glass-border: rgba(90, 60, 30, 0.15);
 
-  --color-accent: #8a5a2b;
-  --color-accent-dark: #71481f;
-  --color-accent-secondary: #b07d3f;
-  --color-accent-secondary-dark: #966a33;
+  --color-accent: #7a4f24;
+  --color-accent-dark: #684114;
+  --color-accent-secondary: #966a33;
+  --color-accent-secondary-dark: #7d5526;
 
   --color-btn-text: #faf6f0;
 
-  --color-accent-glow: rgba(138, 90, 43, 0.2);
+  --color-accent-glow: rgba(122, 79, 36, 0.2);
   --color-glass-shadow: 0 8px 32px rgba(90, 60, 30, 0.12);
   --color-bg-card-shadow: 0 4px 24px rgba(90, 60, 30, 0.12);
   --shadow-card-hover: 0 8px 32px rgba(90, 60, 30, 0.16);
   --shadow-inner: inset 0 2px 4px rgba(90, 60, 30, 0.08);
 
   --shadow-card: 0 4px 24px rgba(90, 60, 30, 0.1);
-  --shadow-glow: 0 0 40px rgba(138, 90, 43, 0.1);
+  --shadow-glow: 0 0 40px rgba(122, 79, 36, 0.1);
 }
 
 *, *::before, *::after {
@@ -207,29 +208,53 @@ body {
 }
 
 .btn-primary {
+  position: relative;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0.8rem 1.6rem;
   font-weight: 600;
   font-size: 0.875rem;
   border-radius: var(--radius-button);
   background: linear-gradient(135deg, var(--gradient-from), var(--gradient-to));
+  background-size: 150% 150%;
   color: var(--color-btn-text);
   box-shadow: 0 4px 20px color-mix(in srgb, var(--color-accent) 25%, transparent);
   transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
               box-shadow 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
-              opacity 0.25s;
+              opacity 0.25s,
+              background-position 0.6s ease;
   cursor: pointer;
   border: none;
   text-decoration: none;
   will-change: transform;
 }
 
+/* Shine sweep ao passar o mouse */
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+}
+
+.btn-primary:hover::before {
+  left: 125%;
+}
+
 .btn-primary:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   box-shadow: 0 6px 28px color-mix(in srgb, var(--color-accent) 40%, transparent);
-  opacity: 0.95;
+  background-position: 100% 50%;
+  opacity: 0.98;
 }
 
 .btn-primary:active {
@@ -278,16 +303,17 @@ body {
 .form-select,
 .form-textarea {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-input);
+  padding: 0.85rem 1.1rem;
+  border-radius: calc(var(--radius-input) + 2px);
   border: 1px solid var(--color-bg-card-border);
-  background: var(--color-bg-card);
+  background: color-mix(in srgb, var(--color-bg-card) 80%, transparent);
   color: var(--color-text-primary);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-family: var(--font-sans);
   transition: border-color 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
               box-shadow 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
-              background-color 0.25s;
+              background-color 0.25s,
+              transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .form-input::placeholder,
@@ -298,7 +324,7 @@ body {
 .form-input:hover,
 .form-select:hover,
 .form-textarea:hover {
-  border-color: color-mix(in srgb, var(--color-accent) 40%, var(--color-bg-card-border));
+  border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-bg-card-border));
 }
 
 .form-input:focus,
@@ -306,8 +332,25 @@ body {
 .form-textarea:focus {
   outline: none;
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 18%, transparent);
-  background: color-mix(in srgb, var(--color-bg-card) 60%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 20%, transparent),
+              0 0 24px color-mix(in srgb, var(--color-accent) 18%, transparent);
+  background: color-mix(in srgb, var(--color-bg-card) 55%, transparent);
+  transform: translateY(-1px);
+}
+
+.form-input:focus-visible,
+.form-select:focus-visible,
+.form-textarea:focus-visible {
+  outline: none;
+}
+
+/* Autofill look futurista */
+.form-input:-webkit-autofill,
+.form-textarea:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px color-mix(in srgb, var(--color-bg-secondary) 95%, var(--color-accent) 5%) inset;
+  -webkit-text-fill-color: var(--color-text-primary);
+  caret-color: var(--color-accent);
+  transition: background-color 9999s ease-out;
 }
 
 .form-select {
@@ -320,16 +363,31 @@ body {
 
 .form-label {
   display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--color-text-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-text-secondary);
   margin-bottom: 0.5rem;
+}
+
+.form-label .form-label-accent {
+  color: var(--color-accent);
 }
 
 .form-error {
   color: #f87171;
   font-size: 0.875rem;
   margin-top: 0.4rem;
+}
+
+/* Agrupador de campo de formulário */
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field .form-label {
+  margin-bottom: 0.5rem;
 }
 
 [data-reveal="delay-1"] { transition-delay: 0.1s; }
@@ -700,4 +758,139 @@ body {
   .about-grid {
     contain-intrinsic-size: auto 480px;
   }
+}
+
+/* ================================================================
+   PRESENÇA / FUTURISMO — aurora ambiente, brilho e micro-animações
+   ================================================================ */
+
+/* Aurora ambiente fixa (radial gradients leves; sem blur para não pesar no mobile) */
+.app-aurora {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.app-aurora::before,
+.app-aurora::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: saturate(1.2);
+  will-change: transform;
+}
+
+.app-aurora::before {
+  width: 60vmax;
+  height: 60vmax;
+  top: -20vmax;
+  left: -15vmax;
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 14%, transparent), transparent 65%);
+  animation: aurora-drift-1 22s ease-in-out infinite alternate;
+}
+
+.app-aurora::after {
+  width: 55vmax;
+  height: 55vmax;
+  bottom: -22vmax;
+  right: -18vmax;
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-accent-secondary) 13%, transparent), transparent 65%);
+  animation: aurora-drift-2 26s ease-in-out infinite alternate;
+}
+
+@keyframes aurora-drift-1 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(6vmax, 4vmax) scale(1.08); }
+  100% { transform: translate(-3vmax, 8vmax) scale(0.95); }
+}
+
+@keyframes aurora-drift-2 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-7vmax, -4vmax) scale(1.1); }
+  100% { transform: translate(4vmax, -7vmax) scale(0.96); }
+}
+
+/* Grade sutil sobre o fundo (presença tech, muito leve) */
+.app-grid-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-accent) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-accent) 5%, transparent) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 40%, transparent 100%);
+  opacity: 0.6;
+}
+
+/* Barra de progresso de scroll (topo) */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  z-index: 999;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-accent-secondary), var(--color-accent));
+  background-size: 200% 100%;
+  animation: scroll-progress-hue 6s linear infinite;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-accent) 70%, transparent);
+  pointer-events: none;
+  border-radius: 0 2px 2px 0;
+}
+
+@keyframes scroll-progress-hue {
+  from { background-position: 0% 0; }
+  to   { background-position: 200% 0; }
+}
+
+/* Brilho ambiente nos cards ao hover (segunda camada) */
+.glass-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(120% 120% at 50% 0%, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.glass-card:hover::after {
+  opacity: 1;
+}
+
+/* Texto com brilho (headings em destaque) */
+.gradient-text.animate-gradient {
+  background-size: 200% auto;
+  animation: gradient-shift 6s ease infinite;
+}
+
+/* Aumento de espaçamento vertical para mais respiro */
+.section {
+  padding: 7rem 0;
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 4.5rem 0;
+  }
+}
+
+/* Cursor pointer em links/cliques por padrão nos botões de ação leve */
+a, button { -webkit-tap-highlight-color: transparent; }
+
+/* Acessibilidade + perf: reduz tudo se o usuário preferir menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  .app-aurora::before,
+  .app-aurora::after,
+  .scroll-progress {
+    animation: none;
+  }
+  .app-aurora::before { transform: none; }
+  .app-aurora::after { transform: none; }
 }

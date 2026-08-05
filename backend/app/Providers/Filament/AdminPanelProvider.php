@@ -7,6 +7,10 @@ use App\Filament\Widgets\Analytics\CategoryDistributionWidget;
 use App\Filament\Widgets\Analytics\ReaderEngagementWidget;
 use App\Filament\Widgets\Analytics\ReadingActivityWidget;
 use App\Filament\Widgets\Analytics\TopArticlesWidget;
+use App\Filament\Widgets\Analytics\TopRecipesWidget;
+use App\Filament\Widgets\Integrations\ExchangeRateWidget;
+use App\Filament\Widgets\Integrations\HeadlinesWidget;
+use App\Filament\Widgets\Integrations\WeatherWidget;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -47,8 +51,12 @@ class AdminPanelProvider extends PanelProvider
                 StatsOverview::class,
                 ReaderEngagementWidget::class,
                 TopArticlesWidget::class,
+                TopRecipesWidget::class,
                 ReadingActivityWidget::class,
                 CategoryDistributionWidget::class,
+                WeatherWidget::class,
+                ExchangeRateWidget::class,
+                HeadlinesWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

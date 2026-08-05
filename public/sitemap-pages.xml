@@ -11,6 +11,11 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
+    <loc>https://artigocomcafe.com/receitas/</loc>
+    <priority>0.9</priority>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
     <loc>https://artigocomcafe.com/sobre/</loc>
     <priority>0.5</priority>
     <changefreq>monthly</changefreq>

@@ -33,6 +33,16 @@ class Trail extends Model
     }
 
     /**
+     * Receitas desta trilha (Fase 6 - trilha "Barista Iniciante").
+     */
+    public function recipes(): BelongsToMany
+    {
+        return $this->belongsToMany(Recipe::class, 'trail_recipe')
+            ->withPivot('order', 'is_required')
+            ->orderBy('trail_recipe.order');
+    }
+
+    /**
      * Users enrolled in this trail.
      */
     public function users(): BelongsToMany

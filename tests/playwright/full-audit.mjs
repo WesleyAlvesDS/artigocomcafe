@@ -41,6 +41,7 @@ async function dismissCookies(page) {
 const PUBLIC_PAGES = [
   { url: '/', name: 'Homepage' },
   { url: '/blog/', name: 'Blog' },
+  { url: '/receitas/', name: 'Receitas' },
   { url: '/sobre/', name: 'Sobre' },
   { url: '/contato/', name: 'Contato' },
   { url: '/newsletter/', name: 'Newsletter' },
@@ -311,8 +312,14 @@ async function runSuite(viewport, label) {
     const sbCount = await searchBtn.count();
     if (sbCount > 0 && await searchBtn.isVisible()) {
       await searchBtn.click();
-      await searchPage.waitForTimeout(600);
-      const modalVisible = await searchPage.locator('[class*="search-modal"], [role="dialog"], input[aria-label="Buscar artigos"]').first().isVisible().catch(() => false);
+      // Aguarda o modal de busca realmente aparecer (hidratação do React pode levar >1s)
+      let modalVisible = false;
+      try {
+        await searchPage.locator('input[aria-label="Buscar artigos"]').first().waitFor({ state: 'visible', timeout: 8000 });
+        modalVisible = true;
+      } catch {
+        modalVisible = false;
+      }
       report('Search modal abre', modalVisible);
       const input = searchPage.locator('input[aria-label="Buscar artigos"]').first();
       if (await input.count()) {

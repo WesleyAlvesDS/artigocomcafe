@@ -89,12 +89,23 @@ class MissionController extends Controller
     public function claimReward(Request $request, Mission $mission): JsonResponse
     {
         $user = $request->user();
-        $today = now()->toDateString();
+        $today = now();
 
-        $userMission = $user->missions()
-            ->where('mission_id', $mission->id)
-            ->where('assigned_date', $today)
-            ->first();
+        // Missões semanais registram o progresso com assigned_date = início da
+        // semana; diárias usam o dia atual.
+        $assignedDate = $today->toDateString();
+        $userMissionQuery = $user->missions()->where('mission_id', $mission->id);
+
+        if ($mission->type === 'weekly') {
+            $userMissionQuery->whereBetween('assigned_date', [
+                $today->copy()->startOfWeek()->toDateString(),
+                $today->copy()->endOfWeek()->toDateString(),
+            ]);
+        } else {
+            $userMissionQuery->where('assigned_date', $assignedDate);
+        }
+
+        $userMission = $userMissionQuery->first();
 
         if (!$userMission || !$userMission->pivot->is_completed) {
             return response()->json(['message' => 'Missão não concluída.'], 400);

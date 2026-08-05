@@ -3,11 +3,12 @@ import { api, isAuthenticated } from '../lib/api'
 import { useToast } from './Toast'
 
 interface Props {
-  articleId: number
+  articleId?: number
+  recipeId?: number
   articleTitle: string
 }
 
-export default function ReadingTracker({ articleId, articleTitle }: Props) {
+export default function ReadingTracker({ articleId, recipeId, articleTitle }: Props) {
   const { addToast } = useToast()
   const [progress, setProgress] = useState(0)
   const [visible, setVisible] = useState(false)
@@ -15,6 +16,10 @@ export default function ReadingTracker({ articleId, articleTitle }: Props) {
   const startTime = useRef(Date.now())
   const maxScrollRef = useRef(0)
   const progressRef = useRef(0)
+
+  // Receitas usam o mesmo rastreador (Fase 6) com endpoints próprios
+  const isRecipe = recipeId != null
+  const contentId = isRecipe ? recipeId : articleId
 
   // Only activate for authenticated users
   useEffect(() => {
@@ -43,18 +48,20 @@ export default function ReadingTracker({ articleId, articleTitle }: Props) {
       window.removeEventListener('scroll', onScroll)
       cancelAnimationFrame(rafId)
     }
-  }, [visible])
-
-  // Send progress to API every 15 seconds
+  }, [visible])    // Send progress to API every 15 seconds
   useEffect(() => {
-    if (!visible) return
+    if (!visible || contentId == null) return
+
+    const progressEndpoint = isRecipe ? `/recipes/${contentId}/progress` : `/articles/${contentId}/progress`
+    const completeEndpoint = isRecipe ? `/recipes/${contentId}/complete` : `/articles/${contentId}/complete`
+    const noun = isRecipe ? 'receita' : 'artigo'
 
     const interval = setInterval(async () => {
       const currentProgress = progressRef.current
       const timeSpent = Math.round((Date.now() - startTime.current) / 1000)
 
       try {
-        await api.post(`/articles/${articleId}/progress`, {
+        await api.post(progressEndpoint, {
           progress_percent: currentProgress,
           time_spent_seconds: timeSpent,
           scroll_depth: maxScrollRef.current,
@@ -64,11 +71,11 @@ export default function ReadingTracker({ articleId, articleTitle }: Props) {
         if (currentProgress >= 90 && timeSpent >= 30 && !completedRef.current) {
           completedRef.current = true
           try {
-            await api.post(`/articles/${articleId}/complete`)
+            await api.post(completeEndpoint)
             addToast({
               type: 'grain',
-              title: 'Leitura concluída! 🎉',
-              message: `Você ganhou grãos por ler "${articleTitle.substring(0, 40)}..."`,
+              title: `${noun === 'receita' ? 'Receita concluída' : 'Leitura concluída'}! 🎉`,
+              message: `Você ganhou grãos por ${isRecipe ? 'preparar' : 'ler'} "${articleTitle.substring(0, 40)}..."`,
               duration: 5000,
             })
           } catch {
@@ -81,7 +88,7 @@ export default function ReadingTracker({ articleId, articleTitle }: Props) {
     }, 15000)
 
     return () => clearInterval(interval)
-  }, [visible, articleId, articleTitle, addToast])
+  }, [visible, contentId, isRecipe, articleTitle, addToast])
 
   if (!visible) return null
 

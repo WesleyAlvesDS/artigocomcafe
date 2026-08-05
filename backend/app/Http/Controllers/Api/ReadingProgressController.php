@@ -7,7 +7,9 @@ use App\Models\Article;
 use App\Models\DailyVisit;
 use App\Models\Grain;
 use App\Models\ReadingProgress;
+use App\Models\Recipe;
 use App\Models\User;
+use App\Services\GamificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -54,6 +56,55 @@ class ReadingProgressController extends Controller
         }
 
         return response()->json(['message' => 'Leitura concluída!', 'progress' => $progress]);
+    }
+
+    /**
+     * Atualiza o progresso de leitura de uma RECEITA (Fase 6).
+     */
+    public function updateRecipe(Request $request, Recipe $recipe): JsonResponse
+    {
+        $validated = $request->validate([
+            'progress_percent' => 'required|integer|min:0|max:100',
+            'time_spent_seconds' => 'required|integer|min:0',
+            'scroll_depth' => 'integer|min:0|max:100',
+        ]);
+
+        $user = $request->user();
+
+        $progress = ReadingProgress::updateOrCreate(
+            ['user_id' => $user->id, 'recipe_id' => $recipe->id],
+            [
+                'progress_percent' => $validated['progress_percent'],
+                'time_spent_seconds' => $validated['time_spent_seconds'],
+                'scroll_depth' => $validated['scroll_depth'] ?? 0,
+                'started_at' => now(),
+            ]
+        );
+
+        if ($validated['progress_percent'] >= 90 && ! $progress->is_completed) {
+            app(GamificationService::class)->completeRecipe($user, $recipe, $progress);
+        }
+
+        return response()->json(['progress' => $progress]);
+    }
+
+    /**
+     * Marca uma RECEITA como concluída e concede a recompensa (grãos).
+     */
+    public function completeRecipe(Request $request, Recipe $recipe): JsonResponse
+    {
+        $user = $request->user();
+
+        $progress = ReadingProgress::firstOrCreate(
+            ['user_id' => $user->id, 'recipe_id' => $recipe->id],
+            ['progress_percent' => 100, 'time_spent_seconds' => 0, 'scroll_depth' => 100]
+        );
+
+        if (! $progress->is_completed) {
+            app(GamificationService::class)->completeRecipe($user, $recipe, $progress);
+        }
+
+        return response()->json(['message' => 'Receita concluída!', 'progress' => $progress]);
     }
 
     public function progress(Request $request): JsonResponse

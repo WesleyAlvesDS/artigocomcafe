@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Article;
+use App\Models\Recipe;
 use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -19,6 +20,9 @@ class StatsOverview extends StatsOverviewWidget
             Stat::make('Agendados', Article::where('status', 'scheduled')->count()),
             Stat::make('Usuários', User::count()),
             Stat::make('Visualizações', (int) DB::table('articles')->sum('views_count')),
+            Stat::make('Receitas', Recipe::count())
+                ->description(Recipe::where('status', 'published')->count().' publicadas')
+                ->color('warning'),
         ];
     }
 }

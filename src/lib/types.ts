@@ -76,3 +76,48 @@ export interface BlogListResponse {
   posts: BlogPost[]
   pagination: WPPageInfo
 }
+
+export interface RecipeIngredient {
+  name: string
+  amount: string | null
+  unit: string | null
+  optional: boolean
+}
+
+export type RecipeStep = string | { description: string }
+
+export interface Recipe {
+  id: number
+  title: string
+  slug: string
+  excerpt: string | null
+  description: string | null
+  ingredients: RecipeIngredient[]
+  steps: RecipeStep[]
+  prep_time_minutes: number | null
+  cook_time_minutes: number | null
+  servings: number | null
+  difficulty: 'facil' | 'media' | 'dificil' | string
+  cover_image: string | null
+  category: { id: number; name: string; slug: string; icon: string | null; color: string | null } | null
+  tags: Array<{ id: number; name: string; slug: string }>
+  views_count: number
+  published_at: string
+}
+
+export interface RecipeListResponse {
+  data: Recipe[]
+  total: number
+  per_page: number
+  current_page: number
+  last_page: number
+}
+
+export interface RecipeCategory {
+  id: number
+  name: string
+  slug: string
+  icon: string | null
+  color: string | null
+  recipes_count: number
+}

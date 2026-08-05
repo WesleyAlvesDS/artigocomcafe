@@ -28,6 +28,13 @@ class Collection extends Model
             ->withTimestamps();
     }
 
+    public function recipes()
+    {
+        return $this->belongsToMany(Recipe::class, 'collection_recipe')
+            ->withPivot('note')
+            ->withTimestamps();
+    }
+
     public function getArticlesCountAttribute()
     {
         return $this->articles()->count();

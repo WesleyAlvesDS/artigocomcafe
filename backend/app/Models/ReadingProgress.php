@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ReadingProgress extends Model
 {
     protected $fillable = [
-        'user_id', 'article_id', 'progress_percent', 'time_spent_seconds',
+        'user_id', 'article_id', 'recipe_id', 'progress_percent', 'time_spent_seconds',
         'scroll_depth', 'is_completed', 'started_at', 'completed_at',
     ];
 
@@ -31,5 +31,10 @@ class ReadingProgress extends Model
     public function article()
     {
         return $this->belongsTo(Article::class);
+    }
+
+    public function recipe()
+    {
+        return $this->belongsTo(Recipe::class);
     }
 }

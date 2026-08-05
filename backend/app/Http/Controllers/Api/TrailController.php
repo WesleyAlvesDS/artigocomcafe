@@ -9,15 +9,24 @@ use Illuminate\Http\Request;
 
 class TrailController extends Controller
 {
+    /**
+     * Contagens padrão: total e obrigatórios, para artigos e receitas.
+     */
+    private function withItemCounts($query)
+    {
+        return $query->withCount([
+            'articles as articles_count',
+            'articles as required_articles_count' => fn ($q) => $q->where('article_trail.is_required', true),
+            'recipes as recipes_count',
+            'recipes as required_recipes_count' => fn ($q) => $q->where('trail_recipe.is_required', true),
+        ]);
+    }
+
     public function index(): JsonResponse
     {
-        $trails = Trail::active()
-            ->withCount([
-                'articles',
-                'articles as required_articles_count' => fn($q) => $q->where('article_trail.is_required', true)
-            ])
+        $trails = $this->withItemCounts(Trail::active())
             ->get()
-            ->map(fn($trail) => [
+            ->map(fn ($trail) => [
                 'id' => $trail->id,
                 'title' => $trail->title,
                 'slug' => $trail->slug,
@@ -27,8 +36,10 @@ class TrailController extends Controller
                 'difficulty' => $trail->difficulty,
                 'estimated_hours' => $trail->estimated_hours,
                 'grain_reward' => $trail->grain_reward,
-                'articles_count' => $trail->articles_count,
+                'articles_count' => (int) $trail->articles_count,
+                'recipes_count' => (int) $trail->recipes_count,
                 'required_articles_count' => (int) $trail->required_articles_count,
+                'required_recipes_count' => (int) $trail->required_recipes_count,
             ]);
 
         return response()->json(['trails' => $trails]);
@@ -38,10 +49,18 @@ class TrailController extends Controller
     {
         $trail = Trail::active()
             ->where('slug', $slug)
-            ->with(['articles' => function ($q) {
-                $q->published()->with('category:id,name,slug');
-            }])
-            ->withCount(['articles as required_articles_count' => fn($q) => $q->where('article_trail.is_required', true)])
+            ->with([
+                'articles' => function ($q) {
+                    $q->published()->with('category:id,name,slug');
+                },
+                'recipes' => function ($q) {
+                    $q->published()->with('category:id,name,slug,icon,color');
+                },
+            ])
+            ->withCount([
+                'articles as required_articles_count' => fn ($q) => $q->where('article_trail.is_required', true),
+                'recipes as required_recipes_count' => fn ($q) => $q->where('trail_recipe.is_required', true),
+            ])
             ->firstOrFail();
 
         return response()->json(['trail' => $trail]);
@@ -52,11 +71,7 @@ class TrailController extends Controller
         $user = $request->user();
         $userTrails = $user->trails()->get()->keyBy('id');
 
-        $trails = Trail::active()
-            ->withCount([
-                'articles',
-                'articles as required_articles_count' => fn($q) => $q->where('article_trail.is_required', true)
-            ])
+        $trails = $this->withItemCounts(Trail::active())
             ->get()
             ->map(function ($trail) use ($userTrails) {
                 $userTrail = $userTrails->get($trail->id);
@@ -64,6 +79,10 @@ class TrailController extends Controller
                 $trail->is_completed = $userTrail ? (bool) $userTrail->pivot->is_completed : false;
                 $trail->started_at = $userTrail ? $userTrail->pivot->started_at : null;
                 $trail->completed_at = $userTrail ? $userTrail->pivot->completed_at : null;
+                $trail->articles_count = (int) $trail->articles_count;
+                $trail->recipes_count = (int) $trail->recipes_count;
+                $trail->required_articles_count = (int) $trail->required_articles_count;
+                $trail->required_recipes_count = (int) $trail->required_recipes_count;
                 return $trail;
             });
 
@@ -85,21 +104,27 @@ class TrailController extends Controller
     {
         $user = $request->user();
 
-        // Load the required articles count eagerly to avoid N+1
         $trail->loadCount([
-            'articles as required_articles_count' => fn($q) => $q->where('article_trail.is_required', true)
+            'articles as required_articles_count' => fn ($q) => $q->where('article_trail.is_required', true),
+            'recipes as required_recipes_count' => fn ($q) => $q->where('trail_recipe.is_required', true),
         ]);
 
-        // Get completed articles count from reading progress for this trail
         $trailArticleIds = $trail->articles()->pluck('articles.id');
         $completedArticles = $user->readingProgress()
             ->where('is_completed', true)
             ->whereIn('article_id', $trailArticleIds)
             ->count();
 
-        $totalRequired = $trail->required_articles_count;
-        $progress = $totalRequired > 0 ? min(100, (int) round(($completedArticles / $totalRequired) * 100)) : 0;
-        $isCompleted = $completedArticles >= $totalRequired;
+        $trailRecipeIds = $trail->recipes()->pluck('recipes.id');
+        $completedRecipes = $user->readingProgress()
+            ->where('is_completed', true)
+            ->whereIn('recipe_id', $trailRecipeIds)
+            ->count();
+
+        $totalRequired = (int) $trail->required_articles_count + (int) $trail->required_recipes_count;
+        $completed = $completedArticles + $completedRecipes;
+        $progress = $totalRequired > 0 ? min(100, (int) round(($completed / $totalRequired) * 100)) : 0;
+        $isCompleted = $totalRequired > 0 && $completed >= $totalRequired;
 
         $user->trails()->syncWithoutDetaching([
             $trail->id => [
@@ -112,8 +137,10 @@ class TrailController extends Controller
         return response()->json([
             'progress' => $progress,
             'is_completed' => $isCompleted,
-            'completed_articles' => $completedArticles,
+            'completed_items' => $completed,
             'total_required' => $totalRequired,
+            'completed_articles' => $completedArticles,
+            'completed_recipes' => $completedRecipes,
         ]);
     }
 }

@@ -6,4 +6,7 @@
   <sitemap>
     <loc>https://artigocomcafe.com/sitemap-articles.xml</loc>
   </sitemap>
+  <sitemap>
+    <loc>https://artigocomcafe.com/sitemap-receitas.xml</loc>
+  </sitemap>
 </sitemapindex>

@@ -15,20 +15,24 @@ import UserMenu from './UserMenu'
     <nav class="header-nav" aria-label="Navegação principal">
       <a href="/" class="nav-link">Início</a>
       <a href="/blog" class="nav-link">Blog</a>
+      <a href="/receitas" class="nav-link">Receitas</a>
       <a href="/mapa" class="nav-link">Mapa</a>
       <a href="/jornada" class="nav-link">Jornada</a>
       <a href="/sobre" class="nav-link">Sobre</a>
       <a href="/contato" class="nav-link">Contato</a>
-      <a href="/newsletter" class="nav-cta btn-primary">Newsletter</a>
-      <UserMenu client:load />
-      <ThemeToggle client:idle />
+    </nav>
+
+    <div class="header-actions">
       <button class="nav-icon-btn" id="search-toggle" data-testid="search-toggle" aria-label="Buscar artigos" title="Buscar (Ctrl+K)" type="button">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
       </button>
-    </nav>
+      <ThemeToggle client:idle />
+      <UserMenu client:load />
+      <a href="/newsletter" class="nav-cta btn-primary">Newsletter</a>
+    </div>
 
     <button class="hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false">
       <span class="hamburger-line"></span>
@@ -38,13 +42,7 @@ import UserMenu from './UserMenu'
   </div>
 
   <nav class="mobile-menu" id="mobile-menu" aria-hidden="true">
-    <a href="/" class="mobile-link">Início</a>
-    <a href="/blog" class="mobile-link">Blog</a>
-    <a href="/mapa" class="mobile-link">Mapa</a>
-    <a href="/sobre" class="mobile-link">Sobre</a>
-    <a href="/contato" class="mobile-link">Contato</a>
-    <a href="/newsletter" class="mobile-link btn-primary btn-block">Newsletter</a>
-    <div class="mobile-actions">
+    <div class="mobile-menu-head">
       <button class="mobile-icon-btn" id="search-toggle-mobile" data-testid="search-toggle-mobile" aria-label="Buscar artigos" type="button">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8" />
@@ -54,17 +52,23 @@ import UserMenu from './UserMenu'
       </button>
       <div class="mobile-theme"><ThemeToggle client:idle /></div>
     </div>
-    <hr class="mobile-divider">
-    <span class="mobile-section-label">Jornada</span>
+    <a href="/" class="mobile-link">Início</a>
+    <a href="/blog" class="mobile-link">Blog</a>
+    <a href="/receitas" class="mobile-link">Receitas</a>
+    <a href="/mapa" class="mobile-link">Mapa</a>
+    <a href="/sobre" class="mobile-link">Sobre</a>
+    <a href="/contato" class="mobile-link">Contato</a>
+    <a href="/newsletter" class="mobile-link btn-primary btn-block">Newsletter</a>
+    <span class="mobile-section-label">Sua Jornada</span>
     <a href="/jornada" class="mobile-link">📊 Jornada</a>
+    <a href="/missoes" class="mobile-link">🎯 Missões</a>
+    <a href="/trilhas" class="mobile-link">🎓 Trilhas</a>
+    <a href="/conquistas" class="mobile-link">🏆 Conquistas</a>
+    <span class="mobile-section-label">Personalizado</span>
     <a href="/graos" class="mobile-link">🫘 Grãos</a>
     <a href="/torrefacao" class="mobile-link">☕ Torrefação</a>
-    <a href="/missoes" class="mobile-link">🎯 Missões</a>
-    <a href="/conquistas" class="mobile-link">🏆 Conquistas</a>
-    <a href="/trilhas" class="mobile-link">🎓 Trilhas</a>
-    <hr class="mobile-divider">
-    <a href="/perfil" class="mobile-link">👤 Perfil</a>
     <a href="/biblioteca" class="mobile-link">📚 Biblioteca</a>
+    <a href="/perfil" class="mobile-link">👤 Perfil</a>
   </nav>
 </header>
 
@@ -95,25 +99,41 @@ import UserMenu from './UserMenu'
   }
 
   .header-inner {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
     align-items: center;
-    justify-content: space-between;
-    height: 64px;
-    padding: 0 1rem; /* Adjust padding */
+    gap: 1rem;
+    height: 68px;
+    padding: 0 1.25rem;
   }
 
   .header-logo {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.55rem;
     text-decoration: none;
     color: var(--color-text-primary);
-    font-weight: 700;
+    font-weight: 800;
     font-size: 1.15rem;
+    letter-spacing: -0.01em;
   }
 
   .header-logo-icon {
-    font-size: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--gradient-from), var(--gradient-to));
+    color: var(--color-btn-text);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--color-accent) 40%, transparent);
+    transition: transform var(--transition);
+  }
+
+  .header-logo:hover .header-logo-icon {
+    transform: rotate(-8deg) scale(1.06);
   }
 
   .header-logo-text {
@@ -123,37 +143,68 @@ import UserMenu from './UserMenu'
   .header-nav {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
+    justify-content: center;
+    gap: 0.15rem;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
 
   .nav-link {
     position: relative;
-    padding: 0.5rem 0.85rem;
+    padding: 0.5rem 0.9rem;
     color: var(--color-text-secondary);
     text-decoration: none;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     font-weight: 500;
-    transition: color var(--transition);
+    transition: color var(--transition), background var(--transition);
     border-radius: var(--radius-button);
+    white-space: nowrap;
+  }
+
+  .nav-link::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    opacity: 0;
+    transform: scale(0.92);
+    transition: opacity var(--transition), transform var(--transition);
+    z-index: -1;
   }
 
   .nav-link::after {
     content: '';
     position: absolute;
-    bottom: 0;
+    bottom: 4px;
     left: 50%;
     transform: translateX(-50%) scaleX(0);
-    width: calc(100% - 1.7rem);
+    width: calc(100% - 1.8rem);
     height: 2px;
-    background: var(--color-accent);
+    border-radius: 2px;
+    background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--color-accent) 70%, transparent);
     transition: transform var(--transition) cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .nav-link:hover {
+  .nav-link:hover,
+  .nav-link.active {
     color: var(--color-accent);
   }
 
-  .nav-link:hover::after {
+  .nav-link:hover::before,
+  .nav-link.active::before {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .nav-link:hover::after,
+  .nav-link.active::after {
     transform: translateX(-50%) scaleX(1);
   }
 
@@ -183,11 +234,19 @@ import UserMenu from './UserMenu'
     box-shadow: var(--shadow-glow);
   }
 
-  .mobile-actions {
+  .mobile-theme {
     display: flex;
     align-items: center;
+  }
+
+  .mobile-menu-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-bg-card-border);
   }
 
   .mobile-icon-btn {
@@ -256,15 +315,16 @@ import UserMenu from './UserMenu'
     display: flex;
     flex-direction: column;
     padding: 1.5rem;
-    padding-top: 5rem;
-    background: color-mix(in srgb, var(--color-bg-primary) 97%, transparent);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border-top: 1px solid var(--color-bg-card-border);
+    padding-top: 5.25rem;
+    background: color-mix(in srgb, var(--color-bg-primary) 96%, transparent);
+    backdrop-filter: blur(26px);
+    -webkit-backdrop-filter: blur(26px);
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-10px);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(-14px);
+    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                visibility 0.35s;
     overflow-y: auto;
     z-index: 99;
   }
@@ -275,47 +335,76 @@ import UserMenu from './UserMenu'
     transform: translateY(0);
   }
 
+  .mobile-menu .mobile-link,
+  .mobile-menu .mobile-menu-head,
+  .mobile-menu .mobile-section-label {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  .mobile-menu[aria-hidden="false"] .mobile-menu-head { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.02s forwards; }
+  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(1) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.05s forwards; }
+  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(2) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.09s forwards; }
+  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(3) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.13s forwards; }
+  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(4) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.17s forwards; }
+  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(5) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.21s forwards; }
+  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(6) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.25s forwards; }
+  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(7) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.29s forwards; }
+  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(8) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.33s forwards; }
+  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(9) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.37s forwards; }
+  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(10) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.41s forwards; }
+  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(11) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.45s forwards; }
+  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(12) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.49s forwards; }
+
+  @keyframes mlink-in {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
   .mobile-link {
-    padding: 0.75rem 1rem;
+    padding: 0.8rem 1rem;
     color: var(--color-text-secondary);
     text-decoration: none;
     font-size: 1rem;
     font-weight: 500;
-    border-radius: var(--radius-button);
-    transition: all var(--transition);
+    border-radius: 12px;
+    transition: background var(--transition), color var(--transition), padding var(--transition);
     display: block;
     width: 100%;
     text-align: left;
   }
 
   .mobile-link:hover {
-    background: var(--color-bg-card);
+    background: color-mix(in srgb, var(--color-bg-card) 80%, transparent);
     color: var(--color-accent);
-  }
-
-  .mobile-divider {
-    border: none;
-    border-top: 1px solid var(--color-bg-card-border);
-    margin: 0.25rem 0;
+    padding-left: 1.35rem;
   }
 
   .mobile-section-label {
     display: block;
-    padding: 0.5rem 1rem 0.25rem;
-    font-size: 0.7rem;
-    font-weight: 600;
+    padding: 1rem 0.5rem 0.4rem;
+    font-size: 0.68rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--color-text-muted);
+    letter-spacing: 0.12em;
+    color: var(--color-accent);
   }
 
   /* Responsive */
+  @media (max-width: 1000px) {
+    .header-inner { gap: 0.5rem; }
+    .nav-link { padding: 0.5rem 0.65rem; font-size: 0.82rem; }
+    .header-actions .nav-cta { display: none; }
+  }
+
   @media (max-width: 768px) {
     .header-nav {
       display: none;
     }
     .hamburger {
       display: flex;
+    }
+    .header-inner {
+      grid-template-columns: auto 1fr auto;
     }
   }
 
@@ -409,6 +498,24 @@ import UserMenu from './UserMenu'
     lastScrollY = window.pageYOffset;
     requestTick();
   });
+
+  // Highlight the nav link matching the current page
+  (function () {
+    var path = window.location.pathname
+    var links = document.querySelectorAll('.header-nav .nav-link, .mobile-menu .mobile-link')
+    function match(href) {
+      if (path === '/' && href === '/') return true
+      if (path === href) return true
+      if (href !== '/' && path.indexOf(href + '/') === 0) return true
+      if (href === '/blog' && path.indexOf('/blog/') === 0) return true
+      return false
+    }
+    links.forEach(function (a) {
+      var href = a.getAttribute('href')
+      if (!href) return
+      if (match(href)) a.classList.add('active')
+    })
+  })()
 
   // Open global search modal (SearchModal listens for 'search:open')
   const searchToggle = document.getElementById('search-toggle')

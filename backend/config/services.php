@@ -35,4 +35,47 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Integrações de API externas (Fase 6 - planoapi.md)
+    |--------------------------------------------------------------------------
+    |
+    | As chaves podem ser definidas no .env ou via tabela de settings
+    | (gerenciada na página "Integrações" do Dashboard).
+    |
+    */
+
+    'guardian' => [
+        'key' => env('GUARDIAN_API_KEY', 'test'),
+    ],
+
+    'currents' => [
+        'key' => env('CURRENTS_API_KEY'),
+    ],
+
+    'gnews' => [
+        'key' => env('GNEWS_API_KEY'),
+    ],
+
+    'unsplash' => [
+        'key' => env('UNSPLASH_API_KEY'),
+    ],
+
+    'openverse' => [
+        'client_id' => env('OPENVERSE_CLIENT_ID'),
+        'client_secret' => env('OPENVERSE_CLIENT_SECRET'),
+    ],
+
+    'ipinfo' => [
+        'token' => env('IPINFO_TOKEN'),
+    ],
+
+    'groq' => [
+        'key' => env('GROQ_API_KEY'),
+    ],
+
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+    ],
+
 ];

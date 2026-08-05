@@ -15,10 +15,13 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             CategorySeeder::class,
+            RecipeCategorySeeder::class,
             AchievementSeeder::class,
             MissionSeeder::class,
             RewardSeeder::class,
             TrailSeeder::class,
+            RecipeSeeder::class,
+            RecipeTrailSeeder::class,
         ]);
     }
 }

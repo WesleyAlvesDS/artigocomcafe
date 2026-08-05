@@ -3,19 +3,35 @@ import Base from '../layouts/Base.astro'
 import Hero from '../components/Hero.astro'
 import ArticleCard from '../components/ArticleCard.astro'
 import CafeDoDia from '../components/CafeDoDia'
+import ReceitaDoDia from '../components/ReceitaDoDia'
+import ClimaDoCafe from '../components/ClimaDoCafe'
 import { getPosts, getCategories } from '../lib/laravel'
 
 const { posts } = await getPosts(1, 6)
 const categories = await getCategories()
 ---
 
-<Base title="Artigo com Café — Blog de Cafeteria Digital" description="Blog autoral sobre cafeteria digital. Conteúdo, experiência do usuário e monetização." canonical="/" breadcrumbs={[{ name: 'Início', slug: '/' }]} image="/og-default.png.ts">
+<Base title="Artigo com Café — Blog de Cafeteria Digital" description="Blog autoral sobre o universo do café: cultura, tecnologia e conhecimento. Conteúdo aprofundado para quem ama aprender." canonical="/" breadcrumbs={[{ name: 'Início', slug: '/' }]} image="/og-default.png.ts">
   <Hero />
 
   {/* Café do Dia */}
   <section class="section" data-reveal style="padding-top: 1rem; padding-bottom: 0;">
     <div class="container" style="max-width: 720px;">
       <CafeDoDia client:load />
+    </div>
+  </section>
+
+  {/* Receita do Dia */}
+  <section class="section" data-reveal style="padding-top: 1rem; padding-bottom: 0;">
+    <div class="container" style="max-width: 720px;">
+      <ReceitaDoDia client:load />
+    </div>
+  </section>
+
+  {/* Clima do Café — sugere a bebida ideal para o dia */}
+  <section class="section" data-reveal style="padding-top: 1rem; padding-bottom: 0;">
+    <div class="container" style="max-width: 720px;">
+      <ClimaDoCafe client:visible />
     </div>
   </section>
 
@@ -38,7 +54,7 @@ const categories = await getCategories()
         <span class="section-label">Artigos Recentes</span>
         <h2 class="section-title">Últimos do Blog</h2>
         <p class="section-subtitle">
-          Conteúdo autoral sobre cafeteria digital, tecnologia e tendências do mercado.
+          Escolha um tema, leia com calma e ganhe grãos a cada artigo concluído.
         </p>
       </div>
 
@@ -81,7 +97,7 @@ const categories = await getCategories()
             </svg>
           </div>
           <h3 class="feature-title">Conteúdo Original</h3>
-          <p class="feature-desc">Artigos autorais com pesquisa aprofundada e visão crítica sobre o mercado de café digital.</p>
+          <p class="feature-desc">Artigos autorais com pesquisa aprofundada sobre cultura, história e técnicas do café — escritos para quem ama aprender de verdade.</p>
         </div>
         <div class="feature-card glass-card">
           <div class="feature-icon" style="background: rgba(124,58,237,0.1); color: var(--color-accent-secondary);">
@@ -92,7 +108,7 @@ const categories = await getCategories()
             </svg>
           </div>
           <h3 class="feature-title">Experiência do Usuário</h3>
-          <p class="feature-desc">Design pensado para leitura fluida, navegação intuitiva e máxima retenção de conteúdo.</p>
+          <p class="feature-desc">Interface pensada para leitura fluida e confortável, com foco no que importa: o seu tempo de aprendizado.</p>
         </div>
         <div class="feature-card glass-card">
           <div class="feature-icon" style="background: rgba(245,158,11,0.1); color: #f59e0b;">
@@ -101,8 +117,8 @@ const categories = await getCategories()
               <path d="M12 6v6l4 2" />
             </svg>
           </div>
-          <h3 class="feature-title">Monetização Inteligente</h3>
-          <p class="feature-desc">Estratégias de monetização invisível que geram valor real sem comprometer a experiência.</p>
+          <h3 class="feature-title">Leitura que Evolui</h3>
+          <p class="feature-desc">Ganhe grãos a cada leitura, complete conquistas e trilhas, e acompanhe sua evolução em uma jornada contínua de conhecimento.</p>
         </div>
       </div>
     </div>
@@ -118,7 +134,7 @@ const categories = await getCategories()
         '@id': 'https://artigocomcafe.com'
       },
       'headline': 'Artigo com Café — Blog de Cafeteria Digital',
-      'description': 'Blog autoral sobre cafeteria digital. Conteúdo, experiência do usuário e monetização.',
+      'description': 'Blog autoral sobre o universo do café: cultura, tecnologia e conhecimento. Conteúdo aprofundado para quem ama aprender.',
       'image': 'https://artigocomcafe.com/images/og-default.jpg',
       'author': {
         '@type': 'Organization',

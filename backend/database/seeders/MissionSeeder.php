@@ -20,6 +20,15 @@ class MissionSeeder extends Seeder
                 'expires_in_hours' => 24,
             ],
             [
+                'title' => 'Pausa do Café',
+                'description' => 'Conclua a leitura de uma receita hoje',
+                'icon' => '☕',
+                'type' => 'daily',
+                'conditions' => ['action' => 'read_recipe', 'target' => 1],
+                'grain_reward' => 5,
+                'expires_in_hours' => 24,
+            ],
+            [
                 'title' => 'Explorador Diário',
                 'description' => 'Leia artigos de 2 categorias diferentes',
                 'icon' => '🌍',
@@ -56,6 +65,15 @@ class MissionSeeder extends Seeder
                 'expires_in_hours' => 168,
             ],
             [
+                'title' => 'Mestre Barista',
+                'description' => 'Prepare 3 receitas de café nesta semana',
+                'icon' => '🧑‍🍳',
+                'type' => 'weekly',
+                'conditions' => ['action' => 'read_recipe', 'target' => 3],
+                'grain_reward' => 40,
+                'expires_in_hours' => 168,
+            ],
+            [
                 'title' => 'Diversidade de Conhecimento',
                 'description' => 'Explore 5 categorias diferentes na semana',
                 'icon' => '🎯',
@@ -67,7 +85,8 @@ class MissionSeeder extends Seeder
         ];
 
         foreach ($missions as $mission) {
-            Mission::create($mission);
+            // Idempotente: re-seedar não duplica missões existentes
+            Mission::updateOrCreate(['title' => $mission['title']], $mission);
         }
     }
 }

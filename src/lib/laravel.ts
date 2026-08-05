@@ -1,4 +1,4 @@
-import type { BlogPost, BlogListResponse } from './types'
+import type { BlogPost, BlogListResponse, Recipe, RecipeCategory, RecipeListResponse } from './types'
 
 const API_BASE = import.meta.env.PUBLIC_API_URL || 'https://back.artigocomcafe.com/api'
 
@@ -102,4 +102,54 @@ export async function getCategories(): Promise<LaravelCategory[]> {
   if (!res.ok) return []
   const json = await res.json()
   return json.categories
+}
+
+function mapRecipe(r: Recipe): Recipe {
+  return {
+    ...r,
+    ingredients: Array.isArray(r.ingredients) ? r.ingredients : [],
+    steps: Array.isArray(r.steps) ? r.steps : [],
+    tags: Array.isArray(r.tags) ? r.tags : [],
+    cover_image: r.cover_image
+      ? (r.cover_image.startsWith('http') || r.cover_image.startsWith('/')
+        ? r.cover_image : `/${r.cover_image}`)
+      : null,
+  }
+}
+
+export async function getRecipes(page = 1, perPage = 9, category?: string, search?: string, tag?: string): Promise<RecipeListResponse> {
+  const params = new URLSearchParams({ page: String(page), per_page: String(perPage) })
+  if (category) params.set('category', category)
+  if (search) params.set('search', search)
+  if (tag) params.set('tag', tag)
+
+  const res = await fetch(`${API_BASE}/recipes?${params}`, { headers: { Accept: 'application/json' } })
+  if (!res.ok) return { data: [], total: 0, per_page: perPage, current_page: page, last_page: 0 }
+
+  const json: RecipeListResponse = await res.json()
+  return { ...json, data: json.data.map(mapRecipe) }
+}
+
+export async function getAllRecipeSlugs(): Promise<string[]> {
+  const res = await fetch(`${API_BASE}/recipes?per_page=100`, { headers: { Accept: 'application/json' } })
+  if (!res.ok) return []
+  const json: RecipeListResponse = await res.json()
+  return json.data.map(r => r.slug)
+}
+
+export async function getRecipe(slug: string): Promise<{ recipe: Recipe; related: Recipe[] } | null> {
+  const res = await fetch(`${API_BASE}/recipes/${encodeURIComponent(slug)}`, { headers: { Accept: 'application/json' } })
+  if (!res.ok) return null
+  const json = await res.json()
+  return {
+    recipe: mapRecipe(json.recipe),
+    related: (json.related || []).map(mapRecipe),
+  }
+}
+
+export async function getRecipeCategories(): Promise<RecipeCategory[]> {
+  const res = await fetch(`${API_BASE}/recipe-categories`, { headers: { Accept: 'application/json' } })
+  if (!res.ok) return []
+  const json = await res.json()
+  return json.categories || []
 }

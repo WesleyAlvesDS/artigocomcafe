@@ -1,0 +1,743 @@
+---
+import Base from '../../layouts/Base.astro'
+import RecipeCard from '../../components/RecipeCard.astro'
+import ReadingTracker from '../../components/ReadingTracker'
+import { ToastProvider } from '../../components/Toast'
+import { formatDate } from '../../lib/utils'
+import { getRecipe, getAllRecipeSlugs } from '../../lib/laravel'
+import type { Recipe } from '../../lib/types'
+
+export async function getStaticPaths() {
+  const slugs = await getAllRecipeSlugs()
+  return slugs.map(slug => ({ params: { slug } }))
+}
+
+const { slug } = Astro.params
+let recipe: Recipe | null = null
+let related: Recipe[] = []
+let error = false
+
+try {
+  const result = await getRecipe(slug!)
+  if (result) {
+    recipe = result.recipe
+    related = result.related
+  } else {
+    error = true
+  }
+} catch {
+  error = true
+}
+
+const difficultyLabel: Record<string, string> = { facil: 'Fácil', media: 'Média', dificil: 'Difícil' }
+
+// Schema.org Recipe
+const schemaRecipe = recipe ? {
+  '@context': 'https://schema.org',
+  '@type': 'Recipe',
+  name: recipe.title,
+  headline: recipe.title,
+  description: recipe.excerpt || recipe.description || recipe.title,
+  image: recipe.cover_image || 'https://artigocomcafe.com/images/recipe-default.svg',
+  datePublished: recipe.published_at,
+  recipeCategory: recipe.category?.name,
+  recipeCuisine: 'Brasileira',
+  prepTime: recipe.prep_time_minutes != null ? `PT${recipe.prep_time_minutes}M` : undefined,
+  cookTime: recipe.cook_time_minutes != null ? `PT${recipe.cook_time_minutes}M` : undefined,
+  totalTime: recipe.prep_time_minutes != null || recipe.cook_time_minutes != null
+    ? `PT${(recipe.prep_time_minutes || 0) + (recipe.cook_time_minutes || 0)}M`
+    : undefined,
+  recipeYield: recipe.servings ? String(recipe.servings) : undefined,
+  recipeDifficulty: difficultyLabel[recipe.difficulty] || recipe.difficulty,
+  author: { '@type': 'Organization', name: 'Artigo com Café' },
+  publisher: { '@type': 'Organization', name: 'Artigo com Café' },
+  recipeIngredient: (recipe.ingredients || []).map((i: { name: string; amount?: string | null; unit?: string | null }) =>
+    [i.amount, i.unit, i.name].filter(Boolean).join(' ')
+  ),
+  recipeInstructions: (recipe.steps || []).map((s, i) => ({
+    '@type': 'HowToStep',
+    position: i + 1,
+    text: s.description || String(s),
+  })),
+} : null
+---
+
+{error || !recipe ? (
+  <Base title="Receita não encontrada — Artigo com Café">
+    <section class="section" style="min-height: 60vh; display: flex; align-items: center; justify-content: center; text-align: center;">
+      <div class="container">
+        <h1 class="section-title">Receita não encontrada</h1>
+        <p class="section-subtitle" style="margin: 1rem auto 2rem;">
+          A receita que você procura não está disponível ou foi removida.
+        </p>
+        <a href="/receitas" class="btn-primary">Ver todas as receitas</a>
+      </div>
+    </section>
+  </Base>
+) : (
+  <Base
+    title={`${recipe.title} — Artigo com Café`}
+    description={(recipe.excerpt || recipe.description || '').substring(0, 160)}
+    image={recipe.cover_image || '/images/recipe-default.svg'}
+    type="article"
+    canonical={`/receitas/${recipe.slug}/`}
+    breadcrumbs={[
+      { name: 'Início', slug: '/' },
+      { name: 'Receitas', slug: '/receitas/' },
+      { name: recipe.title, slug: `/receitas/${recipe.slug}/` }
+    ]}
+  >
+    {schemaRecipe && (
+      <script type="application/ld+json" set:html={JSON.stringify(schemaRecipe)} />
+    )}
+
+    <article class="recipe-page">
+      <div class="recipe-header-section">
+        <div class="recipe-header-bg">
+          <div class="recipe-header-sphere r-hs-1"></div>
+          <div class="recipe-header-sphere r-hs-2"></div>
+        </div>
+        <div class="container">
+          <div class="recipe-header" data-reveal>
+            <div class="recipe-meta">
+              {recipe.category && (
+                <span class="recipe-category" style={`color: ${recipe.category.color || 'var(--color-accent)'}`}>
+                  {recipe.category.icon && <span aria-hidden="true">{recipe.category.icon}</span>}
+                  {recipe.category.name}
+                </span>
+              )}
+              <span class="recipe-date">{formatDate(recipe.published_at)}</span>
+            </div>
+            <h1 class="recipe-title">{recipe.title}</h1>
+            <p class="recipe-excerpt-header">{recipe.excerpt}</p>
+            <div class="recipe-stats-row">
+              {recipe.prep_time_minutes != null && (
+                <span class="recipe-stat">⏱ Preparo: {recipe.prep_time_minutes} min</span>
+              )}
+              {recipe.cook_time_minutes != null && recipe.cook_time_minutes > 0 && (
+                <span class="recipe-stat">🔥 Cozimento: {recipe.cook_time_minutes} min</span>
+              )}
+              {recipe.servings != null && (
+                <span class="recipe-stat">👥 {recipe.servings} porções</span>
+              )}
+              <span class="recipe-stat">📊 {difficultyLabel[recipe.difficulty] || recipe.difficulty}</span>
+            </div>
+            {recipe.tags.length > 0 && (
+              <div class="recipe-tags">
+                {recipe.tags.map(tag => (
+                  <a href={`/receitas?tag=${tag.slug}`} class="tag">#{tag.name}</a>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {recipe.cover_image && (
+        <div class="recipe-cover" data-reveal>
+          <div class="container">
+            <div class="cover-frame">
+              <img src={recipe.cover_image} alt={recipe.title} class="cover-image" loading="eager" fetchpriority="high" decoding="async" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div class="recipe-content-section">
+        <div class="container">
+          <div class="recipe-layout">
+            <div class="recipe-main">
+              {recipe.description && (
+                <div class="recipe-description prose" data-reveal>
+                  <h2>Sobre esta receita</h2>
+                  <p>{recipe.description}</p>
+                </div>
+              )}
+
+              <section class="recipe-ingredients" data-reveal>
+                <h2>Ingredientes</h2>
+                <ul class="ingredients-list" id="ingredients-list">
+                  {(recipe.ingredients || []).map((ing, i) => (
+                    <li class="ingredient-item">
+                      <label>
+                        <input type="checkbox" class="ingredient-check" data-ingredient={i} />
+                        <span class="ingredient-text">
+                          {[ing.amount, ing.unit, ing.name].filter(Boolean).join(' ')}
+                          {ing.optional && <em class="ingredient-optional"> (opcional)</em>}
+                        </span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+                <p class="ingredients-progress" id="ingredients-progress">0/{recipe.ingredients.length} ingredientes</p>
+              </section>
+
+              <section class="recipe-steps" data-reveal>
+                <h2>Modo de Preparo</h2>
+                <ol class="steps-list">
+                  {(recipe.steps || []).map((s, i) => (
+                    <li class="step-item" data-step={i}>
+                      <span class="step-number">{i + 1}</span>
+                      <p class="step-text">{s.description || String(s)}</p>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+
+              <ToastProvider>
+        <ReadingTracker recipeId={recipe.id} articleTitle={recipe.title} client:load />
+      </ToastProvider>
+
+      <div class="recipe-author" data-reveal>
+                <div class="author-avatar">&#9749;</div>
+                <div class="author-info">
+                  <span class="author-label">Receita de</span>
+                  <strong class="author-name">Artigo com Café</strong>
+                  <p class="author-bio">
+                    Receitas autorais para acompanhar sua pausa para o conhecimento.
+                  </p>
+                </div>
+                <a href="/sobre" class="author-link">Conheça o projeto →</a>
+              </div>
+            </div>
+
+            <aside class="recipe-sidebar">
+              <div class="sidebar-card glass-card" data-reveal>
+                <h3 class="sidebar-title">Dica do barista</h3>
+                <p class="sidebar-text">
+                  Use sempre água filtrada e ingredientes em temperatura ambiente para melhores resultados.
+                </p>
+              </div>
+              {recipe.category && (
+                <div class="sidebar-card glass-card" data-reveal>
+                  <h3 class="sidebar-title">Categoria</h3>
+                  <a href={`/receitas?categoria=${recipe.category.slug}`} class="sidebar-tag">
+                    {recipe.category.icon && <span aria-hidden="true">{recipe.category.icon}</span>} {recipe.category.name}
+                  </a>
+                </div>
+              )}
+              <div class="sidebar-card glass-card" data-reveal>
+                <h3 class="sidebar-title">Compartilhar</h3>
+                <div class="share-links">
+                  <a
+                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(recipe.title)}&url=${encodeURIComponent(`https://artigocomcafe.com/receitas/${recipe.slug}`)}`}
+                    target="_blank" rel="noopener" class="share-link" aria-label="Compartilhar no Twitter"
+                  >𝕏</a>
+                  <a
+                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://artigocomcafe.com/receitas/${recipe.slug}`)}`}
+                    target="_blank" rel="noopener" class="share-link" aria-label="Compartilhar no Facebook"
+                  >f</a>
+                  <button class="share-link" id="copy-link" aria-label="Copiar link" data-url={`https://artigocomcafe.com/receitas/${recipe.slug}`}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    {related.length > 0 && (
+      <section class="section" data-reveal>
+        <div class="container">
+          <div class="section-header">
+            <span class="section-label">Continue Cozinhando</span>
+            <h2 class="section-title">Receitas Relacionadas</h2>
+          </div>
+          <div class="recipes-grid">
+            {related.slice(0, 4).map((r, i) => (
+              <RecipeCard recipe={r} revealDelay={`delay-${(i % 4) + 1}`} />
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+    <script>
+      // Ingredient checklist progress
+      const ingredientsList = document.getElementById('ingredients-list')
+      const progressEl = document.getElementById('ingredients-progress')
+      if (ingredientsList && progressEl) {
+        const checkboxes = ingredientsList.querySelectorAll('.ingredient-check')
+        const total = checkboxes.length
+        const update = () => {
+          const checked = [...checkboxes].filter(c => c.checked).length
+          progressEl.textContent = `${checked}/${total} ingredientes`
+          ingredientsList.classList.toggle('all-ready', checked === total && total > 0)
+        }
+        checkboxes.forEach(cb => cb.addEventListener('change', update))
+        update()
+      }
+
+      const copyBtn = document.getElementById('copy-link')
+      if (copyBtn) {
+        copyBtn.addEventListener('click', async () => {
+          const url = copyBtn.getAttribute('data-url')
+          if (url) {
+            try {
+              await navigator.clipboard.writeText(url)
+              copyBtn.style.color = 'var(--color-accent)'
+              setTimeout(() => { copyBtn.style.color = '' }, 2000)
+            } catch {}
+          }
+        })
+      }
+    </script>
+  </Base>
+)}
+
+<style is:global>
+  .recipe-page {
+    padding-top: 64px;
+  }
+
+  .recipe-header-section {
+    position: relative;
+    overflow: hidden;
+    padding: 5rem 0 4rem;
+    background: color-mix(in srgb, var(--color-bg-card) 40%, var(--color-bg-primary));
+    border-bottom: 1px solid var(--color-bg-card-border);
+  }
+
+  .recipe-header-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .recipe-header-sphere {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.7;
+    animation: float-particle 12s ease-in-out infinite;
+  }
+
+  .r-hs-1 {
+    width: 380px;
+    height: 380px;
+    top: -20%;
+    left: -5%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 22%, transparent), transparent);
+  }
+
+  .r-hs-2 {
+    width: 300px;
+    height: 300px;
+    bottom: -30%;
+    right: 5%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--color-accent-secondary) 18%, transparent), transparent);
+    animation-delay: -5s;
+  }
+
+  .recipe-header {
+    position: relative;
+    z-index: 1;
+    max-width: 820px;
+  }
+
+  .recipe-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+
+  .recipe-category {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.35rem 0.8rem;
+    border-radius: 100px;
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .recipe-date {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .recipe-title {
+    font-size: clamp(1.9rem, 4.5vw, 3rem);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--color-text-primary);
+    margin-bottom: 1rem;
+  }
+
+  .recipe-excerpt-header {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+    max-width: 640px;
+    margin-bottom: 1.5rem;
+  }
+
+  .recipe-stats-row {
+    display: flex;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+
+  .recipe-stat {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 100px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+  }
+
+  .recipe-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .recipe-tags .tag {
+    font-size: 0.78rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 100px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+
+  .recipe-tags .tag:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  .recipe-cover {
+    padding: 3rem 0 1rem;
+  }
+
+  .cover-frame {
+    position: relative;
+    border-radius: var(--radius-card-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--color-bg-card-border);
+  }
+
+  .cover-image {
+    width: 100%;
+    height: clamp(260px, 40vw, 480px);
+    object-fit: cover;
+    display: block;
+  }
+
+  .recipe-content-section {
+    padding: 2rem 0 4rem;
+  }
+
+  .recipe-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .recipe-main {
+    min-width: 0;
+  }
+
+  .recipe-description h2,
+  .recipe-ingredients h2,
+  .recipe-steps h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin-bottom: 1rem;
+    scroll-margin-top: 90px;
+  }
+
+  .recipe-description p {
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+    margin-bottom: 2rem;
+  }
+
+  .recipe-ingredients,
+  .recipe-steps {
+    margin-bottom: 2.5rem;
+  }
+
+  .ingredients-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .ingredient-item {
+    padding: 0.7rem 1rem;
+    border-radius: 12px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    transition: all 0.3s;
+  }
+
+  .ingredient-item:hover {
+    border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+  }
+
+  .ingredient-item label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: var(--color-text-primary);
+  }
+
+  .ingredient-check {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-accent);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .ingredient-text {
+    transition: opacity 0.3s;
+  }
+
+  .ingredient-check:checked + .ingredient-text {
+    opacity: 0.45;
+    text-decoration: line-through;
+  }
+
+  .ingredient-optional {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+
+  .ingredients-progress {
+    font-size: 0.8rem;
+    font-family: var(--font-mono);
+    color: var(--color-text-muted);
+  }
+
+  .ingredients-list.all-ready + .ingredients-progress {
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+
+  .steps-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    counter-reset: step;
+  }
+
+  .step-item {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 1rem 1.25rem;
+    border-radius: 14px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+  }
+
+  .step-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary));
+    color: var(--color-btn-text);
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  .step-text {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+    margin: 0.2rem 0 0;
+  }
+
+  .recipe-author {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.5rem;
+    margin-top: 3rem;
+    border-radius: var(--radius-card-lg);
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    flex-wrap: wrap;
+  }
+
+  .author-avatar {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary));
+    color: var(--color-btn-text);
+  }
+
+  .author-info {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .author-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-muted);
+  }
+
+  .author-name {
+    display: block;
+    font-size: 1.05rem;
+    color: var(--color-text-primary);
+    margin: 0.15rem 0 0.35rem;
+  }
+
+  .author-bio {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+  }
+
+  .author-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: opacity 0.25s;
+  }
+
+  .author-link:hover {
+    opacity: 0.8;
+  }
+
+  .recipe-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: sticky;
+    top: 84px;
+  }
+
+  .sidebar-card {
+    padding: 1.25rem;
+  }
+
+  .sidebar-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-muted);
+    margin-bottom: 0.85rem;
+  }
+
+  .sidebar-text {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+  }
+
+  .sidebar-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 100px;
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: all 0.25s;
+  }
+
+  .sidebar-tag:hover {
+    background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+  }
+
+  .share-links {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .share-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    color: var(--color-text-secondary);
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .share-link:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .recipes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 960px) {
+    .recipe-layout {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    .recipe-sidebar {
+      position: static;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+  }
+</style>

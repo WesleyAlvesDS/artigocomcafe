@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AchievementController;
 use App\Http\Controllers\Api\ArticleController;
+use App\Http\Controllers\Api\IntegrationController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CollectionController;
 use App\Http\Controllers\Api\GrainController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Api\KnowledgeMapController;
 use App\Http\Controllers\Api\MissionController;
 use App\Http\Controllers\Api\ReadingProgressController;
 use App\Http\Controllers\Api\RecommendationController;
+use App\Http\Controllers\Api\RecipeController;
 use App\Http\Controllers\Api\PushSubscriptionController;
 use App\Http\Controllers\Api\RoasteryController;
 use App\Http\Controllers\Api\ThemeController;
@@ -33,6 +35,13 @@ Route::get('/articles/{slug}', [ArticleController::class, 'show']);
 
 Route::get('/categories', [ArticleController::class, 'categories']);
 
+// Receitas (Fase 6 - receitas.md)
+Route::get('/recipes', [RecipeController::class, 'index']);
+Route::get('/recipes/cafe-do-dia', [RecipeController::class, 'cafeDoDia']);
+Route::get('/recipes/featured', [RecipeController::class, 'featured']);
+Route::get('/recipes/{slug}', [RecipeController::class, 'show']);
+Route::get('/recipe-categories', [RecipeController::class, 'categories']);
+
 Route::get('/trails', [TrailController::class, 'index']);
 Route::get('/trails/{slug}', [TrailController::class, 'show']);
 
@@ -44,7 +53,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user/dashboard', [UserDashboardController::class, 'index']);
 
     Route::get('/user/library', [CollectionController::class, 'myLibrary']);
+    Route::get('/user/library/recipes', [CollectionController::class, 'myRecipeLibrary']);
     Route::post('/user/library/{article}', [CollectionController::class, 'saveToLibrary']);
+    Route::post('/user/library/recipe/{recipe}', [CollectionController::class, 'saveRecipeToLibrary']);
     Route::get('/user/collections', [CollectionController::class, 'index']);
     Route::post('/user/collections', [CollectionController::class, 'store']);
     Route::get('/user/collections/{collection}', [CollectionController::class, 'show']);
@@ -56,6 +67,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user/progress', [ReadingProgressController::class, 'progress']);
     Route::post('/articles/{article}/progress', [ReadingProgressController::class, 'update']);
     Route::post('/articles/{article}/complete', [ReadingProgressController::class, 'complete']);
+
+    // Progresso e conclusão de leitura de receitas (Fase 6 - receitas.md)
+    Route::post('/recipes/{recipe}/progress', [ReadingProgressController::class, 'updateRecipe']);
+    Route::post('/recipes/{recipe}/complete', [ReadingProgressController::class, 'completeRecipe']);
 
     Route::get('/user/grains', [GrainController::class, 'index']);
 
@@ -89,3 +104,11 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('/knowledge-map/categories', [KnowledgeMapController::class, 'publicMap']);
 
 Route::get('/themes', [ThemeController::class, 'index']);
+
+// Integrações de API externas (Fase 6 - planoapi.md)
+// Rate limit para não estourar as cotas gratuitas das APIs externas.
+Route::prefix('integrations')->middleware('throttle:30,1')->group(function () {
+    Route::get('/headlines', [IntegrationController::class, 'headlines']);
+    Route::get('/weather', [IntegrationController::class, 'weather']);
+    Route::get('/exchange', [IntegrationController::class, 'exchange']);
+});

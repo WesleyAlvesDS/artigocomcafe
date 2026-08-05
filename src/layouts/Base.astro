@@ -18,7 +18,7 @@ export interface Props {
 
 const {
   title = 'Artigo com Café — Blog de Cafeteria Digital',
-  description = 'Blog autoral sobre cafeteria digital. Conteúdo, experiência do usuário e monetização.',
+  description = 'Blog autoral sobre o universo do café: cultura, história e conhecimento. Conteúdo aprofundado para quem ama aprender e se inspirar.',
   image = '/images/og-default.svg',
   type = 'website',
   canonical,
@@ -56,7 +56,7 @@ const organizationJsonLd = {
   'name': 'Artigo com Café',
   'url': siteUrl,
   'logo': `${siteUrl}/favicon.svg`,
-  'description': 'Plataforma de conhecimento personalizada. Conteúdo, tecnologia e experiência do usuário.'
+  'description': 'Plataforma de conhecimento sobre café. Cultura, tecnologia e experiências de aprendizado em torno de cada xícara.'
 }
 ---
 
@@ -209,6 +209,9 @@ const organizationJsonLd = {
     </noscript>
   </head>
   <body data-api-base="https://back.artigocomcafe.com/api">
+    <div class="app-aurora" aria-hidden="true"></div>
+    <div class="app-grid-overlay" aria-hidden="true"></div>
+    <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
     <a href="#main-content" class="skip-to-content">
       Pular para o conteúdo
     </a>
@@ -262,6 +265,29 @@ const organizationJsonLd = {
       window.addEventListener('load', () => {
         setTimeout(revealAll, 2500)
       })
+    </script>
+
+    <script is:inline>
+      // Barra de progresso de scroll (usa transform via rAF, custo mínimo)
+      (function () {
+        var bar = document.getElementById('scroll-progress')
+        if (!bar) return
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+        var ticking = false
+        function update() {
+          var doc = document.documentElement
+          var max = doc.scrollHeight - window.innerHeight
+          var pct = max > 0 ? (window.pageYOffset / max) * 100 : 0
+          bar.style.width = pct + '%'
+          ticking = false
+        }
+        function request() {
+          if (!ticking) { requestAnimationFrame(update); ticking = true }
+        }
+        window.addEventListener('scroll', request, { passive: true })
+        window.addEventListener('resize', request, { passive: true })
+        update()
+      })()
     </script>
 
     <Header />
