@@ -1,193 +1,170 @@
-# Artigocomcafe.com - Script de Deploy para ValueHost (DirectAdmin)
-# Uso: .\deploy.ps1 -Target "C:\caminho\para\public_html"
-# Ou apenas .\deploy.ps1 (usa .env se existir)
+# =====================================================================
+# Artigocomcafe.com - unified deploy (ValueHost / DirectAdmin) via SSH
+# =====================================================================
+# Usage:
+#   .\deploy.ps1                  -> deploy everything (frontend + backend)
+#   .\deploy.ps1 -Front           -> Astro frontend only
+#   .\deploy.ps1 -Back            -> Laravel backend only
+#   .\deploy.ps1 -All -DryRun     -> simulate, change nothing
+#   .\deploy.ps1 -Back -NoMigrate -> backend without running migrations
+#
+# Optional config (overrides defaults), add to .env:
+#   DEPLOY_SSH_HOST=br64-da.valueserver.net.br
+#   DEPLOY_SSH_PORT=1157
+#   DEPLOY_SSH_USER=arti3263
+#   DEPLOY_SSH_KEY=C:\Users\voce\.ssh\id_ed25519
+#   DEPLOY_FRONT_PATH=~/domains/artigocomcafe.com/public_html
+#   DEPLOY_BACK_PATH=~/domains/back.artigocomcafe.com/public_html
+# =====================================================================
 
 param(
-  [string]$Target = "",
-  [switch]$DryRun = $false
+  [switch]$Front,
+  [switch]$Back,
+  [switch]$All,
+  [switch]$DryRun,
+  [switch]$NoMigrate
 )
 
 $ErrorActionPreference = "Stop"
+$root = $PSScriptRoot
 
-# Cores
-$green = "Green"
-$yellow = "Yellow"
-$red = "Red"
-$cyan = "Cyan"
+$okC   = "Green"
+$warnC = "Yellow"
+$errC  = "Red"
+$infoC = "Cyan"
 
-# Tenta ler .env
-$envFile = Join-Path $PSScriptRoot ".env"
+function Say($head, $color, $msg) {
+  Write-Host ("$head ") -NoNewline -ForegroundColor $color
+  Write-Host $msg
+}
+
+$cfg = @{
+  Host      = "br64-da.valueserver.net.br"
+  Port      = 1157
+  User      = "arti3263"
+  Key       = "$env:USERPROFILE\.ssh\id_ed25519"
+  FrontPath = "~/domains/artigocomcafe.com/public_html"
+  BackPath  = "~/domains/back.artigocomcafe.com/public_html"
+}
+
+$envFile = Join-Path $root ".env"
 if (Test-Path $envFile) {
   Get-Content $envFile | ForEach-Object {
-    if ($_ -match '^\s*DEPLOY_PATH\s*=\s*(.+)\s*$') {
-      $Target = $matches[1]
+    if ($_ -match '^\s*(DEPLOY_\w+)\s*=\s*(.+?)\s*$') {
+      $k, $v = $matches[1], $matches[2].Trim('"').Trim("'")
+      switch ($k) {
+        "DEPLOY_SSH_HOST"   { $cfg.Host = $v }
+        "DEPLOY_SSH_PORT"   { $cfg.Port = [int]$v }
+        "DEPLOY_SSH_USER"   { $cfg.User = $v }
+        "DEPLOY_SSH_KEY"    { $cfg.Key = $v }
+        "DEPLOY_FRONT_PATH" { $cfg.FrontPath = $v }
+        "DEPLOY_BACK_PATH"  { $cfg.BackPath = $v }
+      }
     }
   }
 }
 
-if (-not $Target) {
-  Write-Host "❌" -NoNewline
-  Write-Host " Uso: .\deploy.ps1 -Target `"C:\caminho\para\public_html`"" -ForegroundColor $yellow
-  Write-Host "  Ou crie um arquivo .env com: DEPLOY_PATH=C:\caminho\para\public_html"
+if (-not ($Front -or $Back -or $All)) { $All = $true }
+if ($All) { $Front = $true; $Back = $true }
+
+$ssh = "ssh -p $($cfg.Port) -i `"$($cfg.Key)`" -o StrictHostKeyChecking=accept-new $($cfg.User)@$($cfg.Host)"
+$scp = "scp -P $($cfg.Port) -i `"$($cfg.Key)`" -o StrictHostKeyChecking=accept-new"
+
+Say ">>" $infoC "Deploy Artigocomcafe.com -> $($cfg.Host):$($cfg.Port)"
+Say "   Host:" $okC " $($cfg.Host)"
+Say "   User:" $okC " $($cfg.User)"
+Say "   Key :" $okC " $($cfg.Key)"
+if (-not (Test-Path $cfg.Key)) {
+  Say "[!]" $errC "SSH key not found: $($cfg.Key)"
   exit 1
 }
+if ($DryRun) { Say "==" $warnC "DRY RUN - nothing will be changed" }
 
-if (-not (Test-Path $Target)) {
-  Write-Host "❌" -NoNewline
-  Write-Host " Diretório não encontrado: $Target" -ForegroundColor $red
-  exit 1
+$tmp = Join-Path $env:TEMP "artigo_deploy"
+New-Item -ItemType Directory -Path $tmp -Force | Out-Null
+
+function Run-Remote($remoteCmd) {
+  if ($DryRun) { Say "== (dry)" $warnC $remoteCmd; return }
+  # build:  ssh ... user@host  "remote command"
+  $cmd = $ssh + " `"" + ($remoteCmd -replace '"', '\"') + "`""
+  Invoke-Expression $cmd
+  if ($LASTEXITCODE -ne 0) {
+    Say "[!]" $errC "Remote command failed (exit $LASTEXITCODE): $remoteCmd"
+    exit 1
+  }
+}
+function Send-File($local, $remotePath) {
+  if ($DryRun) { Say "== (dry) scp" $warnC "$local -> $remotePath"; return }
+  Invoke-Expression ($scp + " `"$local`" $($cfg.User)@$($cfg.Host):$remotePath")
+  if ($LASTEXITCODE -ne 0) {
+    Say "[!]" $errC "scp failed for $local"
+    exit 1
+  }
 }
 
-Write-Host "`n🚀" -NoNewline
-Write-Host " Deploy Artigocomcafe.com" -ForegroundColor $cyan
-Write-Host "   Origem:  " -NoNewline
-Write-Host "$PSScriptRoot\dist" -ForegroundColor $green
-Write-Host "   Destino: " -NoNewline
-Write-Host "$Target" -ForegroundColor $green
+# ================= FRONTEND =================
+if ($Front) {
+  Write-Host ""
+  Say "== FRONTEND" $infoC "build Astro"
+  if (-not $DryRun) {
+    Push-Location $root
+    try { npm run build } finally { Pop-Location }
+    if ($LASTEXITCODE -ne 0) { Say "[!]" $errC "Build failed"; exit 1 }
+  }
+
+  $dist = Join-Path $root "dist"
+  $tar  = Join-Path $tmp "front.tar.gz"
+  if (Test-Path $tar) { Remove-Item $tar }
+
+  Say "-- FRONTEND" $infoC "pack dist"
+  if (-not $DryRun) {
+    tar.exe -czf $tar -C $dist .
+    if ($LASTEXITCODE -ne 0) { Say "[!]" $errC "Failed to create frontend tarball"; exit 1 }
+  }
+
+  Say "-- FRONTEND" $infoC "upload + extract"
+  Send-File $tar "~/front.tar.gz"
+  Run-Remote ("cd " + $cfg.FrontPath + " && tar -xzf ~/front.tar.gz && rm -f ~/front.tar.gz && echo FRONT_OK")
+  Say "[OK]" $okC "FRONTEND deployed"
+}
+
+# ================= BACKEND =================
+if ($Back) {
+  Write-Host ""
+  Say "== BACKEND" $infoC "Laravel (keeps .env/vendor/storage/public)"
+  $backDir = Join-Path $root "backend"
+  if (-not (Test-Path $backDir)) { Say "[!]" $errC "backend folder not found: $backDir"; exit 1 }
+  $backTar = Join-Path $tmp "back.tar.gz"
+  if (Test-Path $backTar) { Remove-Item $backTar }
+
+  Say "-- BACKEND" $infoC "pack source"
+  if (-not $DryRun) {
+    Push-Location $backDir
+    try {
+      tar.exe -czf $backTar app config routes database bootstrap/app.php bootstrap/providers.php resources artisan composer.json composer.lock
+    } finally { Pop-Location }
+    if ($LASTEXITCODE -ne 0) { Say "[!]" $errC "Failed to pack backend"; exit 1 }
+  }
+
+  Say "-- BACKEND" $infoC "upload + extract"
+  Send-File $backTar "~/back.tar.gz"
+  Run-Remote ("cd " + $cfg.BackPath + " && tar -xzf ~/back.tar.gz && rm -f ~/back.tar.gz && echo BACK_OK")
+
+  if (-not $NoMigrate) {
+    Say "-- BACKEND" $infoC "run migrations"
+    Run-Remote ("cd " + $cfg.BackPath + " && php artisan migrate --force")
+  }
+  Say "-- BACKEND" $infoC "optimize cache"
+  Run-Remote ("cd " + $cfg.BackPath + " && php artisan optimize")
+  Say "[OK]" $okC "BACKEND deployed"
+}
+
+# ================= SUMMARY =================
 Write-Host ""
-
-# 1. Build
-Write-Host "`n📦" -NoNewline
-Write-Host " Build do Astro..." -ForegroundColor $cyan
-Set-Location $PSScriptRoot
-$buildResult = npx astro build 2>&1
-if ($LASTEXITCODE -ne 0) {
-  Write-Host "❌" -NoNewline
-  Write-Host " Build falhou:" -ForegroundColor $red
-  Write-Host $buildResult
-  exit 1
-}
-Write-Host "✅" -NoNewline
-Write-Host " Build concluído!" -ForegroundColor $green
-
-$source = Join-Path $PSScriptRoot "dist"
-
-# 2. Backup do WordPress
-$wpFiles = @(
-  "wp-admin", "wp-includes", "wp-content", "wp-config.php",
-  "xmlrpc.php", "wp-load.php", "wp-login.php", "wp-mail.php",
-  "wp-settings.php", "wp-signup.php", "wp-trackback.php",
-  "wp-links-opml.php", "wp-cron.php", "wp-comments-post.php",
-  "wp-blog-header.php", "wp-activate.php", ".htaccess",
-  "index.php", "license.txt", "readme.html"
-)
-
-Write-Host "`n📋" -NoNewline
-Write-Host " Verificando WordPress existente..." -ForegroundColor $cyan
-$hasWP = $false
-foreach ($file in $wpFiles) {
-  $path = Join-Path $Target $file
-  if (Test-Path $path) { $hasWP = $true; break }
-}
-
-if ($hasWP) {
-  Write-Host "✅" -NoNewline
-  Write-Host " WordPress detectado em $Target" -ForegroundColor $green
-} else {
-  Write-Host "⚠️" -NoNewline
-  Write-Host " Nenhum WordPress encontrado. O deploy só terá os arquivos estáticos." -ForegroundColor $yellow
-}
-
-# 3. Dry run
-if ($DryRun) {
-  Write-Host "`n🔍" -NoNewline
-  Write-Host " Dry Run - Arquivos que serão copiados:" -ForegroundColor $cyan
-  $files = Get-ChildItem -Path $source -Recurse -File
-  foreach ($f in $files) {
-    $rel = $f.FullName.Substring($source.Length + 1)
-    $dest = Join-Path $Target $rel
-    Write-Host "   📄 $rel →  $dest"
-  }
-  Write-Host "`n✅" -NoNewline
-  Write-Host " Dry Run completo. Nada foi alterado." -ForegroundColor $green
-  exit 0
-}
-
-# 4. Copiar arquivos estáticos
-Write-Host "`n📤" -NoNewline
-Write-Host " Copiando arquivos estáticos..." -ForegroundColor $cyan
-$fileCount = 0
-Get-ChildItem -Path $source -Recurse -File | ForEach-Object {
-  $rel = $_.FullName.Substring($source.Length + 1)
-  $dest = Join-Path $Target $rel
-  $destDir = Split-Path $dest -Parent
-  if (-not (Test-Path $destDir)) {
-    New-Item -ItemType Directory -Path $destDir -Force | Out-Null
-  }
-  Copy-Item -Path $_.FullName -Destination $dest -Force
-  $fileCount++
-}
-Write-Host "✅" -NoNewline
-Write-Host " $fileCount arquivos copiados." -ForegroundColor $green
-
-# 5. .htaccess
-Write-Host "`n🔒" -NoNewline
-Write-Host " Verificando .htaccess..." -ForegroundColor $cyan
-$htaccess = Join-Path $Target ".htaccess"
-if (Test-Path $htaccess) {
-  $content = Get-Content $htaccess -Raw
-  if ($content -notmatch "DirectoryIndex") {
-    Write-Host "📝" -NoNewline
-    Write-Host " Adicionando DirectoryIndex ao .htaccess..." -ForegroundColor $yellow
-    $newContent = "DirectoryIndex index.html index.php`n`n$content"
-    Set-Content -Path $htaccess -Value $newContent
-    Write-Host "✅" -NoNewline
-    Write-Host " .htaccess atualizado!" -ForegroundColor $green
-  } else {
-    Write-Host "✅" -NoNewline
-    Write-Host " .htaccess já configurado." -ForegroundColor $green
-  }
-} else {
-  Write-Host "📝" -NoNewline
-  Write-Host " Criando .htaccess..." -ForegroundColor $yellow
-  @"
-DirectoryIndex index.html index.php
-<IfModule mod_rewrite.c>
-RewriteEngine On
-RewriteBase /
-RewriteRule ^index\.php$ - [L]
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /index.php [L]
-</IfModule>
-"@ | Set-Content -Path $htaccess
-  Write-Host "✅" -NoNewline
-  Write-Host " .htaccess criado!" -ForegroundColor $green
-}
-
-# 6. Permissões (ajuda)
-Write-Host "`n🔐" -NoNewline
-Write-Host " Verificando permissões..." -ForegroundColor $cyan
-if ($Target -match "public_html") {
-  Write-Host "   Dica: No DirectAdmin, as permissões são gerenciadas automaticamente."
-  Write-Host "   Se precisar: acesse o File Manager e dê permissão 755 para pastas, 644 para arquivos."
-}
-
-# Sumário
-Write-Host "`n" + "="*50 -ForegroundColor $cyan
-Write-Host " ✅ DEPLOY CONCLUÍDO!" -ForegroundColor $green
-Write-Host "="*50 -ForegroundColor $cyan
-Write-Host ""
-
-# URLs
-$urls = @(
-  "/", "/blog/", "/sobre/", "/contato/", "/newsletter/"
-)
-Get-ChildItem -Path $source -Recurse -Directory | ForEach-Object {
-  $rel = $_.FullName.Substring($source.Length)
-  if (Test-Path (Join-Path $_.FullName "index.html")) {
-    $urls += $rel.Replace("\", "/") + "/"
-  }
-}
-
-Write-Host "📄 Páginas implantadas:" -ForegroundColor $cyan
-$urls | Sort-Object | ForEach-Object {
-  Write-Host "   • https://artigocomcafe.com$_" -ForegroundColor $green
-}
-
-Write-Host "`n📌 LEMBRE-SE:" -ForegroundColor $yellow
-Write-Host "   • WordPress continua em: https://artigocomcafe.com/wp-admin/" -ForegroundColor $white
-Write-Host "   • API REST: https://artigocomcafe.com/wp-json/wp/v2/posts" -ForegroundColor $white
-Write-Host "   • Mídias: https://artigocomcafe.com/wp-content/uploads/" -ForegroundColor $white
-Write-Host "   • Artigos novos: publique no WordPress, execute 'npm run build' e deploy novamente" -ForegroundColor $white
+Say ("=" * 50) $infoC ""
+Say("[OK]") $okC ("DEPLOY DONE" + $(if ($DryRun) { " (DRY RUN)" } else { "" }))
+Say("--")  $infoC ("=" * 50)
+Say("-")    $infoC "Frontend : https://artigocomcafe.com"
+Say("-")    $infoC "Dashboard: https://dash.artigocomcafe.com"
+Say("-")    $infoC "API      : https://back.artigocomcafe.com/api"
 Write-Host ""

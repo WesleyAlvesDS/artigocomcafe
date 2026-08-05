@@ -47,25 +47,25 @@ export default function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} class="space-y-5">
+    <form onSubmit={handleSubmit} class="space-y-6">
       {error && (
-        <div class="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-950/30 dark:text-red-400 rounded-lg border border-red-200 dark:border-red-800" role="alert">{error}</div>
+        <div class="p-3.5 text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-xl backdrop-blur-sm animate-fade-in" role="alert">{error}</div>
       )}
-      <div>
-        <label for="login-email" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">Email</label>
+      <div class="form-field">
+        <label for="login-email" class="form-label">Email</label>
         <input id="login-email" type="email" required autoComplete="email" value={email} onChange={e => setEmail(e.target.value)}
-          class="w-full px-4 py-2.5 rounded-xl border border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50 transition-shadow" placeholder="seu@email.com" />
+          class="form-input" placeholder="seu@email.com" />
       </div>
-      <div>
-        <div class="flex items-center justify-between mb-1.5">
-          <label for="login-password" class="block text-sm font-medium text-[var(--color-text-primary)]">Senha</label>
-          <a href="/recuperar-senha" class="text-xs text-[var(--color-accent)] hover:underline">Esqueceu a senha?</a>
+      <div class="form-field">
+        <div class="flex items-center justify-between mb-2">
+          <label for="login-password" class="form-label mb-0">Senha</label>
+          <a href="/recuperar-senha" class="text-xs text-[var(--color-accent)] hover:text-[var(--color-accent-dark)] hover:underline transition-colors">Esqueceu a senha?</a>
         </div>
         <div class="relative">
           <input id="login-password" type={showPassword ? 'text' : 'password'} required autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)}
-            class="w-full px-4 py-2.5 pr-11 rounded-xl border border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50 transition-shadow" placeholder="Sua senha" />
+            class="form-input pr-12" placeholder="Sua senha" />
           <button type="button" onClick={() => setShowPassword(v => !v)} tabIndex={-1}
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            class="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-accent transition-colors"
             aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}>
             {showPassword ? (
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -81,9 +81,21 @@ export default function LoginForm() {
           </button>
         </div>
       </div>
-      <button type="submit" disabled={loading}
-        class="w-full py-2.5 px-4 bg-[var(--color-accent)] text-[var(--color-btn-text)] rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50">
-        {loading ? 'Entrando...' : 'Entrar'}
+      <button type="submit" disabled={loading} class="btn-primary w-full py-3">
+        {loading ? (
+          <>
+            <span class="inline-block w-4 h-4 border-2 border-[var(--color-btn-text)]/30 border-t-[var(--color-btn-text)] rounded-full animate-spin" aria-hidden="true"></span>
+            Entrando...
+          </>
+        ) : (
+          <>
+            Entrar
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </>
+        )}
       </button>
     </form>
   )

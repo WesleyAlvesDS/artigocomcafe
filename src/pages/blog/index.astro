@@ -25,7 +25,7 @@ if (categorySlug) {
 const { posts, pagination } = await getPosts(currentPage, 9, categoryId || undefined, search || undefined, tagSlug || undefined)
 ---
 
-<Base title="Blog — Artigo com Café" description="Artigos sobre cafeteria digital, tecnologia, experiência do usuário e monetização." canonical="/blog/" breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Blog', slug: '/blog/' }]}>
+<Base title="Blog — Artigo com Café" description="Artigos aprofundados sobre o universo do café: cultura, história, métodos e curiosidades." canonical="/blog/" breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Blog', slug: '/blog/' }]}>
   {pagination.totalPages > 1 && currentPage < pagination.totalPages && (
     <link rel="next" href={`/blog?page=${currentPage + 1}${categorySlug ? `&categoria=${categorySlug}` : ''}${search ? `&busca=${encodeURIComponent(search)}` : ''}${tagSlug ? `&tag=${tagSlug}` : ''}`} />
   )}
@@ -38,7 +38,7 @@ const { posts, pagination } = await getPosts(currentPage, 9, categoryId || undef
         <span class="section-label">Blog</span>
         <h1 class="section-title">Todos os Artigos</h1>
         <p class="section-subtitle">
-          Conteúdo autoral sobre cafeteria digital, tecnologia e tendências do mercado.
+          Conteúdo autoral sobre cultura, história e métodos do café — para ler com calma e aprender.
         </p>
       </div>
 
