@@ -11,7 +11,7 @@ class CategoryDistributionWidget extends DoughnutChartWidget
 {
     protected static ?int $sort = 3;
 
-    protected function getHeading(): string
+    public function getHeading(): string
     {
         return 'Artigos por categoria';
     }

@@ -25,3 +25,7 @@ Para agregar valor real sem sobrecarregar seu servidor:
 
 Cacheie as respostas: APIs gratuitas têm limites de requisição. Salve os dados (ex: clima, cotação, notícias) no seu banco de dados por um período curto (ex: 1 hora) em vez de chamar a API toda vez que um usuário carrega a página.
 Combine APIs: Crie experiências únicas, como um widget de viagem que mostra o Clima (OpenWeather) + Cotação da Moeda (ExchangeRate) + Notícias Locais (Currents) da cidade que você está escrevendo. 
+
+
+https://github.com/HackerNews/API
+

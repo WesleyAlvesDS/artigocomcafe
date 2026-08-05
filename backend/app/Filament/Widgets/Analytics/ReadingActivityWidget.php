@@ -11,7 +11,7 @@ class ReadingActivityWidget extends BarChartWidget
 {
     protected static ?int $sort = 2;
 
-    protected function getHeading(): string
+    public function getHeading(): string
     {
         return 'Leituras concluídas (14 dias)';
     }

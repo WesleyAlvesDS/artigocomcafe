@@ -17,12 +17,12 @@ class TopArticlesWidget extends TableWidget
 
     protected int | string | array $columnSpan = 2;
 
-    protected function getTableHeading(): string
+    public function getTableHeading(): string
     {
         return 'Artigos mais acessados';
     }
 
-    protected function getTableQuery(): Builder
+    public function getTableQuery(): Builder
     {
         return Article::query()
             ->with(['category', 'author'])
@@ -31,7 +31,7 @@ class TopArticlesWidget extends TableWidget
             ->limit(10);
     }
 
-    protected function table(Table $table): Table
+    public function table(Table $table): Table
     {
         return $table
             ->defaultPaginationPageOption(10)
