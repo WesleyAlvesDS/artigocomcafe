@@ -69,15 +69,12 @@ node ../tests/playwright/a11y-audit.mjs     # Acessibilidade WCAG 2.1 AA (0 viol
 node ../tests/playwright/dash-login.mjs     # Login do dashboard Filament (8/8 ✓)
 node ../tests/playwright/dash-crud.mjs      # CRUD do dashboard (15/15 ✓)
 node ../tests/playwright/dash-central-editorial.mjs  # Central Editorial (6/6 ✓)
-node ../tests/playwright/dash-audit.mjs     # Dashboard do leitor (/dashboard/ — requer deploy)
+node ../tests/playwright/dash-audit.mjs     # Dashboard do leitor (31/31 ✓)
 ```
 
 > O runner unificado executa em sequência e imprime um **relatório consolidado**
 > (status por auditoria + score global). Respeita `BASE_URL`, `TEST_USER`,
 > `TEST_PASS`, `DASH_EMAIL` e `DASH_PASSWORD` do ambiente.
-
-> ⚠️ **`dash-audit.mjs`** valida a página `/dashboard/` (painel do leitor, criada
-> na reorganização). Ela ainda **não está no ar** (404 no site) — pendente de deploy.
 
 ## 🚀 Deploy
 
@@ -124,21 +121,20 @@ node ../tests/playwright/dash-audit.mjs     # Dashboard do leitor (/dashboard/ �
 
 | Auditoria | Resultado |
 |-----------|-----------|
-| `full-audit.mjs` (site, desktop+mobile) | ✅ 86/86 (100%) |
+| `full-audit.mjs` (site, desktop+mobile) | ✅ 88/88 (100%) |
 | `receitas-audit.mjs` | ✅ 42/42 (100%) |
 | `a11y-audit.mjs` (WCAG 2.1 AA, 18 páginas) | ✅ 0 violações |
 | `dash-login.mjs` | ✅ 8/8 |
 | `dash-crud.mjs` | ✅ 15/15 |
 | `dash-central-editorial.mjs` | ✅ 6/6 |
 | `site-audit.mjs` | ✅ 44/44 |
-| `dash-audit.mjs` (`/dashboard/`) | ⚠️ 0/7 — página não está no ar (pendente de deploy) |
-| `npm run build` (Astro) | ✅ 36 páginas |
+| `dash-audit.mjs` (`/dashboard/`) | ✅ 31/31 — painel do leitor no ar após deploy |
+| `npm run build` (Astro) | ✅ 37 páginas |
 | `php -l` (backend) | ✅ sem erros de sintaxe |
 
 ### Pendências
 
-- ⬜ **Deploy da página `/dashboard/`** (painel do leitor — `src/pages/dashboard.astro`
-  + `DashboardPage.tsx` existem localmente, mas retornam 404 no site).
+- ✅ **Resolvido:** deploy da página `/dashboard/` realizado (antes 404, agora 31/31 ✓).
 - 🔄 **Trocar senha FTP** no DirectAdmin (rotação) — credenciais antigas ficaram no histórico do git.
 - 🔄 **Credenciais padrão nos testes** (`dash-login.mjs`, `full-audit.mjs`,
   `dash-audit.mjs`) — usar apenas env vars (`DASH_EMAIL`, `DASH_PASSWORD`,
