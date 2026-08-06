@@ -54,6 +54,7 @@ const PUBLIC_PAGES = [
 
 const AUTH_PAGES = [
   { url: '/perfil/', name: 'Perfil' },
+  { url: '/dashboard/', name: 'Dashboard' },
   { url: '/graos/', name: 'Grãos' },
   { url: '/trilhas/', name: 'Trilhas' },
   { url: '/conquistas/', name: 'Conquistas' },

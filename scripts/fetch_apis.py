@@ -91,7 +91,7 @@ except requests.RequestException as e:
         print(f"✗ Failed {api_name}: {e}")
 
 def main():
-    output_dir = "api_u"
+    output_dir = "../docs/apis"
     for name in API_NAMES:
         url = API_URLS.get(name)
         if url:

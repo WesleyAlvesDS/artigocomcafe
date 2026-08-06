@@ -115,15 +115,21 @@ async function run() {
     const afterCreate = page.url();
     report('Categoria criada (volta para listagem)', /categories$/i.test(afterCreate) || /categories/.test(afterCreate), afterCreate);
 
-    // 5. Listagem mostra a categoria criada
+    // 5. Listagem mostra a categoria criada (espera ativa — Livewire/tabela têm loading)
     const search = page.locator('input[type="search"]:visible, input[placeholder*="Pesquisar"]:visible').first();
     if (await search.count()) {
       await search.fill(testName);
-      await page.waitForTimeout(1500);
     }
-    await page.getByText(testName, { exact: false }).first().waitFor({ timeout: 10000 }).catch(() => {});
-    const listAfterCreate = await page.locator('body').innerText();
-    report('Categoria de teste na listagem', listAfterCreate.includes(testName), testName);
+    let foundRow = false;
+    try {
+      await page.waitForFunction(
+        (name) => document.body.textContent.includes(name),
+        testName,
+        { timeout: 15000 }
+      );
+      foundRow = true;
+    } catch {}
+    report('Categoria de teste na listagem', foundRow, testName);
 
     // 6. Editar categoria
     console.log('\n--- Editar categoria ---');

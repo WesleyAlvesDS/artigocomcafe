@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Http;
  * Integração com dados meteorológicos via wttr.in.
  *
  * Endpoint livre de chave: https://wttr.in/{cidade}?format=j1
- * Retorna JSON no formato WorldWeatherOnline (mesmo usado nos specs de api_u/).
+ * Retorna JSON no formato WorldWeatherOnline (mesmo usado nos specs de docs/apis/).
  */
 class OpenWeatherService extends ApiClient
 {

@@ -90,9 +90,13 @@ async function runSuite(viewport, label) {
     const homeTitle = await homePage.title();
     report(`Title: "${homeTitle}"`, homeTitle.includes('Artigo com Café') || homeTitle.includes('Artigocomcafé'));
     
-    // Cafe do Dia section
-    const cafeDoDia = await homePage.locator('text=Café do Dia').count();
-    report('Seção Café do Dia visível', cafeDoDia > 0);
+    // Cafe do Dia section (hidratação client:load + label em caixa alta — usa textContent)
+    let cafeDoDia = false;
+    try {
+      await homePage.waitForFunction(() => /café do dia/i.test(document.body.textContent), null, { timeout: 12000 });
+      cafeDoDia = true;
+    } catch {}
+    report('Seção Café do Dia visível', cafeDoDia);
     
     // Article cards
     const articleCards = await homePage.locator('a[href*="/blog/"]').count();

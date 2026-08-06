@@ -63,8 +63,8 @@ except Exception as e:
         print(f"Failed: {api_name} - {e}")
 
 def main():
-    # Read planoapi.md
-    with open('planoapi.md', 'r', encoding='utf-8') as f:
+    # Read planoapi.md (no diretório docs/ após a reorganização)
+    with open('../docs/planoapi.md', 'r', encoding='utf-8') as f:
         lines = f.readlines()
     
     api_names = []
@@ -77,7 +77,7 @@ def main():
             if name:
                 api_names.append(name)
     
-    output_dir = 'api_u'
+    output_dir = '../docs/apis'
     for name in api_names:
         url = API_MAP.get(name)
         if url:

@@ -94,7 +94,13 @@ async function run() {
       // 6. Logout funciona
       console.log('\n--- Logout ---');
       await page.getByRole('button', { name: /logout|sair/i }).first().click().catch(() => {});
-      await page.waitForTimeout(2000);
+      // Aguarda o redirect real em vez de tempo fixo (Livewire/Filament pode demorar)
+      await page
+        .waitForURL((url) => url.pathname.includes('/login'), {
+          timeout: 10000,
+          waitUntil: 'domcontentloaded',
+        })
+        .catch(() => {});
       const afterLogout = page.url();
       report('Logout redireciona para login', afterLogout.includes('/login'), afterLogout);
     } else {

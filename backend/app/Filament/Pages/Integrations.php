@@ -3,7 +3,9 @@
 namespace App\Filament\Pages;
 
 use App\Models\Setting;
+use App\Services\Integrations\CurrentsService;
 use App\Services\Integrations\ExchangeRateService;
+use App\Services\Integrations\GNewsService;
 use App\Services\Integrations\GuardianService;
 use App\Services\Integrations\HackerNewsService;
 use App\Services\Integrations\OpenWeatherService;
@@ -162,6 +164,12 @@ class Integrations extends Page
 
         $hackerNews = app(HackerNewsService::class)->headlines(1, fresh: true);
         $results['Hacker News'] = filled($hackerNews['items'] ?? []);
+
+        $currents = app(CurrentsService::class)->headlines('café', 1, fresh: true);
+        $results['Currents'] = filled($currents['items'] ?? []);
+
+        $gnews = app(GNewsService::class)->headlines('café', 1, fresh: true);
+        $results['GNews'] = filled($gnews['items'] ?? []);
 
         $weather = app(OpenWeatherService::class)->current(fresh: true);
         $results['Clima (wttr.in)'] = filled($weather['temperature_c'] ?? null);

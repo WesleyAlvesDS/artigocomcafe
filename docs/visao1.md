@@ -1,5 +1,9 @@
 # ☕ Artigo com Café
 
+> 🕰️ **DOCUMENTO HISTÓRICO** — Esta é a visão original do projeto (v1.0).
+> A visão atual é o **PRD v3.0** em [visao2.md](visao2.md). Mantido como
+> referência da evolução do produto.
+
 ## Plano Mestre do Projeto (Versão 1.0)
 
 # Visão do Projeto

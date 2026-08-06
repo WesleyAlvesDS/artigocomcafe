@@ -1,58 +1,104 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# ☕ Backend — API Laravel + Dashboard Filament
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Backend do **Artigo com Café**: API REST consumida pelo site público (Astro) e
+painel administrativo completo em Filament.
 
-## About Laravel
+## Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Laravel 12** — PHP 8.3+
+- **Filament v4** — painel administrativo (`dash.artigocomcafe.com`)
+- **Laravel Sanctum** — autenticação de API
+- **MariaDB** — banco de dados
+- **Redis** — cache e filas
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Estrutura principal
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```
+backend/app/
+├── Filament/
+│   ├── Resources/          # CRUDs: Articles, Categories, Tags, Media, Users, Recipes, ActivityLogs
+│   ├── Pages/              # Integrações (chaves de API) + Central Editorial
+│   └── Widgets/
+│       └── Integrations/   # Headlines, Weather, ExchangeRate
+├── Http/Controllers/Api/   # Endpoints REST (Auth, Articles, Recipes, Missions, Trails, Library…)
+├── Models/                 # Article, Recipe, User, Mission, Trail, ReadingProgress…
+├── Services/
+│   ├── GamificationService.php
+│   └── Integrations/       # OpenWeather, ExchangeRate, Guardian, HackerNews, Openverse, Currents, GNews
+└── Providers/Filament/     # AdminPanelProvider (painel, navegação)
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+## Dashboard (Filament)
 
-## Contributing
+Painel publicado em `dash.artigocomcafe.com` (subdomínio separado, mesmo banco).
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- **CRUDs**: Artigos, Categorias, Tags, Mídia, Usuários, Receitas, Logs de atividade
+- **Central Editorial** (`CentralEditorial`): busca notícias em múltiplas fontes
+  (The Guardian, Hacker News, Currents, GNews) e cria rascunho de artigo
+  com capa sugerida via Openverse (Creative Commons)
+- **Página Integrações**: cadastro das chaves de API (guardadas em `settings` table)
+- **Widgets**: Manchetes do dia, Clima (OpenWeather) e Câmbio (ExchangeRate) no dashboard
 
-## Code of Conduct
+## API
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Rotas em `routes/api.php` (prefixo `/api`). Principais grupos:
 
-## Security Vulnerabilities
+| Grupo | Endpoints |
+|-------|-----------|
+| Artigos | `GET /articles`, `GET /articles/{slug}`, progresso de leitura, conclusão |
+| Receitas | `GET /recipes`, `GET /recipes/{slug}`, `POST /recipes/{recipe}/progress`, `/complete` |
+| Integrações | `GET /integrations/weather?city=`, `/exchange-rate`, `/headlines` |
+| Auth | `POST /auth/register`, `/auth/login`, `/auth/logout`, recuperação/reset de senha |
+| Gamificação | Missões (`GET/POST /missions`), grãos, trilhas (`GET /trails`) |
+| Biblioteca | `GET/POST /library`, favoritos |
+| Clima do Café | `GET /recipes/cafe-do-dia` |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Integrações externas
 
-## License
+Serviços em `app/Services/Integrations/` — padrão: `ApiClient` com cache +
+chave em `Setting::apiKey('servico')` (configurada no painel → Integrações):
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+| Serviço | Uso |
+|---------|-----|
+| **OpenWeather** | Clima do Café (home) + widget do dashboard |
+| **ExchangeRate-API** | Câmbio (widget do dashboard) |
+| **The Guardian Open Platform** | Manchetes + Central Editorial |
+| **Hacker News** | Central Editorial (Firebase API, sem chave) |
+| **Currents API** | Central Editorial |
+| **GNews** | Central Editorial |
+| **Openverse** | Sugestão de capas Creative Commons (receitas e artigos) |
+
+Specs e exemplos de resposta em [`../docs/apis/`](../docs/apis/).
+
+## Seeders (idempotentes)
+
+```bash
+php artisan db:seed --class=RecipeCategorySeeder --force
+php artisan db:seed --class=RecipeSeeder --force
+php artisan db:seed --class=RecipeTrailSeeder --force
+php artisan db:seed --class=MissionSeeder --force
+php artisan db:seed --class=DatabaseSeeder --force   # tudo
+```
+
+Todos os seeders usam `updateOrCreate` — podem rodar quantas vezes for necessário
+sem duplicar dados.
+
+## Comandos úteis
+
+```bash
+php artisan migrate --force          # Migrations em produção
+php artisan db:seed --force          # Seeds
+php artisan optimize                 # Cache de config/rotas/views
+php artisan tinker                   # Shell interativo
+php artisan test                     # PHPUnit
+php -l app/...                       # Checagem de sintaxe
+```
+
+## Deploy
+
+O deploy do backend é feito pelo `deploy.ps1` da raiz (`-Back` ou `-All`),
+que empacota `app`, `config`, `routes`, `database`, `bootstrap`, `resources`,
+`artisan`, `composer.json` e `composer.lock`, envia via scp e roda
+`migrate --force` + `optimize` no servidor.
+
+> ⚠️ Nunca rode `migrate:fresh` ou `db:seed` destrutivos em produção.
