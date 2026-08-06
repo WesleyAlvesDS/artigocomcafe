@@ -52,6 +52,16 @@ Os serviços correspondentes no backend estão em `backend/app/Services/Integrat
 Audits Playwright em `../tests/playwright/`:
 
 ```bash
+node ../tests/playwright/run-all-audits.mjs           # TUDO (site + dash) com relatório final
+node ../tests/playwright/run-all-audits.mjs --site    # Somente auditorias do site
+node ../tests/playwright/run-all-audits.mjs --dash    # Somente auditorias do dashboard
+node ../tests/playwright/run-all-audits.mjs --all     # Tudo, incluindo painel do leitor
+node ../tests/playwright/run-all-audits.mjs --report  # Gera test-results/auditoria-<data>.md
+
+# Ou via npm (a partir da raiz):
+npm run audit / npm run audit:site / npm run audit:dash / npm run audit:all
+
+# Auditorias individuais:
 node ../tests/playwright/full-audit.mjs     # Auditoria geral do site (86/86 ✓)
 node ../tests/playwright/receitas-audit.mjs # Módulo de receitas (42/42 ✓)
 node ../tests/playwright/site-audit.mjs     # Métricas / SEO (44/44 ✓)
@@ -61,6 +71,10 @@ node ../tests/playwright/dash-crud.mjs      # CRUD do dashboard (15/15 ✓)
 node ../tests/playwright/dash-central-editorial.mjs  # Central Editorial (6/6 ✓)
 node ../tests/playwright/dash-audit.mjs     # Dashboard do leitor (/dashboard/ — requer deploy)
 ```
+
+> O runner unificado executa em sequência e imprime um **relatório consolidado**
+> (status por auditoria + score global). Respeita `BASE_URL`, `TEST_USER`,
+> `TEST_PASS`, `DASH_EMAIL` e `DASH_PASSWORD` do ambiente.
 
 > ⚠️ **`dash-audit.mjs`** valida a página `/dashboard/` (painel do leitor, criada
 > na reorganização). Ela ainda **não está no ar** (404 no site) — pendente de deploy.

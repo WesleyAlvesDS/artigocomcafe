@@ -11,7 +11,11 @@
     "preview": "astro preview",
     "astro": "astro",
     "deploy": "powershell -ExecutionPolicy Bypass -File deploy.ps1",
-    "deploy:dry": "powershell -ExecutionPolicy Bypass -File deploy.ps1 -DryRun"
+    "deploy:dry": "powershell -ExecutionPolicy Bypass -File deploy.ps1 -DryRun",
+    "audit": "node tests/playwright/run-all-audits.mjs",
+    "audit:site": "node tests/playwright/run-all-audits.mjs --site",
+    "audit:dash": "node tests/playwright/run-all-audits.mjs --dash",
+    "audit:all": "node tests/playwright/run-all-audits.mjs --all --report"
   },
   "dependencies": {
     "@astrojs/react": "^6.0.1",

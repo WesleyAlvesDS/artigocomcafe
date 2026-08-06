@@ -59,6 +59,10 @@ artigocomcafe/
 | `npm run build` | Build de produção → `dist/` |
 | `npm run preview` | Preview do build |
 | `npm run astro` | CLI do Astro |
+| `npm run audit` | Roda **todas** as auditorias Playwright (site + dash) |
+| `npm run audit:site` | Somente auditorias do site |
+| `npm run audit:dash` | Somente auditorias do dashboard (Filament) |
+| `npm run audit:all` | Tudo (inclui painel do leitor) + grava relatório em `test-results/` |
 
 ## Deploy (ValueHost)
 
