@@ -112,62 +112,48 @@ function WeatherWidget() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) {
-    return (
-      <div class="glass-card p-6">
-        <div class="flex items-center justify-between mb-4">
-          <div class="h-5 w-1/3 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
-          <div class="w-10 h-10 rounded-xl bg-[var(--color-bg-card-border)] animate-pulse" />
+  return (
+    <div class="glass-card p-6 transition-all">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
+          Clima do Café
+        </span>
+        <div class="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center flex-shrink-0">
+          {loading ? (
+            <div class="w-6 h-6 rounded bg-[var(--color-bg-card-border)] animate-pulse" />
+          ) : weather?.icon_url ? (
+            <img src={weather.icon_url} alt={weather.description || 'Ícone do clima'} width="28" height="28" loading="lazy" decoding="async" class="rounded" />
+          ) : (
+            <span class="text-xl">🌤️</span>
+          )}
         </div>
+      </div>
+
+      {loading ? (
         <div class="space-y-2">
           <div class="h-8 w-1/4 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
           <div class="h-4 w-3/4 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
           <div class="h-4 w-1/2 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
         </div>
-      </div>
-    )
-  }
-
-  if (!weather || weather.temperature_c == null) {
-    return (
-      <div class="glass-card p-6">
+      ) : !weather || weather.temperature_c == null ? (
         <div class="flex items-center gap-3">
           <span class="text-2xl">☁️</span>
-          <span class="text-sm text-[var(--color-text-muted)]">Clima indisponível no momento</span>
+          <span class="text-sm text-[var(--color-text-muted)]">Indisponível no momento</span>
         </div>
-      </div>
-    )
-  }
-
-  return (
-    <div class="glass-card p-6 group transition-all">
-      <div class="flex items-start justify-between">
-        <div>
-          <div class="flex items-center gap-2 mb-2">
-            <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
-              Clima do Café
-            </span>
-            {weather.cached_at && (
-              <span class="text-[var(--color-text-muted-dark)]">·</span>
-            )}
-            {weather.cached_at && (
-              <span class="text-[10px] text-[var(--color-text-muted)]">
-                atualizado há pouco
-              </span>
-            )}
-          </div>
-          <div class="flex items-center gap-4">
-            <span class="text-4xl font-bold text-[var(--color-text-primary)] tabular-nums">
+      ) : (
+        <>
+          <div class="flex items-center gap-4 mb-1">
+            <span class="text-3xl font-bold text-[var(--color-text-primary)] tabular-nums">
               {Math.round(weather.temperature_c)}°C
             </span>
-            <span class="text-base text-[var(--color-text-secondary)] capitalize">
+            <span class="text-sm text-[var(--color-text-secondary)] capitalize">
               {weather.description || '—'}
             </span>
           </div>
-          <p class="text-sm text-[var(--color-text-secondary)] mt-1">
+          <p class="text-sm text-[var(--color-text-secondary)] mb-3">
             {weather.city}{weather.region ? `, ${weather.region}` : ''}
           </p>
-          <div class="grid grid-cols-3 gap-3 mt-3 text-center">
+          <div class="grid grid-cols-3 gap-2 text-center">
             {weather.humidity != null && (
               <div>
                 <div class="text-sm font-semibold text-[var(--color-text-primary)]">{weather.humidity}%</div>
@@ -187,15 +173,8 @@ function WeatherWidget() {
               </div>
             )}
           </div>
-        </div>
-        <div class="w-14 h-14 rounded-2xl bg-sky-500/10 flex items-center justify-center flex-shrink-0">
-          {weather.icon_url ? (
-            <img src={weather.icon_url} alt={weather.description || 'Ícone do clima'} width="40" height="40" loading="lazy" decoding="async" class="rounded" />
-          ) : (
-            <span class="text-3xl">🌤️</span>
-          )}
-        </div>
-      </div>
+        </>
+      )}
     </div>
   )
 }
@@ -226,65 +205,57 @@ function ExchangeWidget() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) {
-    return (
-      <div class="glass-card p-6 animate-pulse">
-        <div class="h-5 w-1/3 bg-[var(--color-bg-card-border)] rounded mb-4" />
-        <div class="space-y-2.5">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} class="flex justify-between">
-              <div class="h-4 w-10 bg-[var(--color-bg-card-border)] rounded" />
-              <div class="h-4 w-16 bg-[var(--color-bg-card-border)] rounded" />
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  if (!rates || !rates.rates || rates.rates.length === 0) {
-    return (
-      <div class="glass-card p-6">
-        <div class="flex items-center gap-3">
-          <span class="text-2xl">💱</span>
-          <span class="text-sm text-[var(--color-text-muted)]">Câmbio indisponível no momento</span>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div class="glass-card p-6 group transition-all">
+    <div class="glass-card p-6 transition-all">
       <div class="flex items-center justify-between mb-4">
         <div>
           <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
             Câmbio ao Vivo
           </span>
           <p class="text-xs text-[var(--color-text-muted)] mt-0.5">
-            1 {rates.base} para outras moedas
+            {rates ? `1 ${rates.base} para outras moedas` : 'Taxas de câmbio'}
           </p>
         </div>
-        <div class="text-2xl">💱</div>
+        <span class="text-2xl">💱</span>
       </div>
-      <div class="divide-y divide-[var(--color-bg-card-border)]">
-        {rates.rates.slice(0, 6).map(r => (
-          <div key={r.code} class="flex items-center justify-between py-2.5 first:pt-0 last:pb-0">
-            <div class="flex items-center gap-2.5">
-              <span class="text-xs font-mono bg-[var(--color-bg-card-border)]/30 px-2 py-1 rounded text-[var(--color-text-primary)]">
-                {r.code}
-              </span>
-              <span class="text-xs text-[var(--color-text-muted)]">1 {r.base} =</span>
+
+      {loading ? (
+        <div class="space-y-2.5">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} class="flex justify-between">
+              <div class="h-4 w-10 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
+              <div class="h-4 w-16 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
             </div>
-            <span class="text-sm font-semibold text-[var(--color-text-primary)] tabular-nums">
-              {r.rate.toFixed(4)}
-            </span>
+          ))}
+        </div>
+      ) : !rates || !rates.rates || rates.rates.length === 0 ? (
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">💱</span>
+          <span class="text-sm text-[var(--color-text-muted)]">Indisponível no momento</span>
+        </div>
+      ) : (
+        <>
+          <div class="divide-y divide-[var(--color-bg-card-border)]">
+            {rates.rates.slice(0, 6).map(r => (
+              <div key={r.code} class="flex items-center justify-between py-2.5 first:pt-0 last:pb-0">
+                <div class="flex items-center gap-2.5">
+                  <span class="text-xs font-mono bg-[var(--color-bg-card-border)]/30 px-2 py-1 rounded text-[var(--color-text-primary)]">
+                    {r.code}
+                  </span>
+                  <span class="text-xs text-[var(--color-text-muted)]">1 {r.base} =</span>
+                </div>
+                <span class="text-sm font-semibold text-[var(--color-text-primary)] tabular-nums">
+                  {r.rate.toFixed(4)}
+                </span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      {rates.cached_at && (
-        <p class="text-[10px] text-[var(--color-text-muted-dark)] mt-3 text-right">
-          atualizado há pouco · {rates.source}
-        </p>
+          {rates.cached_at && (
+            <p class="text-[10px] text-[var(--color-text-muted-dark)] mt-3 text-right">
+              atualizado há pouco · {rates.source}
+            </p>
+          )}
+        </>
       )}
     </div>
   )
@@ -320,30 +291,6 @@ function HeadlinesWidget() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) {
-    return (
-      <div class="glass-card p-6 animate-pulse">
-        <div class="h-5 w-1/3 bg-[var(--color-bg-card-border)] rounded mb-4" />
-        <div class="space-y-3">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} class="h-4 bg-[var(--color-bg-card-border)] rounded last:w-2/3" />
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  if (headlines.length === 0) {
-    return (
-      <div class="glass-card p-6">
-        <div class="flex items-center gap-3">
-          <span class="text-2xl">📰</span>
-          <span class="text-sm text-[var(--color-text-muted)]">Manchetes indisponíveis no momento</span>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div class="glass-card p-6 transition-all">
       <div class="flex items-center justify-between mb-4">
@@ -352,27 +299,41 @@ function HeadlinesWidget() {
         </span>
         <span class="text-2xl">📰</span>
       </div>
-      <ul class="space-y-2.5">
-        {headlines.map((h, i) => (
-          <li key={i} class="group">
-            <a
-              href={h.url || '#'}
-              target={h.url ? '_blank' : undefined}
-              rel={h.url ? 'noopener noreferrer' : undefined}
-              class="block text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
-            >
-              <span class="font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors line-clamp-2">
-                {h.title}
-              </span>
-              <div class="flex items-center gap-2 mt-0.5 text-[10px] text-[var(--color-text-muted-dark)]">
-                <span class="font-medium">{h.source || '—'}</span>
-                {h.excerpt && <span>·</span>}
-                {h.excerpt && <span class="truncate">{h.excerpt}</span>}
-              </div>
-            </a>
-          </li>
-        ))}
-      </ul>
+
+      {loading ? (
+        <div class="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} class="h-4 bg-[var(--color-bg-card-border)] rounded last:w-2/3 animate-pulse" />
+          ))}
+        </div>
+      ) : headlines.length === 0 ? (
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">📭</span>
+          <span class="text-sm text-[var(--color-text-muted)]">Indisponível no momento</span>
+        </div>
+      ) : (
+        <ul class="space-y-2.5">
+          {headlines.map((h, i) => (
+            <li key={i} class="group">
+              <a
+                href={h.url || '#'}
+                target={h.url ? '_blank' : undefined}
+                rel={h.url ? 'noopener noreferrer' : undefined}
+                class="block text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+              >
+                <span class="font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors line-clamp-2">
+                  {h.title}
+                </span>
+                <div class="flex items-center gap-2 mt-0.5 text-[10px] text-[var(--color-text-muted-dark)]">
+                  <span class="font-medium">{h.source || '—'}</span>
+                  {h.excerpt && <span>·</span>}
+                  {h.excerpt && <span class="truncate">{h.excerpt}</span>}
+                </div>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
@@ -393,32 +354,39 @@ function DashboardContent() {
   const s = dash?.evolution
 
   const statCards = [
-    { label: vocab.currency, value: s?.total_grains ?? 0, icon: vocab.currency_icon, accent: 'amber' },
-    { label: 'Artigos Lidos', value: s?.articles_read ?? 0, icon: '📖', accent: 'sky' },
-    { label: 'Horas de Leitura', value: s?.reading_time_hours ?? 0, icon: '⏱️', accent: 'teal' },
-    { label: 'Trilhas Completas', value: s?.trails_completed ?? 0, icon: '🎯', accent: 'purple' },
-    { label: 'Conquistas', value: s?.achievements_unlocked ?? 0, icon: '🏆', accent: 'yellow' },
-    { label: 'Coleções', value: s?.collections_count ?? 0, icon: '📚', accent: 'blue' },
-    { label: 'Categorias', value: s?.categories_explored ?? 0, icon: '🌍', accent: 'green' },
-    { label: 'Dias Seguidos', value: s?.daily_streak ?? 0, icon: '🔥', accent: 'red' },
+    { label: vocab.currency, value: s?.total_grains ?? 0, icon: vocab.currency_icon },
+    { label: 'Artigos Lidos', value: s?.articles_read ?? 0, icon: '📖' },
+    { label: 'Horas de Leitura', value: s?.reading_time_hours ?? 0, icon: '⏱️' },
+    { label: 'Trilhas Completas', value: s?.trails_completed ?? 0, icon: '🎯' },
+    { label: 'Conquistas', value: s?.achievements_unlocked ?? 0, icon: '🏆' },
+    { label: 'Coleções', value: s?.collections_count ?? 0, icon: '📚' },
+    { label: 'Categorias', value: s?.categories_explored ?? 0, icon: '🌍' },
+    { label: 'Dias Seguidos', value: s?.daily_streak ?? 0, icon: '🔥' },
   ]
 
   const maxReading = 100
   const readingPct = s?.reading_time_hours ? Math.min(100, (s.reading_time_hours / maxReading) * 100) : 0
   const progressPct = s
-    ? (s.total_grains + s.articles_read + s.trails_completed + s.achievements_unlocked) > 0
-      ? Number((((s.total_grains / 1000) * 15 + (s.articles_read / 50) * 20 + (s.trails_completed / 10) * 20 + (s.achievements_unlocked / 20) * 15 + (s.collections_count / 5) * 15 + (s.categories_explored / 10) * 15) / 100).toFixed(0))
+    ? (s.total_grains + s.articles_read + s.trails_completed + s.achievements_unlocked + s.collections_count + s.categories_explored) > 0
+      ? Math.min(100, Math.round(
+        (s.total_grains / 1000) * 15 +
+        (s.articles_read / 50) * 20 +
+        (s.trails_completed / 10) * 20 +
+        (s.achievements_unlocked / 20) * 15 +
+        (s.collections_count / 5) * 15 +
+        (s.categories_explored / 10) * 15
+      ))
       : 0
     : 0
 
   const quickActions = [
-    { label: 'Mapa do Conhecimento', icon: '🗺️', href: '/mapa', bg: 'rgba(124,58,237,0.1)' },
-    { label: 'Torrefação', icon: '☕', href: '/torrefacao', bg: 'rgba(245,158,11,0.1)' },
-    { label: 'Biblioteca', icon: '📚', href: '/biblioteca', bg: 'rgba(34,197,94,0.1)' },
-    { label: vocab.currency, icon: vocab.currency_icon, href: '/graos', bg: 'rgba(139,90,43,0.1)' },
-    { label: 'Conquistas', icon: '🏆', href: '/conquistas', bg: 'rgba(168,85,247,0.1)' },
-    { label: 'Missões', icon: '🎯', href: '/missoes', bg: 'rgba(239,68,68,0.1)' },
-    { label: 'Trilhas', icon: '🎓', href: '/trilhas', bg: 'rgba(6,172,209,0.1)' },
+    { label: 'Mapa do Conhecimento', icon: '🗺️', href: '/mapa' },
+    { label: 'Torrefação', icon: '☕', href: '/torrefacao' },
+    { label: 'Biblioteca', icon: '📚', href: '/biblioteca' },
+    { label: vocab.currency, icon: vocab.currency_icon, href: '/graos' },
+    { label: 'Conquistas', icon: '🏆', href: '/conquistas' },
+    { label: 'Missões', icon: '🎯', href: '/missoes' },
+    { label: 'Trilhas', icon: '🎓', href: '/trilhas' },
   ]
 
   return (
@@ -433,11 +401,11 @@ function DashboardContent() {
             <h1 class="text-2xl font-bold text-[var(--color-text-primary)]">{user?.name || 'Carregando...'}</h1>
             <div class="flex items-center gap-2 mt-1 flex-wrap">
               <span class="text-sm text-[var(--color-text-secondary)]">@{user?.username || '—'}</span>
-              {s && (
+              {s && s.daily_streak > 0 && (
                 <>
                   <span class="text-[var(--color-text-muted)]">·</span>
                   <span class="inline-flex items-center gap-1 text-xs font-medium text-amber-400">
-                    🔥 {s.daily_streak || 0} dias seguidos
+                    🔥 {s.daily_streak} dias seguidos
                   </span>
                 </>
               )}
@@ -465,10 +433,8 @@ function DashboardContent() {
           ) : (
             statCards.map(stat => (
               <div key={stat.label} class="glass-card p-5 text-center group transition-all">
-                <div
-                  class="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center text-2xl"
-                  style={{ background: stat.accent === 'amber' ? 'rgba(245,158,11,0.1)' : `rgba(0,0,0,0.1)` }}
-                >
+                <div class="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center text-2xl"
+                  style={{ background: 'color-mix(in srgb, var(--color-accent) 12%, transparent)' }}>
                   {stat.icon}
                 </div>
                 <div class="text-2xl font-bold text-[var(--color-text-primary)] tabular-nums">
@@ -521,7 +487,7 @@ function DashboardContent() {
                 </div>
               </div>
               <p class="text-xs text-[var(--color-text-muted)] mt-3">
-                Baseado em sua atividade recente
+                Baseado na sua atividade recente
               </p>
             </div>
           )}
@@ -552,11 +518,11 @@ function DashboardContent() {
               <div class="grid grid-cols-2 gap-3 text-center pt-2">
                 <div>
                   <div class="text-lg font-bold text-[var(--color-text-primary)]">{s?.articles_read || 0}</div>
-                  <div class="text-[10px] text-[var(--color-text-muted)]">Artigos concluidos</div>
+                  <div class="text-[10px] text-[var(--color-text-muted)]">Artigos concluídos</div>
                 </div>
                 <div>
                   <div class="text-lg font-bold text-[var(--color-text-primary)]">{s?.trails_completed || 0}</div>
-                  <div class="text-[10px] text-[var(--color-text-muted)]">Trilhas concluidas</div>
+                  <div class="text-[10px] text-[var(--color-text-muted)]">Trilhas concluídas</div>
                 </div>
               </div>
             </div>
@@ -584,7 +550,7 @@ function DashboardContent() {
 
       {/* API Plan Integrations Section */}
       <div data-reveal>
-        <div class="section-label mb-4">Contexto do Dia</div>
+        <div class="section-label mb-2">Contexto do Dia</div>
         <p class="text-sm text-[var(--color-text-muted)] mb-4">
           Dados em tempo real integrados ao seu painel de acordo com o plano de APIs do projeto.
         </p>
