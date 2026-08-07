@@ -26,7 +26,7 @@ export default function RegisterForm() {
     }
     setLoading(true)
     try {
-      const data = await api.post<{ token: string }>('/auth/register', {
+      const data = await api.postForm<{ token: string }>('/auth/register', {
         name, username, email, password,
         password_confirmation: passwordConfirmation,
         theme: selectedTheme,

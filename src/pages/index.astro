@@ -5,6 +5,7 @@ import ArticleCard from '../components/ArticleCard.astro'
 import CafeDoDia from '../components/CafeDoDia'
 import ReceitaDoDia from '../components/ReceitaDoDia'
 import ClimaDoCafe from '../components/ClimaDoCafe'
+import ExchangeRateWidget from '../components/ExchangeRateWidget'
 import { getPosts, getCategories } from '../lib/laravel'
 
 const { posts } = await getPosts(1, 6)
@@ -32,6 +33,13 @@ const categories = await getCategories()
   <section class="section" data-reveal style="padding-top: 1rem; padding-bottom: 0;">
     <div class="container" style="max-width: 720px;">
       <ClimaDoCafe client:visible />
+    </div>
+  </section>
+
+  {/* Câmbio ao Vivo — contexto econômico para quem importa café/equipamentos */}
+  <section class="section" data-reveal style="padding-top: 1rem; padding-bottom: 0;">
+    <div class="container" style="max-width: 720px;">
+      <ExchangeRateWidget client:visible compact={true} maxRates={5} />
     </div>
   </section>
 

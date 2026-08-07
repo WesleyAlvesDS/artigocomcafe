@@ -52,6 +52,12 @@ export const api = {
   get: <T>(endpoint: string) => request<T>(endpoint),
   post: <T>(endpoint: string, data?: unknown) =>
     request<T>(endpoint, { method: 'POST', body: JSON.stringify(data) }),
+  postForm: <T>(endpoint: string, data: Record<string, string>) =>
+    request<T>(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(data).toString()
+    }),
   put: <T>(endpoint: string, data?: unknown) =>
     request<T>(endpoint, { method: 'PUT', body: JSON.stringify(data) }),
   delete: <T>(endpoint: string, data?: unknown) =>

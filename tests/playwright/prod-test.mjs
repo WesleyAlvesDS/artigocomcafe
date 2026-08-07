@@ -21,11 +21,12 @@ function report(name, ok, detail) {
 async function loginAndGetToken() {
   const resp = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: EMAIL, password: PASSWORD }),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ email: EMAIL, password: PASSWORD }).toString(),
   });
   if (!resp.ok) {
-    throw new Error(`Login failed: ${resp.status} ${resp.statusText}`);
+    const text = await resp.text()
+    throw new Error(`Login failed: ${resp.status} ${resp.statusText} - ${text}`);
   }
   const data = await resp.json();
   return data.token;

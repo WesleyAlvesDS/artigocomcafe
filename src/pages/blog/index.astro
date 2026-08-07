@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro'
 import ArticleCard from '../../components/ArticleCard.astro'
 import Pagination from '../../components/Pagination.astro'
+import ExchangeRateWidget from '../../components/ExchangeRateWidget'
 import { getPosts, getCategories } from '../../lib/laravel'
 
 export async function getStaticPaths() {
@@ -73,6 +74,13 @@ const { posts, pagination } = await getPosts(currentPage, 9, categorySlug || und
           </div>
         )}
       </div>
+    </div>
+  </section>
+
+  {/* Câmbio ao Vivo — contextual para equipamentos/café importado */}
+  <section class="section" data-reveal style="padding-top: 0.5rem; padding-bottom: 0;">
+    <div class="container">
+      <ExchangeRateWidget client:visible compact={true} maxRates={5} />
     </div>
   </section>
 

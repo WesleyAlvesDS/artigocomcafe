@@ -31,7 +31,7 @@ export default function LoginForm() {
     setError('')
     setLoading(true)
     try {
-      const data = await api.post<LoginResponse>('/auth/login', { email, password })
+      const data = await api.postForm<LoginResponse>('/auth/login', { email, password })
       setToken(data.token)
       if (data.user?.theme) applyThemeColors(data.user.theme)
       window.location.href = getRedirectTarget()

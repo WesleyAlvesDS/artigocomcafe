@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import type { ChangeEvent, KeyboardEvent } from 'react'
+import type { ChangeEvent, KeyboardEvent, FormEvent } from 'react'
 import AuthPage from './AuthPage'
 import { useAuth } from '../lib/auth'
 import { api } from '../lib/api'
@@ -77,6 +77,32 @@ interface HeadlinesResponse {
   }
 }
 
+// Post types for management
+interface PostItem {
+  id: number
+  title: string
+  slug: string
+  excerpt: string | null
+  status: 'draft' | 'review' | 'scheduled' | 'published' | 'archived'
+  featured_image: string | null
+  reading_time: number | null
+  category: { name: string; slug: string } | null
+  tags: { name: string; slug: string }[]
+  date: string
+  created_at: string
+  updated_at: string
+}
+
+interface PostsResponse {
+  data: PostItem[]
+  meta: {
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+  }
+}
+
 function StatSkeleton() {
   return (
     <div class="glass-card p-5 animate-pulse">
@@ -91,15 +117,17 @@ function WeatherWidget() {
   const [weather, setWeather] = useState<WeatherData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [city, setCity] = useState<string>('São Paulo')
 
-  const fetchWeather = () => {
+  const fetchWeather = (targetCity: string) => {
     setLoading(true)
     setError(false)
+    setCity(targetCity)
     const cached = sessionStorage.getItem('dash_weather')
     if (cached) {
       try {
         const parsed = JSON.parse(cached) as WeatherData
-        if (parsed.temperature_c != null && Date.now() - (parsed.cached_at ? Date.parse(parsed.cached_at) : 0) < 3600000) {
+        if (parsed.temperature_c != null && Date.now() - (parsed.cached_at ? Date.parse(parsed.cached_at) : 0) < 3600000 && parsed.city === targetCity) {
           setWeather(parsed)
           setLoading(false)
           return
@@ -107,7 +135,7 @@ function WeatherWidget() {
       } catch {}
     }
 
-    api.get<{ data: WeatherData }>('/integrations/weather?city=Sao Paulo')
+    api.get<{ data: WeatherData }>(`/integrations/weather?city=${encodeURIComponent(targetCity)}`)
       .then(d => {
         setWeather(d.data)
         try { sessionStorage.setItem('dash_weather', JSON.stringify({ ...d.data, cached_at: new Date().toISOString() })) } catch {}
@@ -116,8 +144,46 @@ function WeatherWidget() {
       .finally(() => setLoading(false))
   }
 
+  const requestGeolocation = () => {
+    if (!navigator.geolocation) {
+      fetchWeather('São Paulo')
+      return
+    }
+    setLoading(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords
+        api.get<{ data: WeatherData }>(`/integrations/weather?lat=${latitude}&lon=${longitude}`)
+          .then(d => {
+            setWeather(d.data)
+            setCity(d.data.city || 'Sua localização')
+            try { sessionStorage.setItem('dash_weather', JSON.stringify({ ...d.data, cached_at: new Date().toISOString() })) } catch {}
+          })
+          .catch(() => {
+            setError(true)
+            fetchWeather('São Paulo')
+          })
+          .finally(() => setLoading(false))
+      },
+      () => fetchWeather('São Paulo'),
+      { timeout: 10000 }
+    )
+  }
+
   useEffect(() => {
-    fetchWeather()
+    const cached = sessionStorage.getItem('dash_weather')
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached) as WeatherData
+        if (parsed.temperature_c != null && Date.now() - (parsed.cached_at ? Date.parse(parsed.cached_at) : 0) < 3600000) {
+          setWeather(parsed)
+          setCity(parsed.city || 'São Paulo')
+          setLoading(false)
+          return
+        }
+      } catch {}
+    }
+    requestGeolocation()
   }, [])
 
   return (
@@ -126,14 +192,20 @@ function WeatherWidget() {
         <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
           Clima do Café
         </span>
-        <div class="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center flex-shrink-0">
-          {loading ? (
-            <div class="w-6 h-6 rounded bg-[var(--color-bg-card-border)] animate-pulse" />
-          ) : weather?.icon_url ? (
-            <img src={weather.icon_url} alt={weather.description || 'Ícone do clima'} width="28" height="28" loading="lazy" decoding="async" class="rounded" />
-          ) : (
-            <span class="text-xl">🌤️</span>
-          )}
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-[var(--color-text-muted)] flex-shrink-0">{city}</span>
+          <button
+            onClick={requestGeolocation}
+            disabled={loading}
+            class="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)] transition-colors"
+            aria-label="Atualizar localização"
+            title="Atualizar pela localização atual"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2" />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -143,22 +215,22 @@ function WeatherWidget() {
           <div class="h-4 w-3/4 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
           <div class="h-4 w-1/2 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
         </div>
-        ) : error ? (
-          <div class="flex items-center gap-3">
-            <span class="text-2xl" aria-hidden="true">☁️</span>
-            <span class="text-sm text-[var(--color-text-muted)]">Indisponível</span>
-            <button
-              onClick={fetchWeather}
-              class="text-xs font-medium text-[var(--color-accent)] hover:underline"
-            >
-              Tentar
-            </button>
-          </div>
-        ) : !weather || weather.temperature_c == null ? (
-          <div class="flex items-center gap-3">
-            <span class="text-2xl" aria-hidden="true">☁️</span>
-            <span class="text-sm text-[var(--color-text-muted)]">Indisponível no momento</span>
-          </div>
+      ) : error ? (
+        <div class="flex items-center gap-3">
+          <span class="text-2xl" aria-hidden="true">☁️</span>
+          <span class="text-sm text-[var(--color-text-muted)]">Indisponível</span>
+          <button
+            onClick={requestGeolocation}
+            class="text-xs font-medium text-[var(--color-accent)] hover:underline"
+          >
+            Tentar
+          </button>
+        </div>
+      ) : !weather || weather.temperature_c == null ? (
+        <div class="flex items-center gap-3">
+          <span class="text-2xl" aria-hidden="true">☁️</span>
+          <span class="text-sm text-[var(--color-text-muted)]">Indisponível no momento</span>
+        </div>
       ) : (
         <>
           <div class="flex items-center gap-4 mb-1">
@@ -390,6 +462,313 @@ function HeadlinesWidget() {
             </li>
           ))}
         </ul>
+      )}
+    </div>
+  )
+}
+
+function PostManagementWidget() {
+  const [posts, setPosts] = useState<PostItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [showCreate, setShowCreate] = useState(false)
+  const [editingPost, setEditingPost] = useState<PostItem | null>(null)
+  const [formData, setFormData] = useState<Partial<PostItem> & { content: string; tags_input: string }>({
+    title: '',
+    excerpt: '',
+    content: '',
+    status: 'draft',
+    category: null,
+    tags_input: '',
+  })
+
+  const fetchPosts = async (p = 1) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await api.get<PostsResponse>(`/user/posts?page=${p}&per_page=10`)
+      setPosts(res.data.data)
+      setTotalPages(res.data.meta.last_page)
+      setPage(res.data.meta.current_page)
+    } catch (err: any) {
+      setError(err?.message || 'Erro ao carregar posts')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchPosts() }, [])
+
+  const handleCreate = async (e: FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    try {
+      await api.post('/user/posts', {
+        ...formData,
+        tags: formData.tags_input.split(',').map(t => t.trim()).filter(Boolean),
+      })
+      setShowCreate(false)
+      setFormData({ title: '', excerpt: '', content: '', status: 'draft', category: null, tags_input: '' })
+      fetchPosts(page)
+    } catch (err: any) {
+      setError(err?.message || 'Erro ao criar post')
+    }
+  }
+
+  const handleUpdate = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!editingPost) return
+    setError(null)
+    try {
+      await api.put(`/user/posts/${editingPost.id}`, {
+        ...formData,
+        tags: formData.tags_input.split(',').map(t => t.trim()).filter(Boolean),
+      })
+      setEditingPost(null)
+      setFormData({ title: '', excerpt: '', content: '', status: 'draft', category: null, tags_input: '' })
+      fetchPosts(page)
+    } catch (err: any) {
+      setError(err?.message || 'Erro ao atualizar post')
+    }
+  }
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Tem certeza que deseja excluir este post?')) return
+    try {
+      await api.delete(`/user/posts/${id}`)
+      fetchPosts(page)
+    } catch (err: any) {
+      setError(err?.message || 'Erro ao excluir post')
+    }
+  }
+
+  const startEdit = (post: PostItem) => {
+    setEditingPost(post)
+    setFormData({
+      title: post.title,
+      excerpt: post.excerpt || '',
+      content: '',
+      status: post.status,
+      category: post.category,
+      tags_input: post.tags.map(t => t.name).join(', '),
+    })
+    setShowCreate(false)
+  }
+
+  const startCreate = () => {
+    setEditingPost(null)
+    setFormData({ title: '', excerpt: '', content: '', status: 'draft', category: null, tags_input: '' })
+    setShowCreate(true)
+  }
+
+  const statusColors: Record<string, string> = {
+    published: 'var(--color-accent)',
+    draft: 'var(--color-text-muted)',
+    review: '#f59e0b',
+    scheduled: '#3b82f6',
+    archived: '#6b7280',
+  }
+
+  const statusLabels: Record<string, string> = {
+    published: 'Publicado',
+    draft: 'Rascunho',
+    review: 'Em Revisão',
+    scheduled: 'Agendado',
+    archived: 'Arquivado',
+  }
+
+  return (
+    <div class="glass-card p-6">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
+          Meus Artigos
+        </span>
+        <span class="text-2xl" aria-hidden="true">📝</span>
+      </div>
+
+      {error && (
+        <div class="mb-4 p-3 text-sm text-red-400 bg-red-50 dark:bg-red-950/30 rounded-xl border border-red-500/30">
+          {error}
+        </div>
+      )}
+
+      {showCreate || editingPost ? (
+        <form onSubmit={editingPost ? handleUpdate : handleCreate} class="space-y-3">
+          <div>
+            <label class="form-label">Título</label>
+            <input
+              type="text"
+              required
+              value={formData.title || ''}
+              onChange={e => setFormData({ ...formData, title: e.target.value })}
+              class="form-input"
+              placeholder="Título do artigo"
+            />
+          </div>
+          <div>
+            <label class="form-label">Resumo</label>
+            <textarea
+              value={formData.excerpt || ''}
+              onChange={e => setFormData({ ...formData, excerpt: e.target.value })}
+              class="form-input form-textarea"
+              placeholder="Resumo do artigo (opcional)"
+              rows={3}
+            />
+          </div>
+          <div>
+            <label class="form-label">Conteúdo (Markdown)</label>
+            <textarea
+              value={formData.content || ''}
+              onChange={e => setFormData({ ...formData, content: e.target.value })}
+              class="form-input form-textarea font-mono text-sm"
+              placeholder="Escreva seu artigo em Markdown..."
+              rows={8}
+            />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select
+                value={formData.status || 'draft'}
+                onChange={e => setFormData({ ...formData, status: e.target.value as any })}
+                class="form-input form-select"
+              >
+                <option value="draft">Rascunho</option>
+                <option value="review">Em Revisão</option>
+                <option value="scheduled">Agendado</option>
+                <option value="published">Publicado</option>
+                <option value="archived">Arquivado</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Categoria</label>
+              <input
+                type="text"
+                value={formData.category?.name || ''}
+                onChange={e => setFormData({ ...formData, category: { name: e.target.value, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') } })}
+                class="form-input"
+                placeholder="Categoria"
+              />
+            </div>
+          </div>
+          <div>
+            <label class="form-label">Tags (separadas por vírgula)</label>
+            <input
+              type="text"
+              value={formData.tags_input || ''}
+              onChange={e => setFormData({ ...formData, tags_input: e.target.value })}
+              class="form-input"
+              placeholder="café, torrefação, método, etc."
+            />
+          </div>
+          <div class="flex gap-2">
+            <button type="submit" class="btn-primary form-submit flex-1">
+              {editingPost ? 'Salvar Alterações' : 'Criar Artigo'}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setShowCreate(false); setEditingPost(null); }}
+              class="px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] border border-[var(--color-bg-card-border)] rounded-xl hover:bg-[var(--color-bg-card-hover)] transition-colors"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      ) : (
+        <>
+          {loading ? (
+            <div class="space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} class="h-20 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
+              ))}
+            </div>
+          ) : posts.length === 0 ? (
+            <div class="text-center py-8">
+              <span class="text-3xl mb-3 block" aria-hidden="true">📄</span>
+              <p class="text-sm text-[var(--color-text-muted)] mb-4">Nenhum artigo ainda</p>
+              <button onClick={startCreate} class="btn-primary form-submit">
+                Criar Primeiro Artigo
+              </button>
+            </div>
+          ) : (
+            <>
+              <div class="divide-y divide-[var(--color-bg-card-border)]">
+                {posts.map(post => (
+                  <div key={post.id} class="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 flex-wrap mb-1">
+                        <span class="font-medium text-[var(--color-text-primary)] line-clamp-1">{post.title}</span>
+                        <span class="text-[10px] font-medium px-2 py-0.5 rounded-full"
+                          style={{ background: `${statusColors[post.status] || 'var(--color-text-muted)'}22`, color: statusColors[post.status] || 'var(--color-text-muted)' }}>
+                          {statusLabels[post.status] || post.status}
+                        </span>
+                        {post.featured_image && <span class="text-[10px] text-[var(--color-text-muted)]" aria-hidden="true">🖼️</span>}
+                      </div>
+                      <div class="flex items-center gap-3 text-[10px] text-[var(--color-text-muted-dark)]">
+                        <span>{new Date(post.date).toLocaleDateString('pt-BR')}</span>
+                        {post.category && <span>· {post.category.name}</span>}
+                        {post.reading_time && <span>⏱️ {post.reading_time} min</span>}
+                        {post.tags.length > 0 && <span>🏷️ {post.tags.slice(0, 3).map(t => t.name).join(', ')}{post.tags.length > 3 ? '…' : ''}</span>}
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                      <a
+                        href={`/blog/${post.slug}`}
+                        target="_blank"
+                        class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)] transition-colors"
+                        title="Ver no site"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                      </a>
+                      <button
+                        onClick={() => startEdit(post)}
+                        class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)] transition-colors"
+                        title="Editar"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(post.id)}
+                        class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                        title="Excluir"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {totalPages > 1 && (
+                <div class="flex items-center justify-center gap-2 mt-4">
+                  <button
+                    onClick={() => fetchPosts(page - 1)}
+                    disabled={page === 1}
+                    class="px-3 py-1.5 text-sm text-[var(--color-text-secondary)] border border-[var(--color-bg-card-border)] rounded-lg hover:bg-[var(--color-bg-card-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Anterior
+                  </button>
+                  <span class="text-sm text-[var(--color-text-muted)]">
+                    Página {page} de {totalPages}
+                  </span>
+                  <button
+                    onClick={() => fetchPosts(page + 1)}
+                    disabled={page === totalPages}
+                    class="px-3 py-1.5 text-sm text-[var(--color-text-secondary)] border border-[var(--color-bg-card-border)] rounded-lg hover:bg-[var(--color-bg-card-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Próxima
+                  </button>
+                </div>
+              )}
+
+              <button onClick={startCreate} class="w-full mt-4 btn-primary form-submit">
+                + Novo Artigo
+              </button>
+            </>
+          )}
+        </>
       )}
     </div>
   )
@@ -652,6 +1031,15 @@ function DashboardContent() {
         </p>
         <CreatorAssistantWidget />
       </div>
+
+      {/* Post Management */}
+      <div data-reveal>
+        <div class="section-label mb-2">Meus Artigos</div>
+        <p class="text-sm text-[var(--color-text-muted)] mb-4">
+          Gerencie seus artigos: crie, edite, publique e organize seu conteúdo.
+        </p>
+        <PostManagementWidget />
+      </div>
     </div>
   )
 }
@@ -662,6 +1050,10 @@ function CreatorAssistantWidget() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState<{ available: boolean; providers: Record<string, boolean> } | null>(null)
+  const [selectedPost, setSelectedPost] = useState<PostItem | null>(null)
+  const [posts, setPosts] = useState<PostItem[]>([])
+  const [postsLoading, setPostsLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState<'chat' | 'tools'>('chat')
 
   useEffect(() => {
     api.get<{ data: { available: boolean; providers: Record<string, boolean> } }>('/ai/status')
@@ -669,12 +1061,26 @@ function CreatorAssistantWidget() {
       .catch(() => setStatus({ available: false, providers: {} }))
   }, [])
 
-  const ask = () => {
-    if (!query.trim()) return
+  const fetchUserPosts = async () => {
+    setPostsLoading(true)
+    try {
+      const res = await api.get<PostsResponse>('/user/posts?per_page=20')
+      setPosts(res.data.data)
+    } catch {}
+    finally { setPostsLoading(false) }
+  }
+
+  useEffect(() => {
+    if (activeTab === 'tools') fetchUserPosts()
+  }, [activeTab])
+
+  const ask = (customQuery?: string) => {
+    const q = customQuery || query
+    if (!q.trim()) return
     setLoading(true)
     setError(null)
     setReply(null)
-    api.get<{ data: { reply: string; provider: string; elapsed_ms: number } }>(`/ai/ask?q=${encodeURIComponent(query)}`)
+    api.get<{ data: { reply: string; provider: string; elapsed_ms: number } }>(`/ai/ask?q=${encodeURIComponent(q)}`)
       .then(d => {
         setReply(d.data.reply)
       })
@@ -684,11 +1090,26 @@ function CreatorAssistantWidget() {
       .finally(() => setLoading(false))
   }
 
+  const aiAction = (action: string, prompt: string) => {
+    if (!selectedPost) return
+    const fullPrompt = `${action}\n\nTítulo: ${selectedPost.title}\n\nConteúdo:\n${selectedPost.excerpt || 'Sem resumo'}\n\nCategoria: ${selectedPost.category?.name || 'Sem categoria'}`
+    ask(fullPrompt)
+  }
+
+  const actionPrompts = {
+    translate: 'Traduza o artigo abaixo para inglês, mantendo o tom e a formatação em Markdown.',
+    summarize: 'Crie um resumo executivo de 3-5 bullet points do artigo abaixo.',
+    seo: 'Analise o artigo abaixo e sugira: 1) Meta title otimizado (até 60 chars), 2) Meta description (até 155 chars), 3) 5 palavras-chave SEO, 4) Sugestões de headings H2/H3.',
+    improve: 'Melhore o texto abaixo: corrija gramática, torne mais fluido, adicione exemplos práticos, mantenha o tom autoral.',
+    titles: 'Sugira 5 títulos alternativos atrativos e otimizados para SEO para o artigo abaixo.',
+    outline: 'Crie um outline detalhado (H2, H3) para expandir este artigo em um guia completo.',
+  }
+
   return (
     <div class="glass-card p-6">
       <div class="flex items-center justify-between mb-4">
         <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
-          Chat com IA
+          Assistente do Criador
         </span>
         <span class="text-2xl" aria-hidden="true">🤖</span>
       </div>
@@ -700,51 +1121,160 @@ function CreatorAssistantWidget() {
         </div>
       ) : (
         <>
-          <div class="flex gap-2 mb-3">
-            <input
-              type="text"
-              value={query}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
-              placeholder="Como preparar um bom café?"
-              class="flex-1 px-3 py-2 text-sm bg-[var(--color-bg-card-border)]/20 rounded-xl border border-[var(--color-bg-card-border)] focus:outline-none focus:border-[var(--color-accent)] text-[var(--color-text-primary)]"
-              onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => { if (e.key === 'Enter') ask() }}
-              aria-label="Pergunte ao assistente de IA"
-            />
+          <div class="flex gap-2 mb-4 border-b border-[var(--color-bg-card-border)] pb-3">
             <button
-              onClick={ask}
-              disabled={loading || !query.trim()}
-              class="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-accent)]/20 hover:bg-[var(--color-accent)]/30 disabled:opacity-50 rounded-xl transition-colors border border-[var(--color-accent)]/30"
+              onClick={() => setActiveTab('chat')}
+              class={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                activeTab === 'chat'
+                  ? 'bg-[var(--color-accent)] text-[var(--color-btn-text)]'
+                  : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-card-hover)]'
+              }`}
             >
-              {loading ? '…' : 'Enviar'}
+              Chat
+            </button>
+            <button
+              onClick={() => setActiveTab('tools')}
+              class={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                activeTab === 'tools'
+                  ? 'bg-[var(--color-accent)] text-[var(--color-btn-text)]'
+                  : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-card-hover)]'
+              }`}
+            >
+              Ferramentas de Post
             </button>
           </div>
 
-          {loading && (
-            <div class="space-y-2">
-              <div class="h-4 w-full bg-[var(--color-bg-card-border)] rounded animate-pulse" />
-              <div class="h-4 w-3/4 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
-              <div class="h-4 w-1/2 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
-            </div>
-          )}
+          {activeTab === 'chat' ? (
+            <>
+              <div class="flex gap-2 mb-3">
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
+                  placeholder="Como preparar um bom café?"
+                  class="flex-1 px-3 py-2 text-sm bg-[var(--color-bg-card-border)]/20 rounded-xl border border-[var(--color-bg-card-border)] focus:outline-none focus:border-[var(--color-accent)] text-[var(--color-text-primary)]"
+                  onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => { if (e.key === 'Enter') ask() }}
+                  aria-label="Pergunte ao assistente de IA"
+                />
+                <button
+                  onClick={ask}
+                  disabled={loading || !query.trim()}
+                  class="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-accent)]/20 hover:bg-[var(--color-accent)]/30 disabled:opacity-50 rounded-xl transition-colors border border-[var(--color-accent)]/30"
+                >
+                  {loading ? '…' : 'Enviar'}
+                </button>
+              </div>
 
-          {error && (
-            <div class="flex items-center gap-2 p-3 text-sm text-red-400 bg-red-50 dark:bg-red-950/30 rounded-xl">
-              <span>⚠️</span>
-              <span>{error}</span>
-            </div>
-          )}
+              {loading && (
+                <div class="space-y-2">
+                  <div class="h-4 w-full bg-[var(--color-bg-card-border)] rounded animate-pulse" />
+                  <div class="h-4 w-3/4 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
+                  <div class="h-4 w-1/2 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
+                </div>
+              )}
 
-          {reply && !loading && !error && (
-            <div class="prose prose-sm max-w-none text-[var(--color-text-primary)]">
-              {reply.split('\n').map((line, i) => (
-                <p key={i}>{line || '\u00A0'}</p>
-              ))}
-            </div>
+              {error && (
+                <div class="flex items-center gap-2 p-3 text-sm text-red-400 bg-red-50 dark:bg-red-950/30 rounded-xl">
+                  <span>⚠️</span>
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {reply && !loading && !error && (
+                <div class="prose prose-sm max-w-none text-[var(--color-text-primary)]">
+                  {reply.split('\n').map((line, i) => (
+                    <p key={i}>{line || '\u00A0'}</p>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div class="mb-4">
+                <label class="form-label mb-2 block">Selecionar artigo para trabalhar</label>
+                {postsLoading ? (
+                  <div class="h-10 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
+                ) : posts.length === 0 ? (
+                  <p class="text-sm text-[var(--color-text-muted)]">Nenhum artigo encontrado. Crie um em "Meus Artigos".</p>
+                ) : (
+                  <select
+                    value={selectedPost?.id || ''}
+                    onChange={e => {
+                      const id = Number(e.target.value)
+                      setSelectedPost(posts.find(p => p.id === id) || null)
+                    }}
+                    class="form-input form-select"
+                  >
+                    <option value="">Escolha um artigo...</option>
+                    {posts.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.title} ({statusLabels[p.status] || p.status})
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {selectedPost && (
+                <div class="mb-4 p-3 rounded-xl bg-[var(--color-bg-card-border)]/30">
+                  <div class="font-medium text-sm text-[var(--color-text-primary)]">{selectedPost.title}</div>
+                  <div class="flex items-center gap-3 mt-1 text-[10px] text-[var(--color-text-muted)]">
+                    <span>{statusLabels[selectedPost.status] || selectedPost.status}</span>
+                    {selectedPost.category && <span>{selectedPost.category.name}</span>}
+                    <span>⏱️ {selectedPost.reading_time || '?'} min</span>
+                  </div>
+                </div>
+              )}
+
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {Object.entries(actionPrompts).map(([key, prompt]) => (
+                  <button
+                    key={key}
+                    onClick={() => aiAction(prompt, prompt)}
+                    disabled={loading || !selectedPost}
+                    class="px-3 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-card-border)]/30 hover:bg-[var(--color-accent)]/20 disabled:opacity-50 rounded-xl transition-colors border border-[var(--color-bg-card-border)] text-left"
+                  >
+                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                  </button>
+                ))}
+              </div>
+
+              {loading && (
+                <div class="mt-4 space-y-2">
+                  <div class="h-4 w-full bg-[var(--color-bg-card-border)] rounded animate-pulse" />
+                  <div class="h-4 w-3/4 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
+                  <div class="h-4 w-1/2 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
+                </div>
+              )}
+
+              {error && (
+                <div class="mt-4 flex items-center gap-2 p-3 text-sm text-red-400 bg-red-50 dark:bg-red-950/30 rounded-xl">
+                  <span>⚠️</span>
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {reply && !loading && !error && (
+                <div class="mt-4 prose prose-sm max-w-none text-[var(--color-text-primary)]">
+                  {reply.split('\n').map((line, i) => (
+                    <p key={i}>{line || '\u00A0'}</p>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </>
       )}
     </div>
   )
+}
+
+const statusLabels: Record<string, string> = {
+  published: 'Publicado',
+  draft: 'Rascunho',
+  review: 'Em Revisão',
+  scheduled: 'Agendado',
+  archived: 'Arquivado',
 }
 
 export default function DashboardPage() {
