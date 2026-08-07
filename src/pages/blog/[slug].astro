@@ -318,6 +318,15 @@ if (post) {
       </svg>
     </button>
 
+    {/* Effective CPM Network ad -- placed below the fold, away from all
+        navigation links/buttons per AdSense multi-network policy.
+        Visible only after user scrolls past related articles. */}
+    <div class="ecpm-ad-wrapper" data-adsafe="true">
+      <div class="ecpm-ad-label" aria-hidden="true">Conteúdo patrocinado</div>
+      <script async data-cfasync="false" src="https://pl30726903.effectivecpmnetwork.com/b286da2e2fe2bfd4ecebf03e8a877de9/invoke.js"></script>
+      <div id="container-b286da2e2fe2bfd4ecebf03e8a877de9"></div>
+    </div>
+
     <ToastProvider>
       <ReadingTracker articleId={post!.id} articleTitle={post!.title} client:load />
     </ToastProvider>
@@ -787,5 +796,47 @@ if (post) {
       bottom: 1.25rem;
       right: 1.25rem;
     }
+
+    .ecpm-ad-wrapper {
+      margin: 3rem auto 2rem;
+    }
+  }
+
+  /* Effective CPM Network ad wrapper — visually separated from content
+     to comply with AdSense multi-network policies */
+  .ecpm-ad-wrapper {
+    margin: 4rem auto 3rem;
+    padding: 1.25rem;
+    max-width: 720px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .ecpm-ad-wrapper::before {
+    content: "";
+    display: block;
+    height: 1px;
+    background: linear-gradient(90, transparent, var(--color-bg-card-border), transparent);
+    margin: 1rem 0;
+  }
+
+  .ecpm-ad-label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  #container-b286da2e2fe2bfd4ecebf03e8a877de9 {
+    min-height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 </style>
