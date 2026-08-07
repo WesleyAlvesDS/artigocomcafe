@@ -107,7 +107,7 @@ Busca de notícias em **múltiplas fontes** com um clique, direto no painel:
 | Imagens | Openverse (Creative Commons) | ✅ Integrado |
 | Clima | OpenWeather | ✅ Integrado |
 | Economia | ExchangeRate-API | ✅ Integrado |
-| IA | Groq, Gemini | ⬜ Futuro |
+| IA | Groq, Gemini | ✅ Implementado |
 | Imagens | Unsplash | ⬜ Futuro |
 
 ## Gamificação
