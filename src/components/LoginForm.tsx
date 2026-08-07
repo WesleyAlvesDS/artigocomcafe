@@ -47,44 +47,46 @@ export default function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} class="space-y-6">
+    <form onSubmit={handleSubmit} className="contact-form">
       {error && (
-        <div class="p-3.5 text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-xl backdrop-blur-sm animate-fade-in" role="alert">{error}</div>
+        <div className="form-error" role="alert">{error}</div>
       )}
-      <div class="form-field">
-        <label for="login-email" class="form-label">Email</label>
-        <input id="login-email" type="email" required autoComplete="email" value={email} onChange={e => setEmail(e.target.value)}
-          class="form-input" placeholder="seu@email.com" />
-      </div>
-      <div class="form-field">
-        <div class="flex items-center justify-between mb-2">
-          <label for="login-password" class="form-label mb-0">Senha</label>
-          <a href="/recuperar-senha" class="text-xs text-[var(--color-accent)] hover:text-[var(--color-accent-dark)] hover:underline transition-colors">Esqueceu a senha?</a>
+      <div className="form-row">
+        <div className="form-group">
+          <label htmlFor="login-email" className="form-label">Email</label>
+          <input id="login-email" type="email" required autoComplete="email" value={email} onChange={e => setEmail(e.target.value)}
+            className="form-input" placeholder="seu@email.com" />
         </div>
-        <div class="relative">
-          <input id="login-password" type={showPassword ? 'text' : 'password'} required autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)}
-            class="form-input pr-12" placeholder="Sua senha" />
-          <button type="button" onClick={() => setShowPassword(v => !v)} tabIndex={-1}
-            class="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-accent transition-colors"
-            aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}>
-            {showPassword ? (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                <line x1="1" y1="1" x2="23" y2="23" />
-              </svg>
-            ) : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-            )}
-          </button>
+        <div className="form-group">
+          <label htmlFor="login-password" className="form-label">Senha</label>
+          <div className="relative">
+            <input id="login-password" type={showPassword ? 'text' : 'password'} required autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)}
+              className="form-input pr-12" placeholder="Sua senha" />
+            <button type="button" onClick={() => setShowPassword(v => !v)} tabIndex={-1}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors"
+              aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}>
+              {showPassword ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
       </div>
-      <button type="submit" disabled={loading} class="btn-primary w-full py-3">
+      <div className="form-group">
+        <a href="/recuperar-senha" className="form-help-link">Esqueceu a senha?</a>
+      </div>
+      <button type="submit" disabled={loading} className="btn-primary form-submit">
         {loading ? (
           <>
-            <span class="inline-block w-4 h-4 border-2 border-[var(--color-btn-text)]/30 border-t-[var(--color-btn-text)] rounded-full animate-spin" aria-hidden="true"></span>
+            <span className="inline-block w-4 h-4 border-2 border-[var(--color-btn-text)]/30 border-t-[var(--color-btn-text)] rounded-full animate-spin" aria-hidden="true"></span>
             Entrando...
           </>
         ) : (

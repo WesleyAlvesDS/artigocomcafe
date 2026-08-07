@@ -7,21 +7,432 @@ import RegisterForm from '../components/RegisterForm.tsx'
     { name: 'Início', slug: '/' },
     { name: 'Criar Conta', slug: '/cadastro/' }
   ]}>
-  <section class="min-h-screen flex items-center justify-center px-4 py-20" aria-label="Formulário de cadastro">
-    <div class="w-full max-w-md">
-      <div class="text-center mb-8">
-        <h1 data-reveal class="text-3xl font-bold text-foreground">Criar Conta</h1>
-        <p data-reveal class="mt-2 text-muted-foreground">
+  <section class="section page-header">
+    <div class="container">
+      <div data-reveal>
+        <span class="section-label">Acesso</span>
+        <h1 class="section-title">Criar Conta</h1>
+        <p class="section-subtitle">
           Comece sua jornada de conhecimento hoje
-        </p>
-      </div>
-      <div data-reveal class="bg-card border border-border rounded-2xl p-8 shadow-sm">
-        <RegisterForm client:load />
-        <p class="mt-6 text-center text-sm text-muted-foreground">
-          Já tem conta?{' '}
-          <a href="/entrar" class="text-primary hover:underline font-medium">Entrar</a>
         </p>
       </div>
     </div>
   </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="contact-grid">
+        <div class="contact-form-wrapper" data-reveal>
+          <RegisterForm client:load />
+          <p class="form-footer">
+            Já tem conta?{' '}
+            <a href="/entrar" class="form-footer-link">Entrar</a>
+          </p>
+        </div>
+
+        <div class="contact-info" data-reveal="delay-2">
+          <div class="info-card glass-card">
+            <div class="info-icon" style="background: rgba(0,212,170,0.1); color: var(--color-accent);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+            </div>
+            <h2 class="info-title">Escolha sua identidade</h2>
+            <p class="info-desc">Sua identidade define cores, ícones e vocabulário do site.</p>
+          </div>
+          <div class="info-card glass-card">
+            <div class="info-icon" style="background: rgba(124,58,237,0.1); color: var(--color-accent-secondary);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h2 class="info-title">Jornada personalizada</h2>
+            <p class="info-desc">Missões, grãos e trilhas adaptados ao seu tema.</p>
+          </div>
+          <div class="info-card glass-card">
+            <div class="info-icon" style="background: rgba(245,158,11,0.1); color: #f59e0b;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                <polyline points="22,6 12,13 2,6" />
+              </svg>
+            </div>
+            <h2 class="info-title">Newsletter</h2>
+            <p class="info-desc">Receba os melhores conteúdos por email.</p>
+            <div class="info-social">
+              <a href="/newsletter" class="info-social-link">Inscrever-se</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </Base>
+
+<style>
+  .page-header {
+    padding-bottom: 1rem;
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .form-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+  }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  .contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .info-card {
+    padding: 1.5rem;
+  }
+
+  .info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    margin-bottom: 0.75rem;
+  }
+
+  .info-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 0.25rem;
+  }
+
+  .info-desc {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .info-social {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .info-social-link {
+    font-size: 0.85rem;
+    color: var(--color-accent);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .info-social-link:hover {
+    text-decoration: underline;
+  }
+
+  .form-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+  }
+
+  .form-footer-link {
+    color: var(--color-accent);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .form-footer-link:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    .contact-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Theme selection step styles */
+  .theme-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .theme-card {
+    position: relative;
+    padding: 1rem;
+    border-radius: var(--radius-card);
+    border: 2px solid var(--color-bg-card-border);
+    background: var(--color-bg-card);
+    text-align: center;
+    transition: all 0.3s;
+  }
+
+  .theme-card:hover {
+    border-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+    transform: scale(1.01);
+  }
+
+  .theme-card.selected {
+    border-color: var(--color-accent);
+    background: var(--color-bg-card);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--color-accent) 15%, transparent);
+    transform: scale(1.02);
+  }
+
+  .theme-gradient {
+    height: 4px;
+    border-radius: 2px;
+    margin-bottom: 0.75rem;
+    transition: opacity 0.5s;
+  }
+
+  .theme-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .theme-name {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 0.25rem;
+  }
+
+  .theme-desc {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    line-height: 1.3;
+  }
+
+  .theme-check {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    color: var(--color-btn-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--color-accent) 40%, transparent);
+  }
+
+  .theme-preview {
+    padding: 1rem;
+    transition: all 0.5s;
+  }
+
+  .theme-preview-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .theme-preview-icon {
+    font-size: 1.5rem;
+  }
+
+  .theme-preview-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .theme-preview-vocab {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .theme-preview-word {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 100px;
+    background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+    color: var(--color-accent);
+  }
+
+  .theme-preview-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .theme-preview-bar {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--color-bg-card-border);
+    overflow: hidden;
+  }
+
+  .theme-preview-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: all 0.7s;
+  }
+
+  .theme-preview-pct {
+    font-size: 0.7rem;
+    font-family: var(--font-mono);
+    color: var(--color-text-muted);
+  }
+
+  .theme-preview-note {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+  }
+
+  .theme-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .theme-indicator-icon {
+    font-size: 1.25rem;
+  }
+
+  .theme-indicator-text {
+    flex: 1;
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+  }
+
+  .theme-indicator-change {
+    font-size: 0.7rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-button);
+    color: var(--color-text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.25s;
+  }
+
+  .theme-indicator-change:hover {
+    color: var(--color-accent);
+    background: var(--color-bg-card);
+  }
+
+  .form-error {
+    padding: 0.75rem;
+    font-size: 0.8rem;
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid rgba(255, 107, 107, 0.3);
+    border-radius: var(--radius-card);
+  }
+
+  .form-error-text {
+    font-size: 0.7rem;
+    color: #ff6b6b;
+    margin-top: 0.4rem;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border-radius: var(--radius-input);
+    border: 1px solid var(--color-bg-card-border);
+    background: var(--color-bg-card);
+    color: var(--color-text-primary);
+    font-size: 0.9rem;
+    font-family: var(--font-sans);
+    outline: none;
+    transition: border-color 0.25s, box-shadow 0.25s, background-color 0.25s;
+  }
+
+  .form-input:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent);
+  }
+
+  .form-input-error {
+    border-color: rgba(255, 107, 107, 0.6);
+  }
+
+  .form-input-error:focus {
+    border-color: #ff6b6b;
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
+  }
+
+  .form-help-link {
+    display: block;
+    text-align: right;
+    font-size: 0.8rem;
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: opacity 0.25s;
+  }
+
+  .form-help-link:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+  }
+
+  .form-submit {
+    padding: 0.85rem 1.5rem;
+    border-radius: var(--radius-button);
+    border: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s, opacity 0.25s;
+  }
+
+  .form-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .theme-continue {
+    background: linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary)) !important;
+    color: var(--color-btn-text) !important;
+  }
+</style>

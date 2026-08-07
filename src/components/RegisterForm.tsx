@@ -31,7 +31,6 @@ export default function RegisterForm() {
         password_confirmation: passwordConfirmation,
         theme: selectedTheme,
       })
-      // Apply theme colors immediately
       applyThemeColors(selectedTheme)
       setToken(data.token)
       window.location.href = '/'
@@ -49,17 +48,17 @@ export default function RegisterForm() {
   // Theme selection step
   if (step === 'theme') {
     return (
-      <div class="space-y-6">
-        <div class="text-center">
-          <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-2">
+      <div className="contact-form">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">
             Escolha sua identidade
           </h2>
-          <p class="text-sm text-[var(--color-text-secondary)] max-w-md mx-auto">
+          <p className="text-sm text-[var(--color-text-secondary)] max-w-md mx-auto">
             Sua identidade define como você vê o conhecimento. Cores, ícones e até os nomes das recompensas mudam com a sua escolha.
           </p>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="theme-grid">
           {Object.values(THEMES).map(theme => {
             const isSelected = selectedTheme === theme.id
             return (
@@ -69,84 +68,50 @@ export default function RegisterForm() {
                   setSelectedTheme(theme.id)
                   applyThemeColors(theme.id)
                 }}
-                class={`relative p-4 rounded-2xl text-center transition-all duration-300 border-2 ${
-                  isSelected
-                    ? 'border-[var(--color-accent)] bg-[var(--color-bg-card)] shadow-lg scale-[1.02]'
-                    : 'border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)] hover:border-[var(--color-accent)]/30 hover:scale-[1.01]'
-                }`}
+                className={`theme-card ${isSelected ? 'selected' : ''}`}
               >
-                {/* Preview gradient bar */}
-                <div class="h-1.5 rounded-full mb-3 transition-all duration-500"
-                  style={{
-                    background: `linear-gradient(90deg, ${theme.colors.gradient_from}, ${theme.colors.gradient_to})`,
-                    opacity: isSelected ? 1 : 0.5,
-                  }}
-                />
-                <div class="text-3xl mb-2">{theme.icon}</div>
-                <h3 class={`text-sm font-bold transition-colors ${
-                  isSelected ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)]'
-                }`}>
-                  {theme.name}
-                </h3>
-                <p class="text-[10px] text-[var(--color-text-muted)] mt-1 leading-tight">
-                  {theme.description}
-                </p>
+                <div className="theme-gradient" style={{
+                  background: `linear-gradient(90deg, ${theme.colors.gradient_from}, ${theme.colors.gradient_to})`,
+                  opacity: isSelected ? 1 : 0.5,
+                }} />
+                <div className="theme-icon">{theme.icon}</div>
+                <h3 className="theme-name">{theme.name}</h3>
+                <p className="theme-desc">{theme.description}</p>
                 {isSelected && (
-                  <div class="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-[var(--color-accent)] text-white flex items-center justify-center text-xs font-bold shadow-lg">
-                    ✓
-                  </div>
+                  <div className="theme-check">✓</div>
                 )}
               </button>
             )
           })}
         </div>
 
-        {/* Preview card */}
-        <div class="glass-card p-4 transition-all duration-500">
-          <div class="flex items-center gap-3 mb-3">
-            <span class="text-2xl">{THEMES[selectedTheme].icon}</span>
+        <div className="theme-preview glass-card">
+          <div className="theme-preview-header">
+            <span className="theme-preview-icon">{THEMES[selectedTheme].icon}</span>
             <div>
-              <h3 class="font-bold text-sm text-[var(--color-text-primary)]">
-                Tema: {THEMES[selectedTheme].name}
-              </h3>
-              <div class="flex gap-2 mt-1">
+              <h3 className="theme-preview-title">Tema: {THEMES[selectedTheme].name}</h3>
+              <div className="theme-preview-vocab">
                 {Object.values(THEMES[selectedTheme].vocabulary).slice(0, 4).map(word => (
-                  <span key={word} class="text-[10px] px-2 py-0.5 rounded-full"
-                    style={{
-                      background: 'color-mix(in srgb, var(--color-accent) 14%, transparent)',
-                      color: 'var(--color-accent)',
-                    }}>
-                    {word}
-                  </span>
+                  <span key={word} className="theme-preview-word">{word}</span>
                 ))}
               </div>
             </div>
           </div>
-          <div class="flex items-center gap-2">
-            <div class="flex-1 h-2 rounded-full bg-[var(--color-bg-card-border)] overflow-hidden">
-              <div class="h-full rounded-full transition-all duration-700"
-                style={{
-                  width: '60%',
-                  background: `linear-gradient(90deg, ${THEMES[selectedTheme].colors.gradient_from}, ${THEMES[selectedTheme].colors.gradient_to})`,
-                }}
-              />
+          <div className="theme-preview-progress">
+            <div className="theme-preview-bar">
+              <div className="theme-preview-fill" style={{
+                width: '60%',
+                background: `linear-gradient(90deg, ${THEMES[selectedTheme].colors.gradient_from}, ${THEMES[selectedTheme].colors.gradient_to})`,
+              }} />
             </div>
-            <span class="text-xs font-mono text-[var(--color-text-muted)]">60%</span>
+            <span className="theme-preview-pct">60%</span>
           </div>
-          <p class="text-xs text-[var(--color-text-muted)] mt-2">
-            🎨 As cores e vocabulário do site se adaptam ao tema escolhido
-          </p>
+          <p className="theme-preview-note">🎨 As cores e vocabulário do site se adaptam ao tema escolhido</p>
         </div>
 
         <button
           onClick={() => setStep('form')}
-          class="w-full py-3 px-6 rounded-xl font-bold text-base transition-all"
-          style={{
-            background: `linear-gradient(135deg, ${THEMES[selectedTheme].colors.gradient_from}, ${THEMES[selectedTheme].colors.gradient_to})`,
-            color: 'var(--color-btn-text)',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.opacity = '0.95' }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.opacity = '1' }}
+          className="btn-primary form-submit theme-continue"
         >
           Continuar com {THEMES[selectedTheme].name} {THEMES[selectedTheme].icon}
         </button>
@@ -156,73 +121,55 @@ export default function RegisterForm() {
 
   // Registration form step
   return (
-    <form onSubmit={handleSubmit} class="space-y-4">
-      {/* Theme indicator */}
-      <div class="flex items-center gap-2 mb-4 p-3 rounded-xl"
-        style={{
-          background: `${THEMES[selectedTheme].colors.primary}11`,
-          border: `1px solid ${THEMES[selectedTheme].colors.primary}22`,
-        }}
-      >
-        <span class="text-xl">{THEMES[selectedTheme].icon}</span>
-        <span class="text-sm text-[var(--color-text-secondary)] flex-1">
+    <form onSubmit={handleSubmit} className="contact-form">
+      <div className="theme-indicator glass-card">
+        <span className="theme-indicator-icon">{THEMES[selectedTheme].icon}</span>
+        <span className="theme-indicator-text">
           Identidade: <strong style={{ color: THEMES[selectedTheme].colors.primary }}>{THEMES[selectedTheme].name}</strong>
         </span>
         <button type="button" onClick={() => setStep('theme')}
-          class="text-xs px-2.5 py-1 rounded-lg hover:bg-[var(--color-bg-card)] text-[var(--color-text-muted)] transition-colors">
+          className="theme-indicator-change">
           Alterar
         </button>
       </div>
 
       {error && (
-        <div class="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-950/30 dark:text-red-400 rounded-lg border border-red-200 dark:border-red-800">{error}</div>
+        <div className="form-error">{error}</div>
       )}
-      <div>
-        <label for="name" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Nome</label>
-        <input id="name" type="text" required value={name} onChange={e => setName(e.target.value)}
-          class="w-full px-4 py-2.5 rounded-xl border border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 transition-shadow"
-          placeholder="Seu nome" />
+      <div className="form-row">
+        <div className="form-group">
+          <label htmlFor="name" className="form-label">Nome</label>
+          <input id="name" type="text" required value={name} onChange={e => setName(e.target.value)}
+            className="form-input" placeholder="Seu nome" />
+        </div>
+        <div className="form-group">
+          <label htmlFor="username" className="form-label">Usuário</label>
+          <input id="username" type="text" required value={username} onChange={e => setUsername(e.target.value)}
+            className="form-input" placeholder="seu_usuario" />
+        </div>
       </div>
-      <div>
-        <label for="username" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Usuário</label>
-        <input id="username" type="text" required value={username} onChange={e => setUsername(e.target.value)}
-          class="w-full px-4 py-2.5 rounded-xl border border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 transition-shadow"
-          placeholder="seu_usuario" />
-      </div>
-      <div>
-        <label for="email" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Email</label>
+      <div className="form-group">
+        <label htmlFor="email" className="form-label">Email</label>
         <input id="email" type="email" required value={email} onChange={e => setEmail(e.target.value)}
-          class="w-full px-4 py-2.5 rounded-xl border border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 transition-shadow"
-          placeholder="seu@email.com" />
+          className="form-input" placeholder="seu@email.com" />
       </div>
-      <div>
-        <label for="password" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Senha (mín. 8 caracteres)</label>
-        <input id="password" type="password" required minLength={8} value={password} onChange={e => setPassword(e.target.value)}
-          class="w-full px-4 py-2.5 rounded-xl border border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 transition-shadow"
-          placeholder="Sua senha" />
+      <div className="form-row">
+        <div className="form-group">
+          <label htmlFor="password" className="form-label">Senha (mín. 8 caracteres)</label>
+          <input id="password" type="password" required minLength={8} value={password} onChange={e => setPassword(e.target.value)}
+            className="form-input" placeholder="Sua senha" />
+        </div>
+        <div className="form-group">
+          <label htmlFor="password_confirmation" className="form-label">Confirmar senha</label>
+          <input id="password_confirmation" type="password" required value={passwordConfirmation} onChange={e => setPasswordConfirmation(e.target.value)}
+            className={`form-input ${passwordConfirmation && passwordConfirmation !== password ? 'form-input-error' : ''}`}
+            placeholder="Repita sua senha" />
+          {passwordConfirmation && passwordConfirmation !== password && (
+            <p className="form-error-text">As senhas não coincidem.</p>
+          )}
+        </div>
       </div>
-      <div>
-        <label for="password_confirmation" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Confirmar senha</label>
-        <input id="password_confirmation" type="password" required value={passwordConfirmation} onChange={e => setPasswordConfirmation(e.target.value)}
-          class={`w-full px-4 py-2.5 rounded-xl border bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 transition-shadow ${
-            passwordConfirmation && passwordConfirmation !== password
-              ? 'border-red-500/60 focus:ring-red-500/30'
-              : 'border-[var(--color-bg-card-border)]'
-          }`}
-          placeholder="Repita sua senha" />
-        {passwordConfirmation && passwordConfirmation !== password && (
-          <p class="text-xs text-red-400 mt-1.5">As senhas não coincidem.</p>
-        )}
-      </div>
-      <button type="submit" disabled={loading}
-        class="w-full py-2.5 px-4 rounded-xl font-medium transition-all disabled:opacity-50"
-        style={{
-          background: `linear-gradient(135deg, ${THEMES[selectedTheme].colors.gradient_from}, ${THEMES[selectedTheme].colors.gradient_to})`,
-          color: 'var(--color-btn-text)',
-        }}
-        onMouseEnter={e => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '0.95' } }}
-        onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.opacity = '1' }}
-      >
+      <button type="submit" disabled={loading} className="btn-primary form-submit">
         {loading ? 'Criando conta...' : `Criar Conta ${THEMES[selectedTheme].icon}`}
       </button>
     </form>
