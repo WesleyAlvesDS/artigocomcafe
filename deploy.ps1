@@ -28,26 +28,6 @@ param(
 $ErrorActionPreference = "Stop"
 $root = $PSScriptRoot
 
-# =====================================================================
-# Compatibilidade com git-bash / MSYS: quando o script roda via bash,
-# o PATH herdado pode trazer tar/ssh do MSYS que não resolvem caminhos
-# Windows (C:\...). Garantimos prioridade para as ferramentas nativas.
-# =====================================================================
-$env:PATH = "$env:SystemRoot\System32\OpenSSH;$env:SystemRoot\System32;$env:PATH"
-
-# Resolve um tar compatível com caminhos Windows (bsdtar do System32).
-# O tar do MSYS/git-bash falha com "Cannot connect to C: resolve failed"
-# ao tentar gravar em caminhos como C:\Users\...\Temp\artigo_deploy\*.tar.gz.
-function Get-WindowsTar {
-  foreach ($c in @("$env:SystemRoot\System32\tar.exe", "$env:SystemRoot\System32\bsdtar.exe")) {
-    if (Test-Path $c) { return $c }
-  }
-  $cmd = Get-Command tar.exe -ErrorAction SilentlyContinue | Select-Object -First 1
-  if ($cmd) { return $cmd.Source }
-  return "tar.exe"
-}
-$tarExe = Get-WindowsTar
-
 $okC   = "Green"
 $warnC = "Yellow"
 $errC  = "Red"
@@ -138,7 +118,7 @@ if ($Front) {
 
   Say "-- FRONTEND" $infoC "pack dist"
   if (-not $DryRun) {
-    & $tarExe -czf $tar -C $dist .
+    tar.exe -czf $tar -C $dist .
     if ($LASTEXITCODE -ne 0) { Say "[!]" $errC "Failed to create frontend tarball"; exit 1 }
   }
 
@@ -161,7 +141,7 @@ if ($Back) {
   if (-not $DryRun) {
     Push-Location $backDir
     try {
-      & $tarExe -czf $backTar app config routes database bootstrap/app.php bootstrap/providers.php resources artisan composer.json composer.lock
+      tar.exe -czf $backTar app config routes database bootstrap/app.php bootstrap/providers.php resources artisan composer.json composer.lock
     } finally { Pop-Location }
     if ($LASTEXITCODE -ne 0) { Say "[!]" $errC "Failed to pack backend"; exit 1 }
   }
