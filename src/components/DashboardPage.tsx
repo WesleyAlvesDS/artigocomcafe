@@ -89,13 +89,16 @@ function StatSkeleton() {
 function WeatherWidget() {
   const [weather, setWeather] = useState<WeatherData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
-  useEffect(() => {
+  const fetchWeather = () => {
+    setLoading(true)
+    setError(false)
     const cached = sessionStorage.getItem('dash_weather')
     if (cached) {
       try {
         const parsed = JSON.parse(cached) as WeatherData
-        if (parsed.temperature_c != null) {
+        if (parsed.temperature_c != null && Date.now() - (parsed.cached_at ? Date.parse(parsed.cached_at) : 0) < 3600000) {
           setWeather(parsed)
           setLoading(false)
           return
@@ -106,10 +109,14 @@ function WeatherWidget() {
     api.get<{ data: WeatherData }>('/integrations/weather?city=Sao Paulo')
       .then(d => {
         setWeather(d.data)
-        try { sessionStorage.setItem('dash_weather', JSON.stringify(d.data)) } catch {}
+        try { sessionStorage.setItem('dash_weather', JSON.stringify({ ...d.data, cached_at: new Date().toISOString() })) } catch {}
       })
-      .catch(() => {})
+      .catch(() => setError(true))
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchWeather()
   }, [])
 
   return (
@@ -135,11 +142,22 @@ function WeatherWidget() {
           <div class="h-4 w-3/4 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
           <div class="h-4 w-1/2 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
         </div>
-      ) : !weather || weather.temperature_c == null ? (
-        <div class="flex items-center gap-3">
-          <span class="text-2xl">☁️</span>
-          <span class="text-sm text-[var(--color-text-muted)]">Indisponível no momento</span>
-        </div>
+        ) : error ? (
+          <div class="flex items-center gap-3">
+            <span class="text-2xl" aria-hidden="true">☁️</span>
+            <span class="text-sm text-[var(--color-text-muted)]">Indisponível</span>
+            <button
+              onClick={fetchWeather}
+              class="text-xs font-medium text-[var(--color-accent)] hover:underline"
+            >
+              Tentar
+            </button>
+          </div>
+        ) : !weather || weather.temperature_c == null ? (
+          <div class="flex items-center gap-3">
+            <span class="text-2xl" aria-hidden="true">☁️</span>
+            <span class="text-sm text-[var(--color-text-muted)]">Indisponível no momento</span>
+          </div>
       ) : (
         <>
           <div class="flex items-center gap-4 mb-1">
@@ -182,13 +200,17 @@ function WeatherWidget() {
 function ExchangeWidget() {
   const [rates, setRates] = useState<ExchangeData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
-  useEffect(() => {
+  const fetchExchange = () => {
+    setLoading(true)
+    setError(false)
+
     const cached = sessionStorage.getItem('dash_exchange')
     if (cached) {
       try {
         const parsed = JSON.parse(cached) as ExchangeData
-        if (parsed.rates && parsed.rates.length > 0) {
+        if (parsed.rates && parsed.rates.length > 0 && Date.now() - (parsed.cached_at ? Date.parse(parsed.cached_at) : 0) < 3600000) {
           setRates(parsed)
           setLoading(false)
           return
@@ -199,10 +221,14 @@ function ExchangeWidget() {
     api.get<{ data: ExchangeData }>('/integrations/exchange?base=BRL')
       .then(d => {
         setRates(d.data)
-        try { sessionStorage.setItem('dash_exchange', JSON.stringify(d.data)) } catch {}
+        try { sessionStorage.setItem('dash_exchange', JSON.stringify({ ...d.data, cached_at: new Date().toISOString() })) } catch {}
       })
-      .catch(() => {})
+      .catch(() => setError(true))
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchExchange()
   }, [])
 
   return (
@@ -216,7 +242,7 @@ function ExchangeWidget() {
             {rates ? `1 ${rates.base} para outras moedas` : 'Taxas de câmbio'}
           </p>
         </div>
-        <span class="text-2xl">💱</span>
+            <span class="text-2xl" aria-hidden="true">💱</span>
       </div>
 
       {loading ? (
@@ -228,9 +254,20 @@ function ExchangeWidget() {
             </div>
           ))}
         </div>
+      ) : error ? (
+        <div class="flex items-center gap-3">
+              <span class="text-2xl" aria-hidden="true">💱</span>
+          <span class="text-sm text-[var(--color-text-muted)]">Indisponível</span>
+          <button
+            onClick={fetchExchange}
+            class="text-xs font-medium text-[var(--color-accent)] hover:underline"
+          >
+            Tentar
+          </button>
+        </div>
       ) : !rates || !rates.rates || rates.rates.length === 0 ? (
         <div class="flex items-center gap-3">
-          <span class="text-2xl">💱</span>
+              <span class="text-2xl" aria-hidden="true">💱</span>
           <span class="text-sm text-[var(--color-text-muted)]">Indisponível no momento</span>
         </div>
       ) : (
@@ -264,14 +301,18 @@ function ExchangeWidget() {
 function HeadlinesWidget() {
   const [headlines, setHeadlines] = useState<HeadlineItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
-  useEffect(() => {
+  const fetchHeadlines = () => {
+    setLoading(true)
+    setError(false)
+
     const cached = sessionStorage.getItem('dash_headlines')
     if (cached) {
       try {
-        const parsed = JSON.parse(cached) as HeadlineItem[]
-        if (parsed.length > 0) {
-          setHeadlines(parsed)
+        const parsed = JSON.parse(cached) as { items: HeadlineItem[]; ts: number }
+        if (parsed.items?.length > 0 && Date.now() - parsed.ts < 3600000) {
+          setHeadlines(parsed.items)
           setLoading(false)
           return
         }
@@ -285,10 +326,14 @@ function HeadlinesWidget() {
           ...(d.data.hacker_news?.items || []),
         ].slice(0, 6)
         setHeadlines(combined)
-        try { sessionStorage.setItem('dash_headlines', JSON.stringify(combined)) } catch {}
+        try { sessionStorage.setItem('dash_headlines', JSON.stringify({ items: combined, ts: Date.now() })) } catch {}
       })
-      .catch(() => {})
+      .catch(() => setError(true))
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchHeadlines()
   }, [])
 
   return (
@@ -297,7 +342,7 @@ function HeadlinesWidget() {
         <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
           Manchetes do Dia
         </span>
-        <span class="text-2xl">📰</span>
+        <span class="text-2xl" aria-hidden="true">📰</span>
       </div>
 
       {loading ? (
@@ -306,9 +351,20 @@ function HeadlinesWidget() {
             <div key={i} class="h-4 bg-[var(--color-bg-card-border)] rounded last:w-2/3 animate-pulse" />
           ))}
         </div>
+      ) : error ? (
+        <div class="flex items-center gap-3">
+            <span class="text-2xl" aria-hidden="true">📭</span>
+          <span class="text-sm text-[var(--color-text-muted)]">Indisponível</span>
+          <button
+            onClick={fetchHeadlines}
+            class="text-xs font-medium text-[var(--color-accent)] hover:underline"
+          >
+            Tentar
+          </button>
+        </div>
       ) : headlines.length === 0 ? (
         <div class="flex items-center gap-3">
-          <span class="text-2xl">📭</span>
+            <span class="text-2xl" aria-hidden="true">📭</span>
           <span class="text-sm text-[var(--color-text-muted)]">Indisponível no momento</span>
         </div>
       ) : (
@@ -342,13 +398,26 @@ function DashboardContent() {
   const { user, logout } = useAuth()
   const [dash, setDash] = useState<DashboardResponse | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const vocab = getCurrentVocabulary()
 
-  useEffect(() => {
+  const fetchDashboard = () => {
+    setLoading(true)
+    setError(null)
     api.get<DashboardResponse>('/user/dashboard')
       .then(d => setDash(d))
-      .catch(() => {})
+      .catch(err => {
+        setError(err?.message || 'Não foi possível carregar os dados do dashboard')
+      })
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchDashboard()
+
+    const onFocus = () => fetchDashboard()
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
   }, [])
 
   const s = dash?.evolution
@@ -423,6 +492,17 @@ function DashboardContent() {
       {/* Stats Grid */}
       <div data-reveal>
         <div class="section-label mb-3">Sua Evolução</div>
+        {error ? (
+          <div class="glass-card p-6 text-center">
+            <p class="text-sm text-[var(--color-text-secondary)] mb-3">{error}</p>
+            <button
+              onClick={fetchDashboard}
+              class="px-4 py-2 text-sm font-medium text-[var(--color-accent)] border border-[var(--color-accent)]/30 hover:bg-[var(--color-accent)]/10 rounded-xl transition-colors"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        ) : (
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {loading ? (
             <>
@@ -434,7 +514,8 @@ function DashboardContent() {
             statCards.map(stat => (
               <div key={stat.label} class="glass-card p-5 text-center group transition-all">
                 <div class="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center text-2xl"
-                  style={{ background: 'color-mix(in srgb, var(--color-accent) 12%, transparent)' }}>
+                  style={{ background: 'color-mix(in srgb, var(--color-accent) 12%, transparent)' }}
+                  role="img" aria-hidden="true">
                   {stat.icon}
                 </div>
                 <div class="text-2xl font-bold text-[var(--color-text-primary)] tabular-nums">
@@ -447,6 +528,7 @@ function DashboardContent() {
             ))
           )}
         </div>
+        )}
       </div>
 
       {/* Progress Visualization + Quick Actions */}

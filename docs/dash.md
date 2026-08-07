@@ -126,5 +126,5 @@ Detalhes no [plano do módulo](receitas.md).
 | **Fase 4** | Gamificação, biblioteca do usuário, trilhas | ✅ Concluída |
 | **Fase 5** | Multi-site, multi-idioma, API pública | ⬜ Planejada |
 | **Fase 6** | Receitas + integração das APIs ao Dash (Central Editorial) | ✅ Concluída |
-| **Fase 7** | Verificação e testes (estabilidade, correção de bugs) | ✅ Auditorias 100% (site 86/86, receitas 42/42, a11y 0, site 44/44, dash 29/29) |
-| **Fase 8** | Painel do leitor `/dashboard/` (frontend) | 🔄 Em andamento — código criado, aguardando deploy |
+| **Fase 7** | Verificação e testes (estabilidade, correção de bugs) | ✅ Auditorias 100% (site 86/86, receitas 42/42, a11y 0, site 44/44, dash 35/35) |
+| **Fase 8** | Painel do leitor `/dashboard/` (frontend) | ✅ Concluída |

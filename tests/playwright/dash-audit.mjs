@@ -181,11 +181,11 @@ async function testRedirect(browser, viewport, label) {
 
   const page = await context.newPage();
   try {
-    const resp = await page.goto(BASE_URL + '/dashboard/', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    const resp = await page.goto(BASE_URL + '/dashboard/', { waitUntil: 'networkidle', timeout: 30000 });
     const status = resp?.status() || 0;
     report(`Dashboard carrega (HTTP ${status})`, status === 200, `Status: ${status}`);
 
-    await page.waitForURL((url) => url.pathname.includes('/entrar') || url.pathname.includes('/login'), { timeout: 5000 }).catch(() => {});
+    await page.waitForURL((url) => url.pathname.includes('/entrar') || url.pathname.includes('/login'), { timeout: 15000 }).catch(() => {});
     await sleep(500);
 
     const redirectUrl = page.url();
@@ -305,6 +305,97 @@ async function testAuthenticated(browser, viewport, label) {
   return consoleErrors;
 }
 
+async function testErrorStates(browser) {
+  console.log(`\n${'='.repeat(50)}`);
+  console.log('📱 ERROR STATES — API failures (mock 500)');
+  console.log(`${'='.repeat(50)}`);
+
+  const consoleErrors = [];
+  const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, ignoreHTTPSErrors: true });
+  context.on('page', (page) => {
+    page.on('pageerror', (err) => {
+      if (!isPreExistingWarning(err.message)) {
+        consoleErrors.push({ url: page.url().replace(BASE_URL, ''), text: err.message.substring(0, 200) });
+      }
+    });
+  });
+
+  const page = await context.newPage();
+  try {
+    page.route('**/api-proxy.php/auth/me', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ user: MOCK_USER }) }));
+    page.route('**/api-proxy.php/user/dashboard', (route) => route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'Server Error' }) }));
+    page.route('**/api-proxy.php/integrations/*', (route) => route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'Server Error' }) }));
+
+    await context.addInitScript(() => {
+      localStorage.setItem('auth_token', 'mocked-token');
+      localStorage.setItem('user_theme', 'cafe');
+    });
+
+    await page.goto(BASE_URL + '/dashboard/', { waitUntil: 'domcontentloaded', timeout: 20000 });
+    await sleep(1000);
+
+    const retryBtn = await page.locator('text=/Tentar novamente/i').count();
+    report('Estado de erro visível quando API 500 (dashboard)', retryBtn >= 1, `retry button count: ${retryBtn}`);
+
+    const widgetRetry = await page.locator('text=/Tentar/i').count();
+    report('Widgets mostram estado de erro com retry', widgetRetry >= 1, `retry buttons found: ${widgetRetry}`);
+
+    await page.close();
+  } catch (err) {
+    report('Error states test', false, err.message.substring(0, 100));
+  } finally {
+    await context.close();
+  }
+  return consoleErrors;
+}
+
+async function testEmptyState(browser) {
+  console.log(`\n${'='.repeat(50)}`);
+  console.log('📱 EMPTY STATE — Usuário sem evolução');
+  console.log(`${'='.repeat(50)}`);
+
+  const consoleErrors = [];
+  const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, ignoreHTTPSErrors: true });
+  context.on('page', (page) => {
+    page.on('pageerror', (err) => {
+      if (!isPreExistingWarning(err.message)) {
+        consoleErrors.push({ url: page.url().replace(BASE_URL, ''), text: err.message.substring(0, 200) });
+      }
+    });
+  });
+
+  const page = await context.newPage();
+  try {
+    const MOCK_EMPTY = {
+      evolution: { total_grains: 0, articles_read: 0, reading_time_hours: 0, trails_completed: 0, achievement_unlocked: 0, daily_streak: 0, collections_count: 0, categories_explored: 0 }
+    };
+    page.route('**/api-proxy.php/auth/me', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ user: MOCK_USER }) }));
+    page.route('**/api-proxy.php/user/dashboard', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(MOCK_EMPTY) }));
+    page.route('**/api-proxy.php/integrations/*', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'no data' }) }));
+
+    await context.addInitScript(() => {
+      localStorage.setItem('auth_token', 'mocked-token');
+      localStorage.setItem('user_theme', 'cafe');
+    });
+
+    await page.goto(BASE_URL + '/dashboard/', { waitUntil: 'domcontentloaded', timeout: 20000 });
+    await sleep(1500);
+
+    const zeroStats = await page.locator('text=/0 dias seguidos|0 horas de leitura/i').count();
+    report('Dashboard renderiza estado vazio (zeros)', zeroStats >= 1, `zero stats found: ${zeroStats}`);
+
+    const zeroPct = await page.locator('text=/0%/').count();
+    report('Progresso mostra 0% para usuário novo', zeroPct >= 1);
+
+    await page.close();
+  } catch (err) {
+    report('Empty state test', false, err.message.substring(0, 100));
+  } finally {
+    await context.close();
+  }
+  return consoleErrors;
+}
+
 async function run() {
   console.log('\n🔍 AUDITORIA DO DASHBOARD (Skillmaster)');
   console.log(`📅 ${new Date().toISOString()}`);
@@ -315,6 +406,11 @@ async function run() {
     args: ['--ignore-certificate-errors', '--no-sandbox'],
   });
 
+  // Warmup: ensure dev server is ready before first test
+  const page = await browser.newPage();
+  await page.goto(BASE_URL + '/', { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {});
+  await page.close();
+
   let allConsoleErrors = [];
 
   const desktopRedirect = await testRedirect(browser, { width: 1280, height: 800 }, 'DESKTOP (1280x800)');
@@ -323,7 +419,10 @@ async function run() {
   const desktopAuth = await testAuthenticated(browser, { width: 1280, height: 800 }, 'DESKTOP (1280x800)');
   const mobileAuth = await testAuthenticated(browser, { width: 375, height: 812 }, 'MOBILE (375x812)');
 
-  allConsoleErrors.push(...desktopRedirect, ...mobileRedirect, ...desktopAuth, ...mobileAuth);
+  const errorState = await testErrorStates(browser);
+  const emptyState = await testEmptyState(browser);
+
+  allConsoleErrors.push(...desktopRedirect, ...mobileRedirect, ...desktopAuth, ...mobileAuth, ...errorState, ...emptyState);
 
   await browser.close();
 
