@@ -43,8 +43,35 @@ works correctly in production builds.
 ```
 npm run build       # Build for production
 npm run dev         # Start dev server
-node tests/playwright/dash-audit.mjs  # Dashboard audit
-node tests/playwright/full-audit.mjs   # Full site audit
+node tests/playwright/dash-audit.mjs  # Dashboard audit (mock auth, 39 tests)
+node tests/playwright/prod-test.mjs   # Production test (real creds, 17 tests)
+node tests/playwright/full-audit.mjs  # Full site audit
+```
+
+### Deployment (ValueHost DirectAdmin)
+
+Frontend (Astro static):
+```
+npm run build
+scp -P 1157 -i "C:\Users\prowe\.ssh\id_ed25519" -r dist/* arti3263@br64-da.valueserver.net.br:/home/arti3263/domains/artigocomcafe.com/public_html/
+```
+After SCP, fix permissions — Astro dirs default to 700 which causes 403 on directory index:
+```
+ssh -p 1157 -i "C:\Users\prowe\.ssh\id_ed25519" arti3263@br64-da.valueserver.net.br "
+  find /home/arti3263/domains/artigocomcafe.com/public_html/ -type d -exec chmod 755 {} \; &&
+  find /home/arti3263/domains/artigocomcafe.com/public_html/ -type f -exec chmod 644 {} \; &&
+  chmod 644 /home/arti3263/domains/artigocomcafe.com/public_html/.htaccess
+"
+```
+Always exclude `storage/` from frontend deploys (Laravel storage dir, not needed here).
+
+Backend (Laravel):
+```
+scp -P 1157 -i "C:\Users\prowe\.ssh\id_ed25519" -r backend/app/ backend/routes/ backend/composer.json arti3263@br64-da.valueserver.net.br:/home/arti3263/domains/back.artigocomcafe.com/public_html/
+```
+After deploy, clear caches:
+```
+php artisan config:clear && php artisan route:clear && php artisan config:cache && php artisan route:cache
 ```
 
 ### Lint / Type Check
