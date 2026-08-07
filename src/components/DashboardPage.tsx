@@ -774,6 +774,379 @@ function PostManagementWidget() {
   )
 }
 
+function ContentCalendarWidget() {
+  const [events, setEvents] = useState<Array<{ date: string; title: string; status: string; type: 'post' | 'deadline' | 'idea' }>>([])
+  const [loading, setLoading] = useState(true)
+  const [currentMonth, setCurrentMonth] = useState(new Date())
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setLoading(true)
+      try {
+        const res = await api.get<{ data: PostItem[] }>('/user/posts?per_page=100')
+        const postEvents = res.data.data.map(post => ({
+          date: post.date,
+          title: post.title,
+          status: post.status,
+          type: 'post' as const,
+        }))
+        setEvents(postEvents)
+      } catch {}
+      finally { setLoading(false) }
+    }
+    fetchEvents()
+  }, [])
+
+  const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate()
+  const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay()
+  const monthName = currentMonth.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+
+  const getEventsForDay = (day: number) => {
+    const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    return events.filter(e => e.date.startsWith(dateStr))
+  }
+
+  const statusColors: Record<string, string> = {
+    published: '#22c55e',
+    draft: '#6b7280',
+    review: '#f59e0b',
+    scheduled: '#3b82f6',
+    archived: '#6b7280',
+    idea: '#8b5cf6',
+    deadline: '#ef4444',
+  }
+
+  if (loading) {
+    return (
+      <div class="glass-card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
+            Calendário Editorial
+          </span>
+          <span class="text-2xl" aria-hidden="true">📅</span>
+        </div>
+        <div class="h-64 bg-[var(--color-bg-card-border)]/30 rounded-xl animate-pulse" />
+      </div>
+    )
+  }
+
+  return (
+    <div class="glass-card p-6">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
+          Calendário Editorial
+        </span>
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-medium text-[var(--color-text-primary)]">{monthName}</span>
+          <button onClick={() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))} class="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)]" aria-label="Mês anterior">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button onClick={() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))} class="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)]" aria-label="Próximo mês">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-7 gap-1 mb-2">
+        {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(d => (
+          <div key={d} class="text-center text-[10px] font-medium text-[var(--color-text-muted)] py-1">{d}</div>
+        ))}
+      </div>
+
+      <div class="grid grid-cols-7 gap-1">
+        {[...Array(firstDay)].map((_, i) => (
+          <div key={`empty-${i}`} class="aspect-square" />
+        ))}
+        {[...Array(daysInMonth)].map((_, i) => {
+          const day = i + 1
+          const dayEvents = getEventsForDay(day)
+          const isToday = day === new Date().getDate() && currentMonth.getMonth() === new Date().getMonth() && currentMonth.getFullYear() === new Date().getFullYear()
+          return (
+            <div key={day} class="relative aspect-square min-h-[80px] p-1 rounded-xl transition-colors"
+              style={{ background: isToday ? 'color-mix(in srgb, var(--color-accent) 12%, transparent)' : 'transparent' }}>
+              <div class="text-[11px] font-medium text-[var(--color-text-primary)]">{day}</div>
+              {dayEvents.length > 0 && (
+                <div class="mt-1 space-y-1 max-h-[60px] overflow-y-auto">
+                  {dayEvents.slice(0, 3).map((ev, idx) => (
+                    <div key={idx} class="text-[9px] px-1.5 py-0.5 rounded truncate"
+                      style={{ background: `${statusColors[ev.status] || '#6b7280'}22`, color: statusColors[ev.status] || '#6b7280', border: `1px solid ${statusColors[ev.status] || '#6b7280'}44` }}>
+                      {ev.title}
+                    </div>
+                  ))}
+                  {dayEvents.length > 3 && (
+                    <div class="text-[9px] text-[var(--color-text-muted)] text-center">+{dayEvents.length - 3} mais</div>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      <div class="mt-4 flex flex-wrap gap-2">
+        {Object.entries({ Publicado: '#22c55e', Rascunho: '#6b7280', 'Em Revisão': '#f59e0b', Agendado: '#3b82f6', Ideia: '#8b5cf6', Prazo: '#ef4444' }).map(([label, color]) => (
+          <span key={label} class="flex items-center gap-1.5 text-[10px] text-[var(--color-text-secondary)]">
+            <span class="w-2.5 h-2.5 rounded" style={{ background: color }} />
+            {label}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ContentAnalyticsWidget() {
+  const [analytics, setAnalytics] = useState<{
+    totalPosts: number
+    publishedPosts: number
+    draftPosts: number
+    totalViews: number
+    avgReadingTime: number
+    topCategories: Array<{ name: string; count: number }>
+    topTags: Array<{ name: string; count: number }>
+    postsPerMonth: Array<{ month: string; count: number }>
+  } | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      setLoading(true)
+      try {
+        const res = await api.get<{ data: PostItem[] }>('/user/posts?per_page=200')
+        const posts = res.data.data
+        const published = posts.filter(p => p.status === 'published')
+        const drafts = posts.filter(p => p.status === 'draft')
+
+        const categoryCount: Record<string, number> = {}
+        const tagCount: Record<string, number> = {}
+        const monthCount: Record<string, number> = {}
+
+        posts.forEach(p => {
+          if (p.category) categoryCount[p.category.name] = (categoryCount[p.category.name] || 0) + 1
+          p.tags.forEach(t => tagCount[t.name] = (tagCount[t.name] || 0) + 1)
+          const month = p.date.substring(0, 7)
+          monthCount[month] = (monthCount[month] || 0) + 1
+        })
+
+        setAnalytics({
+          totalPosts: posts.length,
+          publishedPosts: published.length,
+          draftPosts: drafts.length,
+          totalViews: published.reduce((sum, p) => sum + (p.views || 0), 0),
+          avgReadingTime: posts.length > 0 ? Math.round(posts.reduce((s, p) => s + (p.reading_time || 0), 0) / posts.length) : 0,
+          topCategories: Object.entries(categoryCount).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, count]) => ({ name, count })),
+          topTags: Object.entries(tagCount).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([name, count]) => ({ name, count })),
+          postsPerMonth: Object.entries(monthCount).sort().slice(-6).map(([month, count]) => ({ month, count })),
+        })
+      } catch {}
+      finally { setLoading(false) }
+    }
+    fetchAnalytics()
+  }, [])
+
+  if (loading || !analytics) {
+    return (
+      <div class="glass-card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
+            Análise de Conteúdo
+          </span>
+          <span class="text-2xl" aria-hidden="true">📊</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} class="glass-card p-4 animate-pulse">
+              <div class="h-8 w-3/4 bg-[var(--color-bg-card-border)] rounded mb-2" />
+              <div class="h-4 w-1/2 bg-[var(--color-bg-card-border)] rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div class="glass-card p-6">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
+          Análise de Conteúdo
+        </span>
+        <span class="text-2xl" aria-hidden="true">📊</span>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <StatCard label="Total de Posts" value={analytics.totalPosts} icon="📄" color="var(--color-accent)" />
+        <StatCard label="Publicados" value={analytics.publishedPosts} icon="✅" color="#22c55e" />
+        <StatCard label="Rascunhos" value={analytics.draftPosts} icon="📝" color="#f59e0b" />
+        <StatCard label="Tempo Médio" value={`${analytics.avgReadingTime} min`} icon="⏱️" color="#3b82f6" />
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="glass-card p-4">
+          <div class="text-sm font-medium text-[var(--color-text-secondary)] mb-3">Top Categorias</div>
+          <div class="space-y-2">
+            {analytics.topCategories.map((cat, i) => (
+              <div key={cat.name} class="flex items-center justify-between">
+                <span class="text-sm text-[var(--color-text-primary)]">{cat.name}</span>
+                <div class="flex items-center gap-2">
+                  <div class="flex-1 h-2 bg-[var(--color-bg-card-border)] rounded-full overflow-hidden">
+                    <div class="h-full rounded-full bg-[var(--color-accent)] transition-all" style={{ width: `${(cat.count / analytics.topCategories[0]?.count || 1) * 100}%` }} />
+                  </div>
+                  <span class="text-[10px] font-mono text-[var(--color-text-muted)]">{cat.count}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div class="glass-card p-4">
+          <div class="text-sm font-medium text-[var(--color-text-secondary)] mb-3">Top Tags</div>
+          <div class="flex flex-wrap gap-1.5">
+            {analytics.topTags.map(tag => (
+              <span key={tag.name} class="text-[10px] px-2 py-1 rounded-full"
+                style={{ background: 'color-mix(in srgb, var(--color-accent) 14%, transparent)', color: 'var(--color-accent)' }}>
+                #{tag.name} <span class="font-mono">({tag.count})</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card p-4">
+        <div class="text-sm font-medium text-[var(--color-text-secondary)] mb-3">Posts por Mês (últimos 6)</div>
+        <div class="flex items-end gap-2 h-32">
+          {analytics.postsPerMonth.map((m, i) => (
+            <div key={m.month} class="flex-1 flex flex-col items-center">
+              <div class="flex-1 w-full rounded-t bg-gradient-to-t from-[var(--color-accent)] to-[var(--color-accent-secondary)] transition-all"
+                style={{ height: `${(m.count / Math.max(...analytics.postsPerMonth.map(p => p.count), 1)) * 100}%` }} />
+              <span class="text-[9px] text-[var(--color-text-muted)] mt-1">{m.month}</span>
+              <span class="text-[9px] font-bold text-[var(--color-text-primary)]">{m.count}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function StatCard({ label, value, icon, color }: { label: string; value: number | string; icon: string; color: string }) {
+  return (
+    <div class="glass-card p-4 text-center group transition-all">
+      <div class="w-10 h-10 rounded-xl mx-auto mb-2 flex items-center justify-center text-xl"
+        style={{ background: `color-mix(in srgb, ${color} 12%, transparent)` }} role="img" aria-hidden="true">
+        {icon}
+      </div>
+      <div class="text-2xl font-bold text-[var(--color-text-primary)] tabular-nums">{value}</div>
+      <div class="text-xs text-[var(--color-text-muted)] mt-0.5">{label}</div>
+    </div>
+  )
+}
+
+function QuickCreateWidget() {
+  const [activeType, setActiveType] = useState<'article' | 'recipe' | 'news' | 'guide'>('article')
+  const [title, setTitle] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState<string | null>(null)
+
+  const templates = {
+    article: {
+      label: 'Artigo de Blog',
+      icon: '📝',
+      prompt: 'Escreva um artigo completo em Markdown sobre: {title}. Inclua: introdução envolvente, 4-5 seções com H2, exemplos práticos, conclusão com call-to-action, e meta description no final.',
+    },
+    recipe: {
+      label: 'Receita de Café',
+      icon: '☕',
+      prompt: 'Crie uma receita detalhada em Markdown para: {title}. Inclua: ingredientes com medidas, passo a passo numerado, dicas de preparo, tempo de preparo, rendimento, e variações.',
+    },
+    news: {
+      label: 'Notícia/Curadoria',
+      icon: '📰',
+      prompt: 'Escreva uma curadoria de notícias sobre: {title}. Formato: título chamativo, resumo de 2 linhas, 3-5 pontos principais com bullet points, fonte citada, e sua análise/comentário.',
+    },
+    guide: {
+      label: 'Guia Completo',
+      icon: '📚',
+      prompt: 'Crie um guia definitivo em Markdown sobre: {title}. Estrutura: introdução (por que isso importa), pré-requisitos, 6-8 seções H2 com H3, checklist final, FAQ 5 perguntas, recursos recomendados.',
+    },
+  }
+
+  const generateWithAI = async () => {
+    if (!title.trim()) return
+    setLoading(true)
+    setResult(null)
+    const template = templates[activeType]
+    const prompt = template.prompt.replace('{title}', title)
+    try {
+      const res = await api.get<{ data: { reply: string } }>(`/ai/ask?q=${encodeURIComponent(prompt)}`)
+      setResult(res.data.reply)
+    } catch (err: any) {
+      setResult('Erro: ' + (err?.message || 'Não foi possível gerar'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div class="glass-card p-6">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
+          Criação Rápida com IA
+        </span>
+        <span class="text-2xl" aria-hidden="true">⚡</span>
+      </div>
+
+      <div class="flex gap-2 mb-4 flex-wrap">
+        {Object.entries(templates).map(([key, t]) => (
+          <button
+            key={key}
+            onClick={() => setActiveType(key as any)}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+              activeType === key
+                ? 'bg-[var(--color-accent)] text-[var(--color-btn-text)]'
+                : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-card-hover)] border border-[var(--color-bg-card-border)]'
+            }`}
+          >
+            {t.icon} {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label">Título / Tópico</label>
+        <input
+          type="text"
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          class="form-input"
+          placeholder={templates[activeType].label === 'Artigo de Blog' ? 'Ex: Como fazer cold brew perfeito' : 'Digite o tema...'}
+        />
+      </div>
+
+      <button
+        onClick={generateWithAI}
+        disabled={loading || !title.trim()}
+        class="w-full btn-primary form-submit mb-4"
+      >
+        {loading ? (
+          <>
+            <span class="inline-block w-4 h-4 border-2 border-[var(--color-btn-text)]/30 border-t-[var(--color-btn-text)] rounded-full animate-spin" />
+            Gerando com IA...
+          </>
+        ) : (
+          `Gerar ${templates[activeType].label}`
+        )}
+      </button>
+
+      {result && (
+        <div class="prose prose-sm max-w-none text-[var(--color-text-primary)] border-t border-[var(--color-bg-card-border)] pt-4">
+          {result.split('\n').map((line, i) => <p key={i}>{line || '\u00A0'}</p>)}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function DashboardContent() {
   const { user, logout } = useAuth()
   const [dash, setDash] = useState<DashboardResponse | null>(null)
@@ -1039,6 +1412,33 @@ function DashboardContent() {
           Gerencie seus artigos: crie, edite, publique e organize seu conteúdo.
         </p>
         <PostManagementWidget />
+      </div>
+
+      {/* Content Calendar */}
+      <div data-reveal>
+        <div class="section-label mb-2">Calendário Editorial</div>
+        <p class="text-sm text-[var(--color-text-muted)] mb-4">
+          Planeje e visualize seus posts agendados e publicados.
+        </p>
+        <ContentCalendarWidget />
+      </div>
+
+      {/* Content Analytics */}
+      <div data-reveal>
+        <div class="section-label mb-2">Análise de Conteúdo</div>
+        <p class="text-sm text-[var(--color-text-muted)] mb-4">
+          Métricas de performance dos seus artigos.
+        </p>
+        <ContentAnalyticsWidget />
+      </div>
+
+      {/* Quick Content Creation */}
+      <div data-reveal>
+        <div class="section-label mb-2">Criação Rápida</div>
+        <p class="text-sm text-[var(--color-text-muted)] mb-4">
+          Atalhos para criar novo conteúdo com IA.
+        </p>
+        <QuickCreateWidget />
       </div>
     </div>
   )
