@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import type { ChangeEvent, KeyboardEvent } from 'react'
 import AuthPage from './AuthPage'
 import { useAuth } from '../lib/auth'
 import { api } from '../lib/api'
@@ -642,6 +643,106 @@ function DashboardContent() {
           <HeadlinesWidget />
         </div>
       </div>
+
+      {/* Creator Assistant (AI) */}
+      <div data-reveal>
+        <div class="section-label mb-2">Assistente do Criador</div>
+        <p class="text-sm text-[var(--color-text-muted)] mb-4">
+          Pergunte ao assistente de IA para sugestões de títulos, resumos ou dúvidas sobre café.
+        </p>
+        <CreatorAssistantWidget />
+      </div>
+    </div>
+  )
+}
+
+function CreatorAssistantWidget() {
+  const [query, setQuery] = useState('')
+  const [reply, setReply] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [status, setStatus] = useState<{ available: boolean; providers: Record<string, boolean> } | null>(null)
+
+  useEffect(() => {
+    api.get<{ data: { available: boolean; providers: Record<string, boolean> } }>('/ai/status')
+      .then(d => setStatus(d.data))
+      .catch(() => setStatus({ available: false, providers: {} }))
+  }, [])
+
+  const ask = () => {
+    if (!query.trim()) return
+    setLoading(true)
+    setError(null)
+    setReply(null)
+    api.get<{ data: { reply: string; provider: string; elapsed_ms: number } }>(`/ai/ask?q=${encodeURIComponent(query)}`)
+      .then(d => {
+        setReply(d.data.reply)
+      })
+      .catch(err => {
+        setError(err?.message || 'Não foi possível conectar ao assistente de IA')
+      })
+      .finally(() => setLoading(false))
+  }
+
+  return (
+    <div class="glass-card p-6">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
+          Chat com IA
+        </span>
+        <span class="text-2xl" aria-hidden="true">🤖</span>
+      </div>
+
+      {!status?.available ? (
+        <div class="flex items-center gap-3 text-sm text-[var(--color-text-muted)]">
+          <span>⚠️</span>
+          <span>Assistente de IA não configurado no servidor</span>
+        </div>
+      ) : (
+        <>
+          <div class="flex gap-2 mb-3">
+            <input
+              type="text"
+              value={query}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
+              placeholder="Como preparar um bom café?"
+              class="flex-1 px-3 py-2 text-sm bg-[var(--color-bg-card-border)]/20 rounded-xl border border-[var(--color-bg-card-border)] focus:outline-none focus:border-[var(--color-accent)] text-[var(--color-text-primary)]"
+              onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => { if (e.key === 'Enter') ask() }}
+              aria-label="Pergunte ao assistente de IA"
+            />
+            <button
+              onClick={ask}
+              disabled={loading || !query.trim()}
+              class="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-accent)]/20 hover:bg-[var(--color-accent)]/30 disabled:opacity-50 rounded-xl transition-colors border border-[var(--color-accent)]/30"
+            >
+              {loading ? '…' : 'Enviar'}
+            </button>
+          </div>
+
+          {loading && (
+            <div class="space-y-2">
+              <div class="h-4 w-full bg-[var(--color-bg-card-border)] rounded animate-pulse" />
+              <div class="h-4 w-3/4 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
+              <div class="h-4 w-1/2 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
+            </div>
+          )}
+
+          {error && (
+            <div class="flex items-center gap-2 p-3 text-sm text-red-400 bg-red-50 dark:bg-red-950/30 rounded-xl">
+              <span>⚠️</span>
+              <span>{error}</span>
+            </div>
+          )}
+
+          {reply && !loading && !error && (
+            <div class="prose prose-sm max-w-none text-[var(--color-text-primary)]">
+              {reply.split('\n').map((line, i) => (
+                <p key={i}>{line || '\u00A0'}</p>
+              ))}
+            </div>
+          )}
+        </>
+      )}
     </div>
   )
 }

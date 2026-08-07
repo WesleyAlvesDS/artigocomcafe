@@ -113,6 +113,36 @@ async function run() {
   const headlineItems = await page.locator('li > a').count();
   report('Widget Manchetes mostra notícias reais', headlineItems >= 1, `items: ${headlineItems}`);
 
+  // Check AI Assistant widget
+  console.log('\n--- AI Assistant (Assistente do Criador) ---');
+  const aiWidget = await page.locator('text=/assistente do criador/i').count();
+  report('Widget Assistente do Criador visível', aiWidget >= 1);
+
+  // Wait for AI status fetch to complete, then check input
+  await new Promise(r => setTimeout(r, 1000));
+  const aiInput = await page.locator('input[type="text"]').count();
+  report('Campo de pergunta do assistente visível', aiInput >= 1);
+
+  // Test AI ask endpoint (real Groq call)
+  const aiAsk = await fetch(`https://back.artigocomcafe.com/api/ai/ask?q=${encodeURIComponent('Qual a melhor forma de torrar café em casa?')}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (aiAsk.ok) {
+    const askData = await aiAsk.json();
+    report('AI /ask responde com Groq', askData.data.provider === 'groq', `provider: ${askData.data.provider}`);
+  } else {
+    report('AI /ask responde', false, `HTTP ${aiAsk.status}`);
+  }
+
+  // Check AI status endpoint responds
+  const aiStatus = await fetch('https://back.artigocomcafe.com/api/ai/status');
+  if (aiStatus.ok) {
+    const aiData = await aiStatus.json();
+    report('AI status endpoint responde (available: ' + aiData.data.available + ')', aiData.data.available);
+  } else {
+    report('AI status endpoint responde', false, `HTTP ${aiStatus.status}`);
+  }
+
   // Responsiveness
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   report('Sem overflow horizontal (desktop)', !overflow);

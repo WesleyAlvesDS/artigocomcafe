@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AchievementController;
+use App\Http\Controllers\Api\AiAssistantController;
 use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\IntegrationController;
 use App\Http\Controllers\Api\AuthController;
@@ -111,4 +112,13 @@ Route::prefix('integrations')->middleware('throttle:30,1')->group(function () {
     Route::get('/headlines', [IntegrationController::class, 'headlines']);
     Route::get('/weather', [IntegrationController::class, 'weather']);
     Route::get('/exchange', [IntegrationController::class, 'exchange']);
+});
+
+// Assistente do Criador — AI (Groq + Gemini)
+// Rate limit para proteger as cotas gratuitas.
+Route::prefix('ai')->middleware('throttle:10,1')->group(function () {
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/ask', [AiAssistantController::class, 'ask']);
+    });
+    Route::get('/status', [AiAssistantController::class, 'status']);
 });

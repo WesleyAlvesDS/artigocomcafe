@@ -150,11 +150,33 @@ function setupApiMocks(page) {
       body: JSON.stringify(MOCK_EXCHANGE),
     });
   });
-  page.route('**/api-proxy.php/integrations/headlines**', async (route) => {
+   page.route('**/api-proxy.php/integrations/headlines**', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify(MOCK_HEADLINES),
+    });
+  });
+
+  page.route('**/api-proxy.php/ai/status', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ available: true, providers: { groq: true, gemini: true } }),
+    });
+  });
+  page.route('**/api-proxy.php/ai/ask*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        data: {
+          reply: 'Resposta do assistente: experimente servir seu café com 18g de café moinho fino para 30s de extração.',
+          provider: 'groq',
+          cached: false,
+          elapsed_ms: 542,
+        },
+      }),
     });
   });
 }
@@ -273,6 +295,14 @@ async function testAuthenticated(browser, viewport, label) {
 
     const headlinesWidget = await page.locator('text=/manchetes do dia/i').count();
     report('Widget Manchetes (API plan) visível', headlinesWidget >= 1, `matches: ${headlinesWidget}`);
+
+    // Check AI Assistant widget
+    console.log('\n--- AI Assistant Widget ---');
+    const aiWidget = await page.locator('text=/assistente do criador/i').count();
+    report('Widget Assistente do Criador visível', aiWidget >= 1, `matches: ${aiWidget}`);
+
+    const aiInput = await page.locator('input[aria-label*="IA" i], input[placeholder*="Como" i], input[type="text"]').count();
+    report('Campo de pergunta do assistente visível', aiInput >= 1, `inputs: ${aiInput}`);
 
     // Check quick actions
     const mapLink = await page.locator('a[href="/mapa"]').count();
