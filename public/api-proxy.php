@@ -47,6 +47,52 @@ if (empty($path)) {
     exit;
 }
 
+// ── Cache de respostas públicas GET ─────────────────────────────────────────
+// Reduz a carga no backend (PHP-FPM compartilhado) e absorve rajadas de
+// requisições: durante o TTL as respostas são servidas direto do cache e,
+// se o backend falhar (503/502/erro de rede), serve a última cópia (stale)
+// em vez de propagar o erro ao frontend.
+$method = $_SERVER['REQUEST_METHOD'];
+$cacheDir = __DIR__ . '/api-cache';
+$cacheTtls = [
+    '/articles/cafe-do-dia' => 60,
+    '/recipes/cafe-do-dia' => 60,
+    '/recipes/featured' => 60,
+    '/integrations/weather' => 60,
+    '/integrations/headlines' => 60,
+    '/integrations/exchange' => 30,
+    '/ai/status' => 60,
+];
+$cacheable = ($method === 'GET') && isset($cacheTtls[$path]);
+$cacheFile = $cacheable ? $cacheDir . '/' . sha1($path . '?' . $queryString) . '.json' : null;
+
+function proxy_cache_serve($cacheFile, $cacheData, $hit) {
+    header('Content-Type: ' . ($cacheData['content_type'] ?: 'application/json'));
+    header('X-Proxy-Cache: ' . $hit);
+    http_response_code(isset($cacheData['http_code']) ? (int)$cacheData['http_code'] : 200);
+    echo $cacheData['body'];
+    exit;
+}
+
+function proxy_try_stale_cache($cacheFile) {
+    if ($cacheFile === null || !is_file($cacheFile)) {
+        return false;
+    }
+    $cacheData = @json_decode(file_get_contents($cacheFile), true);
+    if (!is_array($cacheData) || !isset($cacheData['body'])) {
+        return false;
+    }
+    proxy_cache_serve($cacheFile, $cacheData, 'STALE');
+    return true;
+}
+
+if ($cacheable && is_file($cacheFile)) {
+    $cacheData = @json_decode(file_get_contents($cacheFile), true);
+    if (is_array($cacheData) && isset($cacheData['body']) && (time() - ($cacheData['ts'] ?? 0)) <= $cacheTtls[$path]) {
+        proxy_cache_serve($cacheFile, $cacheData, 'HIT');
+    }
+}
+
 // Build the backend URL with query string
 $backendUrl = BACKEND_URL . '/' . $path;
 if (!empty($queryString)) {
@@ -69,41 +115,100 @@ foreach (getallheaders() as $name => $value) {
     $headers[] = "$name: $value";
 }
 
-// Initialize cURL
-$ch = curl_init();
-curl_setopt_array($ch, [
-    CURLOPT_URL => $backendUrl,
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HEADER => true,
-    CURLOPT_FOLLOWLOCATION => true,
-    CURLOPT_MAXREDIRS => 5,
-    CURLOPT_TIMEOUT => 30,
-    CURLOPT_CONNECTTIMEOUT => 10,
-    CURLOPT_SSL_VERIFYPEER => false,
-    CURLOPT_SSL_VERIFYHOST => 0,
-    CURLOPT_ENCODING => '', // Accept & decode all encodings (gzip, deflate, br)
-    CURLOPT_HTTPHEADER => $headers,
-    CURLOPT_CUSTOMREQUEST => $_SERVER['REQUEST_METHOD'],
-]);
-
-// Set body for non-GET requests
-if ($_SERVER['REQUEST_METHOD'] !== 'GET' && !empty($body)) {
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+// IP real do backend via DNS direto (dns_get_record ignora /etc/hosts).
+// Usado como FALLBACK quando o resolvedor thread-pool do cURL falha
+// ("getaddrinfo() thread failed") em hospedagem compartilhada.
+$host = parse_url(BACKEND_URL, PHP_URL_HOST);
+$scheme = parse_url(BACKEND_URL, PHP_URL_SCHEME) ?: 'https';
+$port = parse_url(BACKEND_URL, PHP_URL_PORT) ?: ($scheme === 'http' ? 80 : 443);
+$resolve = null;
+foreach (dns_get_record($host, DNS_A) as $rec) {
+    if (filter_var($rec['ip'] ?? '', FILTER_VALIDATE_IP)) {
+        $resolve = [$host.':'.$port.':'.$rec['ip']];
+        break;
+    }
+}
+if ($resolve === null) {
+    $pinnedIp = gethostbyname($host);
+    if (filter_var($pinnedIp, FILTER_VALIDATE_IP)) {
+        $resolve = ["$host:$port:$pinnedIp"];
+    }
 }
 
-// Execute the request
-$response = curl_exec($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-$error = curl_error($ch);
-curl_close($ch);
+// Executa a requisição com retry para falhas transitórias (rede/DNS e
+// sobrecarga do backend). Só reintenta métodos idempotentes (GET/HEAD/OPTIONS)
+// quando não há resposta HTTP (httpCode === 0) ou em 503/429 transitórios.
+$method = $_SERVER['REQUEST_METHOD'];
+$maxAttempts = 4;
+$response = false;
+$httpCode = 0;
+$headerSize = 0;
+$error = '';
 
-// Handle cURL errors
-if ($error) {
+for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
+    // Tentativa 0 usa o resolvedor padrão; as seguintes fixam o IP no cURL
+    // (contornando "getaddrinfo() thread failed") caso a 1ª falhe sem resposta.
+    $useResolve = $resolve !== null && $attempt > 0;
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $backendUrl,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HEADER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_MAXREDIRS => 5,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => 0,
+        CURLOPT_ENCODING => '', // Accept & decode all encodings (gzip, deflate, br)
+        CURLOPT_HTTPHEADER => $headers,
+        CURLOPT_CUSTOMREQUEST => $method,
+    ]);
+    if ($useResolve) {
+        curl_setopt($ch, CURLOPT_RESOLVE, $resolve);
+    }
+
+    // Set body for non-GET requests
+    if ($method !== 'GET' && !empty($body)) {
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+    }
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+    $error = curl_error($ch);
+    curl_close($ch);
+
+    $idempotent = in_array($method, ['GET', 'HEAD', 'OPTIONS'], true);
+    $transient = $httpCode === 0 || $httpCode === 503 || $httpCode === 429;
+
+    if ($response !== false && $httpCode > 0 && !($idempotent && $transient)) {
+        break;
+    }
+
+    if ($attempt >= $maxAttempts - 1 || !$idempotent || !$transient) {
+        break;
+    }
+
+    usleep(300000 * ($attempt + 1)); // 300ms, 600ms, 900ms
+}
+
+// Handle cURL errors (serve stale cache se houver)
+if ($response === false || $httpCode === 0) {
+    if (proxy_try_stale_cache($cacheFile)) {
+        exit;
+    }
     http_response_code(502);
     header('Content-Type: application/json');
-    echo json_encode(['error' => 'Proxy error', 'message' => $error]);
+    echo json_encode(['error' => 'Proxy error', 'message' => $error ?: 'Sem resposta do backend']);
     exit;
+}
+
+// Backend respondeu 5xx após os retries — serve stale cache se houver
+if ($httpCode >= 500) {
+    if (proxy_try_stale_cache($cacheFile)) {
+        exit;
+    }
 }
 
 // Extract response headers and body
@@ -120,6 +225,27 @@ foreach (explode("\r\n", $responseHeaders) as $header) {
             break;
         }
     }
+}
+
+// Persiste resposta bem-sucedida no cache (GET público)
+if ($cacheable && $httpCode >= 200 && $httpCode < 300) {
+    if (!is_dir($cacheDir)) {
+        @mkdir($cacheDir, 0755, true);
+        @file_put_contents($cacheDir . '/.htaccess', "Require all denied\n");
+    }
+    $contentType = '';
+    foreach (explode("\r\n", $responseHeaders) as $h) {
+        if (stripos($h, 'content-type:') === 0) {
+            $contentType = trim(substr($h, 13));
+            break;
+        }
+    }
+    @file_put_contents($cacheFile, json_encode([
+        'ts' => time(),
+        'http_code' => $httpCode,
+        'content_type' => $contentType ?: 'application/json',
+        'body' => $responseBody,
+    ]));
 }
 
 // Set HTTP status code

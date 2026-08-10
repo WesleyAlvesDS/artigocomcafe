@@ -333,29 +333,19 @@ import UserMenu from './UserMenu'
     transform: translateY(0);
   }
 
-  .mobile-menu .mobile-link,
-  .mobile-menu .mobile-menu-head,
-  .mobile-menu .mobile-section-label {
+  /* Cada item recebe um índice via --i no JS, garantindo o stagger para TODOS
+     os itens (links, seções, cabeçalho) — corrige links 13+ que ficavam invisíveis. */
+  .mobile-menu > * {
     opacity: 0;
     transform: translateY(14px);
+    transition:
+      opacity 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i, 0) * 0.04s),
+      transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i, 0) * 0.04s);
   }
 
-  .mobile-menu[aria-hidden="false"] .mobile-menu-head { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.02s forwards; }
-  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(1) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.05s forwards; }
-  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(2) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.09s forwards; }
-  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(3) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.13s forwards; }
-  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(4) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.17s forwards; }
-  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(5) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.21s forwards; }
-  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(6) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.25s forwards; }
-  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(7) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.29s forwards; }
-  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(8) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.33s forwards; }
-  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(9) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.37s forwards; }
-  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(10) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.41s forwards; }
-  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(11) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.45s forwards; }
-  .mobile-menu[aria-hidden="false"] .mobile-link:nth-of-type(12) { animation: mlink-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.49s forwards; }
-
-  @keyframes mlink-in {
-    to { opacity: 1; transform: translateY(0); }
+  .mobile-menu[aria-hidden="false"] > * {
+    opacity: 1;
+    transform: translateY(0);
   }
 
   .mobile-link {
@@ -465,6 +455,11 @@ import UserMenu from './UserMenu'
       link.addEventListener('click', () => {
         closeMenu()
       })
+    })
+
+    // Stagger index for every direct child so the entrance animation covers all items
+    Array.prototype.forEach.call(mobileMenu.children, (el, i) => {
+      el.style.setProperty('--i', String(i))
     })
 
     // Re-enable scroll on page transition

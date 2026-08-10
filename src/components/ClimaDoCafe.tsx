@@ -5,8 +5,11 @@ interface Weather {
   city: string
   region: string | null
   temperature_c: number | null
+  feels_like_c: number | null
   description: string | null
   icon_url: string | null
+  humidity: number | null
+  wind_speed_kmph: number | null
 }
 
 interface Suggestion {
@@ -44,14 +47,44 @@ function suggestionFor(temp: number): Suggestion {
 export default function ClimaDoCafe() {
   const [weather, setWeather] = useState<Weather | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  const loadWeather = (query: string) => {
+    setLoading(true)
+    setError(false)
+    api.get<{ data: Weather }>(`/integrations/weather?${query}`)
+      .then(d => {
+        setWeather(d.data)
+        try {
+          sessionStorage.setItem('clima_do_cafe', JSON.stringify({ ...d.data, cached_at: new Date().toISOString() }))
+        } catch {
+          /* storage indisponível */
+        }
+      })
+      .catch(() => setError(true))
+      .finally(() => setLoading(false))
+  }
+
+  const requestGeolocation = () => {
+    if (!navigator.geolocation) {
+      loadWeather('city=Sao Paulo')
+      return
+    }
+    setLoading(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => loadWeather(`lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`),
+      () => loadWeather('city=Sao Paulo'),
+      { timeout: 8000, maximumAge: 600000 }
+    )
+  }
 
   useEffect(() => {
     // Cache de sessão para não estourar o rate limit da integração
     const cached = sessionStorage.getItem('clima_do_cafe')
     if (cached) {
       try {
-        const parsed = JSON.parse(cached) as Weather
-        if (parsed.temperature_c != null) {
+        const parsed = JSON.parse(cached) as Weather & { cached_at?: string }
+        if (parsed.temperature_c != null && Date.now() - (parsed.cached_at ? Date.parse(parsed.cached_at) : 0) < 1800000) {
           setWeather(parsed)
           setLoading(false)
           return
@@ -60,35 +93,50 @@ export default function ClimaDoCafe() {
         /* cache inválido, busca de novo */
       }
     }
-
-    api.get<{ data: Weather }>('/integrations/weather?city=Sao Paulo')
-      .then(d => {
-        setWeather(d.data)
-        try {
-          sessionStorage.setItem('clima_do_cafe', JSON.stringify(d.data))
-        } catch {
-          /* storage indisponível */
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
+    requestGeolocation()
   }, [])
 
   if (loading) {
     return (
-      <div class="glass-card p-6" style={{ minHeight: '96px' }}>
+      <div class="glass-card p-6" style={{ minHeight: '104px' }}>
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-[var(--color-accent)]/20 animate-pulse" />
           <div class="flex-1 space-y-2">
-            <div class="h-4 bg-[var(--color-bg-card-border)] rounded w-1/3 animate-pulse" />
+            <div class="h-4 bg-[var(--color-accent)]/30 rounded w-1/3 animate-pulse" />
             <div class="h-3 bg-[var(--color-bg-card-border)] rounded w-2/3 animate-pulse" />
           </div>
         </div>
+        <span class="sr-only">Clima do Café</span>
       </div>
     )
   }
 
-  if (!weather || weather.temperature_c == null) return null
+  if (error || !weather || weather.temperature_c == null) {
+    return (
+      <div class="glass-card p-6">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-sky-500/10 flex items-center justify-center flex-shrink-0">
+            <span class="text-2xl" aria-hidden="true">🌤️</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-accent)] mb-0.5">
+              Clima do Café
+            </div>
+            <p class="text-sm text-[var(--color-text-muted)]">
+              Indisponível no momento
+            </p>
+          </div>
+          <button
+            onClick={requestGeolocation}
+            disabled={loading}
+            class="px-3 py-1.5 text-xs font-medium text-[var(--color-accent)] border border-[var(--color-accent)]/30 rounded-lg hover:bg-[var(--color-accent)]/10 transition-colors disabled:opacity-50"
+          >
+            Tentar
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   const temp = weather.temperature_c
   const suggestion = suggestionFor(temp)
@@ -128,6 +176,9 @@ export default function ClimaDoCafe() {
             </span>
             {weather.description && (
               <span class="text-sm text-[var(--color-text-secondary)] capitalize">{weather.description}</span>
+            )}
+            {weather.feels_like_c != null && (
+              <span class="text-xs text-[var(--color-text-muted)]">sensação {Math.round(weather.feels_like_c)}°C</span>
             )}
           </div>
 

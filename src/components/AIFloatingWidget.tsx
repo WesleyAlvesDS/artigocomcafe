@@ -168,7 +168,7 @@ export default function AIFloatingWidget() {
             <circle cx="13" cy="16.5" r="0.5" fill="currentColor" />
           </svg>
           <span>Assistente IA</span>
-          {status?.available && <span className="ai-status-dot" aria-label="IA disponível" />}
+          {status?.available && <span className="ai-status-dot" role="img" aria-label="IA disponível" />}
         </div>
         <div className="ai-floating-actions">
           <button

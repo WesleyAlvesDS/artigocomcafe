@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+﻿import { useState, useEffect, useRef } from 'react'
 import type { ChangeEvent, KeyboardEvent, FormEvent } from 'react'
 import AuthPage from './AuthPage'
 import { useAuth } from '../lib/auth'
@@ -103,6 +103,22 @@ interface PostsResponse {
   }
 }
 
+const statusLabels: Record<string, string> = {
+  published: 'Publicado',
+  draft: 'Rascunho',
+  review: 'Em Revisão',
+  scheduled: 'Agendado',
+  archived: 'Arquivado',
+}
+
+const statusColors: Record<string, string> = {
+  published: 'var(--color-accent)',
+  draft: 'var(--color-text-muted)',
+  review: '#f59e0b',
+  scheduled: '#3b82f6',
+  archived: '#6b7280',
+}
+
 function StatSkeleton() {
   return (
     <div class="glass-card p-5 animate-pulse">
@@ -113,11 +129,32 @@ function StatSkeleton() {
   )
 }
 
+function CountUp({ value, duration = 900 }: { value: number; duration?: number }) {
+  const [display, setDisplay] = useState(0)
+  const from = useRef(0)
+  useEffect(() => {
+    const start = performance.now()
+    const fromValue = from.current
+    const delta = value - fromValue
+    let raf = 0
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / duration)
+      const eased = 1 - Math.pow(1 - p, 3)
+      setDisplay(Math.round(fromValue + delta * eased))
+      if (p < 1) raf = requestAnimationFrame(tick)
+      else from.current = value
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [value, duration])
+  return <>{display}</>
+}
+
 function WeatherWidget() {
   const [weather, setWeather] = useState<WeatherData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
-  const [city, setCity] = useState<string>('S├úo Paulo')
+  const [city, setCity] = useState<string>('São Paulo')
 
   const fetchWeather = (targetCity: string) => {
     setLoading(true)
@@ -146,7 +183,7 @@ function WeatherWidget() {
 
   const requestGeolocation = () => {
     if (!navigator.geolocation) {
-      fetchWeather('S├úo Paulo')
+      fetchWeather('São Paulo')
       return
     }
     setLoading(true)
@@ -156,16 +193,16 @@ function WeatherWidget() {
         api.get<{ data: WeatherData }>(`/integrations/weather?lat=${latitude}&lon=${longitude}`)
           .then(d => {
             setWeather(d.data)
-            setCity(d.data.city || 'Sua localiza├º├úo')
+            setCity(d.data.city || 'Sua localização')
             try { sessionStorage.setItem('dash_weather', JSON.stringify({ ...d.data, cached_at: new Date().toISOString() })) } catch {}
           })
           .catch(() => {
             setError(true)
-            fetchWeather('S├úo Paulo')
+            fetchWeather('São Paulo')
           })
           .finally(() => setLoading(false))
       },
-      () => fetchWeather('S├úo Paulo'),
+      () => fetchWeather('São Paulo'),
       { timeout: 10000 }
     )
   }
@@ -177,7 +214,7 @@ function WeatherWidget() {
         const parsed = JSON.parse(cached) as WeatherData
         if (parsed.temperature_c != null && Date.now() - (parsed.cached_at ? Date.parse(parsed.cached_at) : 0) < 3600000) {
           setWeather(parsed)
-          setCity(parsed.city || 'S├úo Paulo')
+          setCity(parsed.city || 'São Paulo')
           setLoading(false)
           return
         }
@@ -187,10 +224,10 @@ function WeatherWidget() {
   }, [])
 
   return (
-    <div class="glass-card p-6 transition-all">
+    <div class="glass-card p-6 transition-all hover:shadow-glow">
       <div class="flex items-center justify-between mb-4">
         <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
-          Clima do Caf├®
+          Clima do Café
         </span>
         <div class="flex items-center gap-2">
           <span class="text-xs text-[var(--color-text-muted)] flex-shrink-0">{city}</span>
@@ -198,8 +235,8 @@ function WeatherWidget() {
             onClick={requestGeolocation}
             disabled={loading}
             class="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)] transition-colors"
-            aria-label="Atualizar localiza├º├úo"
-            title="Atualizar pela localiza├º├úo atual"
+            aria-label="Atualizar localização"
+            title="Atualizar pela localização atual"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="3" />
@@ -217,8 +254,8 @@ function WeatherWidget() {
         </div>
       ) : error ? (
         <div class="flex items-center gap-3">
-          <span class="text-2xl" aria-hidden="true">Ôÿü´©Å</span>
-          <span class="text-sm text-[var(--color-text-muted)]">Indispon├¡vel</span>
+          <span class="text-2xl" aria-hidden="true">⛅️</span>
+          <span class="text-sm text-[var(--color-text-muted)]">Indisponível</span>
           <button
             onClick={requestGeolocation}
             class="text-xs font-medium text-[var(--color-accent)] hover:underline"
@@ -228,17 +265,17 @@ function WeatherWidget() {
         </div>
       ) : !weather || weather.temperature_c == null ? (
         <div class="flex items-center gap-3">
-          <span class="text-2xl" aria-hidden="true">Ôÿü´©Å</span>
-          <span class="text-sm text-[var(--color-text-muted)]">Indispon├¡vel no momento</span>
+          <span class="text-2xl" aria-hidden="true">⛅️</span>
+          <span class="text-sm text-[var(--color-text-muted)]">Indisponível no momento</span>
         </div>
       ) : (
         <>
           <div class="flex items-center gap-4 mb-1">
             <span class="text-3xl font-bold text-[var(--color-text-primary)] tabular-nums">
-              {Math.round(weather.temperature_c)}┬░C
+              {Math.round(weather.temperature_c)}°C
             </span>
             <span class="text-sm text-[var(--color-text-secondary)] capitalize">
-              {weather.description || 'ÔÇö'}
+              {weather.description || '—'}
             </span>
           </div>
           <p class="text-sm text-[var(--color-text-secondary)] mb-3">
@@ -259,11 +296,16 @@ function WeatherWidget() {
             )}
             {weather.feels_like_c != null && (
               <div>
-                <div class="text-sm font-semibold text-[var(--color-text-primary)]">{Math.round(weather.feels_like_c)}┬░C</div>
-                <div class="text-[10px] text-[var(--color-text-muted)]">Sensa├º├úo</div>
+                <div class="text-sm font-semibold text-[var(--color-text-primary)]">{Math.round(weather.feels_like_c)}°C</div>
+                <div class="text-[10px] text-[var(--color-text-muted)]">Sensação</div>
               </div>
             )}
           </div>
+          {weather.uv_index != null && (
+            <p class="text-[10px] text-[var(--color-text-muted-dark)] mt-3">
+              Índice UV {Math.round(weather.uv_index)} · {weather.source || 'wttr.in'}
+            </p>
+          )}
         </>
       )}
     </div>
@@ -305,17 +347,17 @@ function ExchangeWidget() {
   }, [])
 
   return (
-    <div class="glass-card p-6 transition-all">
+    <div class="glass-card p-6 transition-all hover:shadow-glow">
       <div class="flex items-center justify-between mb-4">
         <div>
           <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
-            C├ómbio ao Vivo
+            Câmbio ao Vivo
           </span>
           <p class="text-xs text-[var(--color-text-muted)] mt-0.5">
-            {rates ? `1 ${rates.base} para outras moedas` : 'Taxas de c├ómbio'}
+            {rates ? `1 ${rates.base} para outras moedas` : 'Taxas de câmbio'}
           </p>
         </div>
-            <span class="text-2xl" aria-hidden="true">­ƒÆ▒</span>
+        <span class="text-2xl" aria-hidden="true">💱</span>
       </div>
 
       {loading ? (
@@ -329,8 +371,8 @@ function ExchangeWidget() {
         </div>
       ) : error ? (
         <div class="flex items-center gap-3">
-              <span class="text-2xl" aria-hidden="true">­ƒÆ▒</span>
-          <span class="text-sm text-[var(--color-text-muted)]">Indispon├¡vel</span>
+          <span class="text-2xl" aria-hidden="true">💱</span>
+          <span class="text-sm text-[var(--color-text-muted)]">Indisponível</span>
           <button
             onClick={fetchExchange}
             class="text-xs font-medium text-[var(--color-accent)] hover:underline"
@@ -340,8 +382,8 @@ function ExchangeWidget() {
         </div>
       ) : !rates || !rates.rates || rates.rates.length === 0 ? (
         <div class="flex items-center gap-3">
-              <span class="text-2xl" aria-hidden="true">­ƒÆ▒</span>
-          <span class="text-sm text-[var(--color-text-muted)]">Indispon├¡vel no momento</span>
+          <span class="text-2xl" aria-hidden="true">💱</span>
+          <span class="text-sm text-[var(--color-text-muted)]">Indisponível no momento</span>
         </div>
       ) : (
         <>
@@ -362,7 +404,7 @@ function ExchangeWidget() {
           </div>
           {rates.cached_at && (
             <p class="text-[10px] text-[var(--color-text-muted-dark)] mt-3 text-right">
-              atualizado h├í pouco ┬À {rates.source}
+              atualizado há pouco · {rates.source}
             </p>
           )}
         </>
@@ -410,12 +452,12 @@ function HeadlinesWidget() {
   }, [])
 
   return (
-    <div class="glass-card p-6 transition-all">
+    <div class="glass-card p-6 transition-all hover:shadow-glow">
       <div class="flex items-center justify-between mb-4">
         <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
           Manchetes do Dia
         </span>
-        <span class="text-2xl" aria-hidden="true">­ƒô░</span>
+        <span class="text-2xl" aria-hidden="true">📰</span>
       </div>
 
       {loading ? (
@@ -426,8 +468,8 @@ function HeadlinesWidget() {
         </div>
       ) : error ? (
         <div class="flex items-center gap-3">
-            <span class="text-2xl" aria-hidden="true">­ƒô¡</span>
-          <span class="text-sm text-[var(--color-text-muted)]">Indispon├¡vel</span>
+          <span class="text-2xl" aria-hidden="true">📡</span>
+          <span class="text-sm text-[var(--color-text-muted)]">Indisponível</span>
           <button
             onClick={fetchHeadlines}
             class="text-xs font-medium text-[var(--color-accent)] hover:underline"
@@ -437,8 +479,8 @@ function HeadlinesWidget() {
         </div>
       ) : headlines.length === 0 ? (
         <div class="flex items-center gap-3">
-            <span class="text-2xl" aria-hidden="true">­ƒô¡</span>
-          <span class="text-sm text-[var(--color-text-muted)]">Indispon├¡vel no momento</span>
+          <span class="text-2xl" aria-hidden="true">📡</span>
+          <span class="text-sm text-[var(--color-text-muted)]">Indisponível no momento</span>
         </div>
       ) : (
         <ul class="space-y-2.5">
@@ -454,8 +496,8 @@ function HeadlinesWidget() {
                   {h.title}
                 </span>
                 <div class="flex items-center gap-2 mt-0.5 text-[10px] text-[var(--color-text-muted-dark)]">
-                  <span class="font-medium">{h.source || 'ÔÇö'}</span>
-                  {h.excerpt && <span>┬À</span>}
+                  <span class="font-medium">{h.source || '—'}</span>
+                  {h.excerpt && <span>·</span>}
                   {h.excerpt && <span class="truncate">{h.excerpt}</span>}
                 </div>
               </a>
@@ -563,29 +605,13 @@ function PostManagementWidget() {
     setShowCreate(true)
   }
 
-  const statusColors: Record<string, string> = {
-    published: 'var(--color-accent)',
-    draft: 'var(--color-text-muted)',
-    review: '#f59e0b',
-    scheduled: '#3b82f6',
-    archived: '#6b7280',
-  }
-
-  const statusLabels: Record<string, string> = {
-    published: 'Publicado',
-    draft: 'Rascunho',
-    review: 'Em Revis├úo',
-    scheduled: 'Agendado',
-    archived: 'Arquivado',
-  }
-
   return (
     <div class="glass-card p-6">
       <div class="flex items-center justify-between mb-4">
         <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
           Meus Artigos
         </span>
-        <span class="text-2xl" aria-hidden="true">­ƒôØ</span>
+        <span class="text-2xl" aria-hidden="true">📝</span>
       </div>
 
       {error && (
@@ -597,14 +623,14 @@ function PostManagementWidget() {
       {showCreate || editingPost ? (
         <form onSubmit={editingPost ? handleUpdate : handleCreate} class="space-y-3">
           <div>
-            <label class="form-label">T├¡tulo</label>
+            <label class="form-label">Título</label>
             <input
               type="text"
               required
               value={formData.title || ''}
               onChange={e => setFormData({ ...formData, title: e.target.value })}
               class="form-input"
-              placeholder="T├¡tulo do artigo"
+              placeholder="Título do artigo"
             />
           </div>
           <div>
@@ -618,7 +644,7 @@ function PostManagementWidget() {
             />
           </div>
           <div>
-            <label class="form-label">Conte├║do (Markdown)</label>
+            <label class="form-label">Conteúdo (Markdown)</label>
             <textarea
               value={formData.content || ''}
               onChange={e => setFormData({ ...formData, content: e.target.value })}
@@ -636,7 +662,7 @@ function PostManagementWidget() {
                 class="form-input form-select"
               >
                 <option value="draft">Rascunho</option>
-                <option value="review">Em Revis├úo</option>
+                <option value="review">Em Revisão</option>
                 <option value="scheduled">Agendado</option>
                 <option value="published">Publicado</option>
                 <option value="archived">Arquivado</option>
@@ -654,18 +680,18 @@ function PostManagementWidget() {
             </div>
           </div>
           <div>
-            <label class="form-label">Tags (separadas por v├¡rgula)</label>
+            <label class="form-label">Tags (separadas por vírgula)</label>
             <input
               type="text"
               value={formData.tags_input || ''}
               onChange={e => setFormData({ ...formData, tags_input: e.target.value })}
               class="form-input"
-              placeholder="caf├®, torrefa├º├úo, m├®todo, etc."
+              placeholder="café, torrefação, método, etc."
             />
           </div>
           <div class="flex gap-2">
             <button type="submit" class="btn-primary form-submit flex-1">
-              {editingPost ? 'Salvar Altera├º├Áes' : 'Criar Artigo'}
+              {editingPost ? 'Salvar Alterações' : 'Criar Artigo'}
             </button>
             <button
               type="button"
@@ -686,7 +712,7 @@ function PostManagementWidget() {
             </div>
           ) : posts.length === 0 ? (
             <div class="text-center py-8">
-              <span class="text-3xl mb-3 block" aria-hidden="true">­ƒôä</span>
+              <span class="text-3xl mb-3 block" aria-hidden="true">📄</span>
               <p class="text-sm text-[var(--color-text-muted)] mb-4">Nenhum artigo ainda</p>
               <button onClick={startCreate} class="btn-primary form-submit">
                 Criar Primeiro Artigo
@@ -704,19 +730,20 @@ function PostManagementWidget() {
                           style={{ background: `${statusColors[post.status] || 'var(--color-text-muted)'}22`, color: statusColors[post.status] || 'var(--color-text-muted)' }}>
                           {statusLabels[post.status] || post.status}
                         </span>
-                        {post.featured_image && <span class="text-[10px] text-[var(--color-text-muted)]" aria-hidden="true">­ƒû╝´©Å</span>}
+                        {post.featured_image && <span class="text-[10px] text-[var(--color-text-muted)]" aria-hidden="true">🖼️</span>}
                       </div>
                       <div class="flex items-center gap-3 text-[10px] text-[var(--color-text-muted-dark)]">
                         <span>{new Date(post.date).toLocaleDateString('pt-BR')}</span>
-                        {post.category && <span>┬À {post.category.name}</span>}
-                        {post.reading_time && <span>ÔÅ▒´©Å {post.reading_time} min</span>}
-                        {post.tags.length > 0 && <span>­ƒÅÀ´©Å {post.tags.slice(0, 3).map(t => t.name).join(', ')}{post.tags.length > 3 ? 'ÔÇª' : ''}</span>}
+                        {post.category && <span>· {post.category.name}</span>}
+                        {post.reading_time && <span>⏱️ {post.reading_time} min</span>}
+                        {post.tags.length > 0 && <span>🏷️ {post.tags.slice(0, 3).map(t => t.name).join(', ')}{post.tags.length > 3 ? '…' : ''}</span>}
                       </div>
                     </div>
                     <div class="flex items-center gap-1.5">
                       <a
                         href={`/blog/${post.slug}`}
                         target="_blank"
+                        rel="noopener noreferrer"
                         class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)] transition-colors"
                         title="Ver no site"
                       >
@@ -751,14 +778,14 @@ function PostManagementWidget() {
                     Anterior
                   </button>
                   <span class="text-sm text-[var(--color-text-muted)]">
-                    P├ígina {page} de {totalPages}
+                    Página {page} de {totalPages}
                   </span>
                   <button
                     onClick={() => fetchPosts(page + 1)}
                     disabled={page === totalPages}
                     class="px-3 py-1.5 text-sm text-[var(--color-text-secondary)] border border-[var(--color-bg-card-border)] rounded-lg hover:bg-[var(--color-bg-card-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    Pr├│xima
+                    Próxima
                   </button>
                 </div>
               )}
@@ -770,276 +797,6 @@ function PostManagementWidget() {
           )}
         </>
       )}
-    </div>
-  )
-}
-
-function DashboardContent() {
-  const { user, logout } = useAuth()
-  const [dash, setDash] = useState<DashboardResponse | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const vocab = getCurrentVocabulary()
-
-  const fetchDashboard = () => {
-    setLoading(true)
-    setError(null)
-    api.get<DashboardResponse>('/user/dashboard')
-      .then(d => setDash(d))
-      .catch(err => {
-        setError(err?.message || 'N├úo foi poss├¡vel carregar os dados do dashboard')
-      })
-      .finally(() => setLoading(false))
-  }
-
-  useEffect(() => {
-    fetchDashboard()
-
-    const onFocus = () => fetchDashboard()
-    window.addEventListener('focus', onFocus)
-    return () => window.removeEventListener('focus', onFocus)
-  }, [])
-
-  const s = dash?.evolution
-
-  const statCards = [
-    { label: vocab.currency, value: s?.total_grains ?? 0, icon: vocab.currency_icon },
-    { label: 'Artigos Lidos', value: s?.articles_read ?? 0, icon: '­ƒôû' },
-    { label: 'Horas de Leitura', value: s?.reading_time_hours ?? 0, icon: 'ÔÅ▒´©Å' },
-    { label: 'Trilhas Completas', value: s?.trails_completed ?? 0, icon: '­ƒÄ»' },
-    { label: 'Conquistas', value: s?.achievements_unlocked ?? 0, icon: '­ƒÅå' },
-    { label: 'Cole├º├Áes', value: s?.collections_count ?? 0, icon: '­ƒôÜ' },
-    { label: 'Categorias', value: s?.categories_explored ?? 0, icon: '­ƒîì' },
-    { label: 'Dias Seguidos', value: s?.daily_streak ?? 0, icon: '­ƒöÑ' },
-  ]
-
-  const maxReading = 100
-  const readingPct = s?.reading_time_hours ? Math.min(100, (s.reading_time_hours / maxReading) * 100) : 0
-  const progressPct = s
-    ? (s.total_grains + s.articles_read + s.trails_completed + s.achievements_unlocked + s.collections_count + s.categories_explored) > 0
-      ? Math.min(100, Math.round(
-        (s.total_grains / 1000) * 15 +
-        (s.articles_read / 50) * 20 +
-        (s.trails_completed / 10) * 20 +
-        (s.achievements_unlocked / 20) * 15 +
-        (s.collections_count / 5) * 15 +
-        (s.categories_explored / 10) * 15
-      ))
-      : 0
-    : 0
-
-  const quickActions = [
-    { label: 'Mapa do Conhecimento', icon: '­ƒù║´©Å', href: '/mapa' },
-    { label: 'Torrefa├º├úo', icon: 'Ôÿò', href: '/torrefacao' },
-    { label: 'Biblioteca', icon: '­ƒôÜ', href: '/biblioteca' },
-    { label: vocab.currency, icon: vocab.currency_icon, href: '/graos' },
-    { label: 'Conquistas', icon: '­ƒÅå', href: '/conquistas' },
-    { label: 'Miss├Áes', icon: '­ƒÄ»', href: '/missoes' },
-    { label: 'Trilhas', icon: '­ƒÄô', href: '/trilhas' },
-  ]
-
-  return (
-    <div class="space-y-8">
-      {/* Header */}
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2">
-        <div class="flex items-center gap-4">
-          <div class="w-16 h-16 rounded-2xl bg-[var(--color-accent)]/20 flex items-center justify-center text-3xl font-bold text-[var(--color-accent)]">
-            {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-          </div>
-          <div>
-            <h1 class="text-2xl font-bold text-[var(--color-text-primary)]">{user?.name || 'Carregando...'}</h1>
-            <div class="flex items-center gap-2 mt-1 flex-wrap">
-              <span class="text-sm text-[var(--color-text-secondary)]">@{user?.username || 'ÔÇö'}</span>
-              {s && s.daily_streak > 0 && (
-                <>
-                  <span class="text-[var(--color-text-muted)]">┬À</span>
-                  <span class="inline-flex items-center gap-1 text-xs font-medium text-amber-400">
-                    ­ƒöÑ {s.daily_streak} dias seguidos
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-        <button
-          onClick={logout}
-          class="px-4 py-2 text-sm text-[var(--color-text-muted)] hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl border border-[var(--color-bg-card-border)] transition-colors"
-        >
-          Sair
-        </button>
-      </div>
-
-      {/* Stats Grid */}
-      <div data-reveal>
-        <div class="section-label mb-3">Sua Evolu├º├úo</div>
-        {error ? (
-          <div class="glass-card p-6 text-center">
-            <p class="text-sm text-[var(--color-text-secondary)] mb-3">{error}</p>
-            <button
-              onClick={fetchDashboard}
-              class="px-4 py-2 text-sm font-medium text-[var(--color-accent)] border border-[var(--color-accent)]/30 hover:bg-[var(--color-accent)]/10 rounded-xl transition-colors"
-            >
-              Tentar novamente
-            </button>
-          </div>
-        ) : (
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {loading ? (
-            <>
-              {statCards.map((_, i) => (
-                <StatSkeleton key={i} />
-              ))}
-            </>
-          ) : (
-            statCards.map(stat => (
-              <div key={stat.label} class="glass-card p-5 text-center group transition-all">
-                <div class="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center text-2xl"
-                  style={{ background: 'color-mix(in srgb, var(--color-accent) 12%, transparent)' }}
-                  role="img" aria-hidden="true">
-                  {stat.icon}
-                </div>
-                <div class="text-2xl font-bold text-[var(--color-text-primary)] tabular-nums">
-                  {stat.value}
-                </div>
-                <div class="text-xs text-[var(--color-text-muted)] mt-0.5">
-                  {stat.label}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-        )}
-      </div>
-
-      {/* Progress Visualization + Quick Actions */}
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" data-reveal>
-        {/* Progress viz */}
-        <div class="glass-card p-6 lg:col-span-1">
-          <div class="section-label mb-4">Progresso Geral</div>
-          {loading ? (
-            <div class="flex flex-col items-center py-6">
-              <div class="w-24 h-24 rounded-full bg-[var(--color-bg-card-border)] animate-pulse mb-4" />
-              <div class="h-4 w-20 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
-            </div>
-          ) : (
-            <div class="flex flex-col items-center text-center">
-              <div class="relative w-28 h-28">
-                <svg class="w-full h-full" viewBox="0 0 100 100">
-                  <circle
-                    cx="50" cy="50" r="42"
-                    fill="none"
-                    stroke="var(--color-bg-card-border)"
-                    stroke-width="8"
-                  />
-                  <circle
-                    cx="50" cy="50" r="42"
-                    fill="none"
-                    stroke="var(--color-accent)"
-                    stroke-width="8"
-                    stroke-linecap="round"
-                    stroke-dasharray={`${264 * (progressPct / 100)} 264`}
-                    transform="rotate(-90 50 50)"
-                    style={{ transition: 'stroke-dasharray 0.8s ease' }}
-                  />
-                </svg>
-                <div class="absolute inset-0 flex items-center justify-center">
-                  <span class="text-2xl font-bold text-[var(--color-text-primary)] tabular-nums">
-                    {progressPct}%
-                  </span>
-                </div>
-              </div>
-              <p class="text-xs text-[var(--color-text-muted)] mt-3">
-                Baseado na sua atividade recente
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Reading time bar */}
-        <div class="glass-card p-6 lg:col-span-1">
-          <div class="section-label mb-4">Tempo de Leitura</div>
-          {loading ? (
-            <div class="space-y-3">
-              <div class="h-3 w-full bg-[var(--color-bg-card-border)] rounded-full animate-pulse" />
-              <div class="h-3 w-3/4 bg-[var(--color-bg-card-border)] rounded-full animate-pulse" />
-            </div>
-          ) : (
-            <div class="space-y-4">
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-[var(--color-text-secondary)]">
-                  {s?.reading_time_hours || 0} horas de leitura
-                </span>
-                <span class="text-xs text-[var(--color-text-muted)]">meta: {maxReading}h</span>
-              </div>
-              <div class="h-2.5 bg-[var(--color-bg-card-border)] rounded-full overflow-hidden">
-                <div
-                  class="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-secondary)]"
-                  style={{ width: `${readingPct}%` }}
-                />
-              </div>
-              <div class="grid grid-cols-2 gap-3 text-center pt-2">
-                <div>
-                  <div class="text-lg font-bold text-[var(--color-text-primary)]">{s?.articles_read || 0}</div>
-                  <div class="text-[10px] text-[var(--color-text-muted)]">Artigos conclu├¡dos</div>
-                </div>
-                <div>
-                  <div class="text-lg font-bold text-[var(--color-text-primary)]">{s?.trails_completed || 0}</div>
-                  <div class="text-[10px] text-[var(--color-text-muted)]">Trilhas conclu├¡das</div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Quick Actions */}
-        <div class="glass-card p-6 lg:col-span-1">
-          <div class="section-label mb-4">Atalhos</div>
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-1 gap-2.5">
-            {quickActions.map(action => (
-              <a
-                key={action.label}
-                href={action.href}
-                class="flex items-center gap-2.5 p-3 rounded-xl text-[var(--color-text-primary)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)] transition-all text-sm font-medium"
-                style={{ background: 'color-mix(in srgb, var(--color-bg-card) 40%, transparent)' }}
-              >
-                <span class="text-xl flex-shrink-0">{action.icon}</span>
-                <span>{action.label}</span>
-              </a>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* API Plan Integrations Section */}
-      <div data-reveal>
-        <div class="section-label mb-2">Contexto do Dia</div>
-        <p class="text-sm text-[var(--color-text-muted)] mb-4">
-          Dados em tempo real integrados ao seu painel de acordo com o plano de APIs do projeto.
-        </p>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <WeatherWidget />
-          <ExchangeWidget />
-          <HeadlinesWidget />
-        </div>
-      </div>
-
-      {/* Creator Assistant (AI) */}
-      <div data-reveal>
-        <div class="section-label mb-2">Assistente do Criador</div>
-        <p class="text-sm text-[var(--color-text-muted)] mb-4">
-          Pergunte ao assistente de IA para sugest├Áes de t├¡tulos, resumos ou d├║vidas sobre caf├®.
-        </p>
-        <CreatorAssistantWidget />
-      </div>
-
-      {/* Post Management */}
-      <div data-reveal>
-        <div class="section-label mb-2">Meus Artigos</div>
-        <p class="text-sm text-[var(--color-text-muted)] mb-4">
-          Gerencie seus artigos: crie, edite, publique e organize seu conte├║do.
-        </p>
-        <PostManagementWidget />
-      </div>
     </div>
   )
 }
@@ -1085,24 +842,33 @@ function CreatorAssistantWidget() {
         setReply(d.data.reply)
       })
       .catch(err => {
-        setError(err?.message || 'N├úo foi poss├¡vel conectar ao assistente de IA')
+        setError(err?.message || 'Não foi possível conectar ao assistente de IA')
       })
       .finally(() => setLoading(false))
   }
 
-  const aiAction = (action: string, prompt: string) => {
+  const aiAction = (action: string) => {
     if (!selectedPost) return
-    const fullPrompt = `${action}\n\nT├¡tulo: ${selectedPost.title}\n\nConte├║do:\n${selectedPost.excerpt || 'Sem resumo'}\n\nCategoria: ${selectedPost.category?.name || 'Sem categoria'}`
+    const fullPrompt = `${action}\n\nTítulo: ${selectedPost.title}\n\nConteúdo:\n${selectedPost.excerpt || 'Sem resumo'}\n\nCategoria: ${selectedPost.category?.name || 'Sem categoria'}`
     ask(fullPrompt)
   }
 
-  const actionPrompts = {
-    translate: 'Traduza o artigo abaixo para ingl├¬s, mantendo o tom e a formata├º├úo em Markdown.',
+  const actionPrompts: Record<string, string> = {
+    translate: 'Traduza o artigo abaixo para inglês, mantendo o tom e a formatação em Markdown.',
     summarize: 'Crie um resumo executivo de 3-5 bullet points do artigo abaixo.',
-    seo: 'Analise o artigo abaixo e sugira: 1) Meta title otimizado (at├® 60 chars), 2) Meta description (at├® 155 chars), 3) 5 palavras-chave SEO, 4) Sugest├Áes de headings H2/H3.',
-    improve: 'Melhore o texto abaixo: corrija gram├ítica, torne mais fluido, adicione exemplos pr├íticos, mantenha o tom autoral.',
-    titles: 'Sugira 5 t├¡tulos alternativos atrativos e otimizados para SEO para o artigo abaixo.',
+    seo: 'Analise o artigo abaixo e sugira: 1) Meta title otimizado (até 60 chars), 2) Meta description (até 155 chars), 3) 5 palavras-chave SEO, 4) Sugestões de headings H2/H3.',
+    improve: 'Melhore o texto abaixo: corrija gramática, torne mais fluido, adicione exemplos práticos, mantenha o tom autoral.',
+    titles: 'Sugira 5 títulos alternativos atrativos e otimizados para SEO para o artigo abaixo.',
     outline: 'Crie um outline detalhado (H2, H3) para expandir este artigo em um guia completo.',
+  }
+
+  const actionLabels: Record<string, string> = {
+    translate: 'Traduzir',
+    summarize: 'Resumir',
+    seo: 'SEO',
+    improve: 'Melhorar',
+    titles: 'Títulos',
+    outline: 'Outline',
   }
 
   return (
@@ -1111,13 +877,13 @@ function CreatorAssistantWidget() {
         <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
           Assistente do Criador
         </span>
-        <span class="text-2xl" aria-hidden="true">­ƒñû</span>
+        <span class="text-2xl" aria-hidden="true">🤖</span>
       </div>
 
       {!status?.available ? (
         <div class="flex items-center gap-3 text-sm text-[var(--color-text-muted)]">
-          <span>ÔÜá´©Å</span>
-          <span>Assistente de IA n├úo configurado no servidor</span>
+          <span>⚠️</span>
+          <span>Assistente de IA não configurado no servidor</span>
         </div>
       ) : (
         <>
@@ -1151,17 +917,17 @@ function CreatorAssistantWidget() {
                   type="text"
                   value={query}
                   onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
-                  placeholder="Como preparar um bom caf├®?"
+                  placeholder="Como preparar um bom café?"
                   class="flex-1 px-3 py-2 text-sm bg-[var(--color-bg-card-border)]/20 rounded-xl border border-[var(--color-bg-card-border)] focus:outline-none focus:border-[var(--color-accent)] text-[var(--color-text-primary)]"
                   onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => { if (e.key === 'Enter') ask() }}
                   aria-label="Pergunte ao assistente de IA"
                 />
                 <button
-                  onClick={ask}
+                  onClick={() => ask()}
                   disabled={loading || !query.trim()}
                   class="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-accent)]/20 hover:bg-[var(--color-accent)]/30 disabled:opacity-50 rounded-xl transition-colors border border-[var(--color-accent)]/30"
                 >
-                  {loading ? 'ÔÇª' : 'Enviar'}
+                  {loading ? '…' : 'Enviar'}
                 </button>
               </div>
 
@@ -1175,7 +941,7 @@ function CreatorAssistantWidget() {
 
               {error && (
                 <div class="flex items-center gap-2 p-3 text-sm text-red-400 bg-red-50 dark:bg-red-950/30 rounded-xl">
-                  <span>ÔÜá´©Å</span>
+                  <span>⚠️</span>
                   <span>{error}</span>
                 </div>
               )}
@@ -1221,20 +987,20 @@ function CreatorAssistantWidget() {
                   <div class="flex items-center gap-3 mt-1 text-[10px] text-[var(--color-text-muted)]">
                     <span>{statusLabels[selectedPost.status] || selectedPost.status}</span>
                     {selectedPost.category && <span>{selectedPost.category.name}</span>}
-                    <span>ÔÅ▒´©Å {selectedPost.reading_time || '?'} min</span>
+                    <span>⏱️ {selectedPost.reading_time || '?'} min</span>
                   </div>
                 </div>
               )}
 
               <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {Object.entries(actionPrompts).map(([key, prompt]) => (
+                {Object.keys(actionPrompts).map(key => (
                   <button
                     key={key}
-                    onClick={() => aiAction(prompt, prompt)}
+                    onClick={() => aiAction(actionPrompts[key])}
                     disabled={loading || !selectedPost}
                     class="px-3 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-card-border)]/30 hover:bg-[var(--color-accent)]/20 disabled:opacity-50 rounded-xl transition-colors border border-[var(--color-bg-card-border)] text-left"
                   >
-                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                    {actionLabels[key] || key.charAt(0).toUpperCase() + key.slice(1)}
                   </button>
                 ))}
               </div>
@@ -1249,7 +1015,7 @@ function CreatorAssistantWidget() {
 
               {error && (
                 <div class="mt-4 flex items-center gap-2 p-3 text-sm text-red-400 bg-red-50 dark:bg-red-950/30 rounded-xl">
-                  <span>ÔÜá´©Å</span>
+                  <span>⚠️</span>
                   <span>{error}</span>
                 </div>
               )}
@@ -1269,12 +1035,300 @@ function CreatorAssistantWidget() {
   )
 }
 
-const statusLabels: Record<string, string> = {
-  published: 'Publicado',
-  draft: 'Rascunho',
-  review: 'Em Revis├úo',
-  scheduled: 'Agendado',
-  archived: 'Arquivado',
+function DashboardContent() {
+  const { user, logout } = useAuth()
+  const [dash, setDash] = useState<DashboardResponse | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const vocab = getCurrentVocabulary()
+
+  const fetchDashboard = () => {
+    setLoading(true)
+    setError(null)
+    api.get<DashboardResponse>('/user/dashboard')
+      .then(d => setDash(d))
+      .catch(err => {
+        setError(err?.message || 'Não foi possível carregar os dados do dashboard')
+      })
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchDashboard()
+
+    const onFocus = () => fetchDashboard()
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [])
+
+  const s = dash?.evolution
+
+  const statCards = [
+    { label: vocab.currency, value: s?.total_grains ?? 0, icon: vocab.currency_icon },
+    { label: 'Artigos Lidos', value: s?.articles_read ?? 0, icon: '📖' },
+    { label: 'Horas de Leitura', value: s?.reading_time_hours ?? 0, icon: '⏱️' },
+    { label: 'Trilhas Completas', value: s?.trails_completed ?? 0, icon: '🎯' },
+    { label: 'Conquistas', value: s?.achievements_unlocked ?? 0, icon: '🏆' },
+    { label: 'Coleções', value: s?.collections_count ?? 0, icon: '📚' },
+    { label: 'Categorias', value: s?.categories_explored ?? 0, icon: '🌍' },
+    { label: 'Dias Seguidos', value: s?.daily_streak ?? 0, icon: '🔥' },
+  ]
+
+  const maxReading = 100
+  const readingPct = s?.reading_time_hours ? Math.min(100, (s.reading_time_hours / maxReading) * 100) : 0
+  const progressPct = s
+    ? (s.total_grains + s.articles_read + s.trails_completed + s.achievements_unlocked + s.collections_count + s.categories_explored) > 0
+      ? Math.min(100, Math.round(
+        (s.total_grains / 1000) * 15 +
+        (s.articles_read / 50) * 20 +
+        (s.trails_completed / 10) * 20 +
+        (s.achievements_unlocked / 20) * 15 +
+        (s.collections_count / 5) * 15 +
+        (s.categories_explored / 10) * 15
+      ))
+      : 0
+    : 0
+
+  const level = s ? Math.min(10, 1 + Math.floor((s.total_grains || 0) / 300)) : 1
+
+  const quickActions = [
+    { label: 'Mapa do Conhecimento', icon: '🗺️', href: '/mapa' },
+    { label: 'Torrefação', icon: '☕', href: '/torrefacao' },
+    { label: 'Biblioteca', icon: '📚', href: '/biblioteca' },
+    { label: vocab.currency, icon: vocab.currency_icon, href: '/graos' },
+    { label: 'Conquistas', icon: '🏆', href: '/conquistas' },
+    { label: 'Missões', icon: '🎯', href: '/missoes' },
+    { label: 'Trilhas', icon: '🎓', href: '/trilhas' },
+  ]
+
+  const firstName = user?.name?.split(' ')[0] || 'Explorador'
+
+  return (
+    <div class="space-y-8">
+      {/* Header */}
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2">
+        <div class="flex items-center gap-4">
+          <div class="relative">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--gradient-from)] to-[var(--gradient-to)] flex items-center justify-center text-3xl font-bold text-[var(--color-btn-text)] shadow-[0_0_30px_var(--color-accent-glow)]">
+              {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+            </div>
+            {s && s.daily_streak > 0 && (
+              <span class="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-amber-500 text-white text-xs flex items-center justify-center shadow-md" title={`${s.daily_streak} dias seguidos`}>
+                🔥
+              </span>
+            )}
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-[var(--color-text-primary)]">
+              Olá, <span class="gradient-text">{firstName}</span> 👋
+            </h1>
+            <div class="flex items-center gap-2 mt-1 flex-wrap">
+              <span class="text-sm text-[var(--color-text-secondary)]">@{user?.username || '—'}</span>
+              {s && s.daily_streak > 0 && (
+                <>
+                  <span class="text-[var(--color-text-muted)]">·</span>
+                  <span class="inline-flex items-center gap-1 text-xs font-medium text-amber-400">
+                    🔥 {s.daily_streak} dias seguidos
+                  </span>
+                </>
+              )}
+              <span class="text-[var(--color-text-muted)]">·</span>
+              <span class="inline-flex items-center gap-1 text-xs font-medium text-[var(--color-accent)]">
+                Nível {level}
+              </span>
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={logout}
+          class="px-4 py-2 text-sm text-[var(--color-text-muted)] hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl border border-[var(--color-bg-card-border)] transition-colors"
+        >
+          Sair
+        </button>
+      </div>
+
+      {/* Stats Grid */}
+      <div data-reveal>
+        <div class="section-label mb-3">Sua Evolução</div>
+        {error ? (
+          <div class="glass-card p-6 text-center">
+            <p class="text-sm text-[var(--color-text-secondary)] mb-3">{error}</p>
+            <button
+              onClick={fetchDashboard}
+              class="px-4 py-2 text-sm font-medium text-[var(--color-accent)] border border-[var(--color-accent)]/30 hover:bg-[var(--color-accent)]/10 rounded-xl transition-colors"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        ) : (
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          {loading ? (
+            <>
+              {statCards.map((_, i) => (
+                <StatSkeleton key={i} />
+              ))}
+            </>
+          ) : (
+            statCards.map(stat => (
+              <div key={stat.label} class="glass-card p-5 text-center group transition-all hover:-translate-y-1">
+                <div class="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"
+                  style={{ background: 'color-mix(in srgb, var(--color-accent) 12%, transparent)' }}
+                  role="img" aria-hidden="true">
+                  {stat.icon}
+                </div>
+                <div class="text-2xl font-bold text-[var(--color-text-primary)] tabular-nums">
+                  <CountUp value={stat.value} />
+                </div>
+                <div class="text-xs text-[var(--color-text-muted)] mt-0.5">
+                  {stat.label}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        )}
+      </div>
+
+      {/* Progress Visualization + Quick Actions */}
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" data-reveal>
+        {/* Progress viz */}
+        <div class="glass-card p-6 lg:col-span-1">
+          <div class="section-label mb-4">Progresso Geral</div>
+          {loading ? (
+            <div class="flex flex-col items-center py-6">
+              <div class="w-24 h-24 rounded-full bg-[var(--color-bg-card-border)] animate-pulse mb-4" />
+              <div class="h-4 w-20 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
+            </div>
+          ) : (
+            <div class="flex flex-col items-center text-center">
+              <div class="relative w-28 h-28">
+                <svg class="w-full h-full" viewBox="0 0 100 100">
+                  <circle
+                    cx="50" cy="50" r="42"
+                    fill="none"
+                    stroke="var(--color-bg-card-border)"
+                    stroke-width="8"
+                  />
+                  <circle
+                    cx="50" cy="50" r="42"
+                    fill="none"
+                    stroke="url(#progressGradient)"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                    stroke-dasharray={`${264 * (progressPct / 100)} 264`}
+                    transform="rotate(-90 50 50)"
+                    style={{ transition: 'stroke-dasharray 0.8s ease' }}
+                  />
+                  <defs>
+                    <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="var(--color-accent)" />
+                      <stop offset="100%" stop-color="var(--color-accent-secondary)" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <span class="text-2xl font-bold text-[var(--color-text-primary)] tabular-nums">
+                    {progressPct}%
+                  </span>
+                </div>
+              </div>
+              <p class="text-xs text-[var(--color-text-muted)] mt-3">
+                Baseado na sua atividade recente
+              </p>
+              <span class="mt-2 inline-flex items-center gap-1 text-[11px] font-medium px-3 py-1 rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)]">
+                Nível {level} · Continue evoluindo
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Reading time bar */}
+        <div class="glass-card p-6 lg:col-span-1">
+          <div class="section-label mb-4">Tempo de Leitura</div>
+          {loading ? (
+            <div class="space-y-3">
+              <div class="h-3 w-full bg-[var(--color-bg-card-border)] rounded-full animate-pulse" />
+              <div class="h-3 w-3/4 bg-[var(--color-bg-card-border)] rounded-full animate-pulse" />
+            </div>
+          ) : (
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-[var(--color-text-secondary)]">
+                  {s?.reading_time_hours || 0} horas de leitura
+                </span>
+                <span class="text-xs text-[var(--color-text-muted)]">meta: {maxReading}h</span>
+              </div>
+              <div class="h-2.5 bg-[var(--color-bg-card-border)] rounded-full overflow-hidden">
+                <div
+                  class="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-secondary)]"
+                  style={{ width: `${readingPct}%` }}
+                />
+              </div>
+              <div class="grid grid-cols-2 gap-3 text-center pt-2">
+                <div>
+                  <div class="text-lg font-bold text-[var(--color-text-primary)]">{s?.articles_read || 0}</div>
+                  <div class="text-[10px] text-[var(--color-text-muted)]">Artigos concluídos</div>
+                </div>
+                <div>
+                  <div class="text-lg font-bold text-[var(--color-text-primary)]">{s?.trails_completed || 0}</div>
+                  <div class="text-[10px] text-[var(--color-text-muted)]">Trilhas concluídas</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Quick Actions */}
+        <div class="glass-card p-6 lg:col-span-1">
+          <div class="section-label mb-4">Atalhos</div>
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-1 gap-2.5">
+            {quickActions.map(action => (
+              <a
+                key={action.label}
+                href={action.href}
+                class="flex items-center gap-2.5 p-3 rounded-xl text-[var(--color-text-primary)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)] transition-all text-sm font-medium"
+                style={{ background: 'color-mix(in srgb, var(--color-bg-card) 40%, transparent)' }}
+              >
+                <span class="text-xl flex-shrink-0">{action.icon}</span>
+                <span>{action.label}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* API Plan Integrations Section */}
+      <div data-reveal>
+        <div class="section-label mb-2">Contexto do Dia</div>
+        <p class="text-sm text-[var(--color-text-muted)] mb-4">
+          Dados em tempo real integrados ao seu painel de acordo com o plano de APIs do projeto.
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <WeatherWidget />
+          <ExchangeWidget />
+          <HeadlinesWidget />
+        </div>
+      </div>
+
+      {/* Creator Assistant (AI) */}
+      <div data-reveal>
+        <div class="section-label mb-2">Assistente do Criador</div>
+        <p class="text-sm text-[var(--color-text-muted)] mb-4">
+          Pergunte ao assistente de IA para sugestões de títulos, resumos ou dúvidas sobre café.
+        </p>
+        <CreatorAssistantWidget />
+      </div>
+
+      {/* Post Management */}
+      <div data-reveal>
+        <div class="section-label mb-2">Meus Artigos</div>
+        <p class="text-sm text-[var(--color-text-muted)] mb-4">
+          Gerencie seus artigos: crie, edite, publique e organize seu conteúdo.
+        </p>
+        <PostManagementWidget />
+      </div>
+    </div>
+  )
 }
 
 export default function DashboardPage() {

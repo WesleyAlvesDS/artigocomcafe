@@ -35,13 +35,23 @@ class IntegrationController extends Controller
     }
 
     /**
-     * Clima atual por cidade.
+     * Clima atual por cidade ou coordenadas (lat/lon).
+     *
+     * Suporta:
+     *   ?city=Sao Paulo          → busca por cidade
+     *   ?lat=-23.55&lon=-46.63  → busca por coordenadas (usado pelo geolocation do painel)
      */
     public function weather(Request $request): JsonResponse
     {
-        $city = $request->query('city', 'Sao Paulo');
+        $lat = $request->query('lat');
+        $lon = $request->query('lon');
 
-        $weather = app(OpenWeatherService::class)->current($city);
+        if (is_numeric($lat) && is_numeric($lon)) {
+            $weather = app(OpenWeatherService::class)->currentByCoordinates((float) $lat, (float) $lon);
+        } else {
+            $city = (string) $request->query('city', 'Sao Paulo');
+            $weather = app(OpenWeatherService::class)->current($city);
+        }
 
         if (! $weather) {
             return response()->json(['error' => 'Clima indisponível'], 503);

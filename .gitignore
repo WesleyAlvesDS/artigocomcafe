@@ -8,3 +8,4 @@ dist/
 .agents
 tests/playwright/screenshots/*.png
 dash-check*.html
+designe/

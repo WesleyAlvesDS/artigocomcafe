@@ -83,7 +83,7 @@ async function runSuite(viewport, label) {
     const homePage = await context.newPage();
     
     const homeStart = Date.now();
-    await homePage.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 30000 });
+    await homePage.goto(BASE_URL, { waitUntil: 'load', timeout: 30000 });
     const homeLoadTime = Date.now() - homeStart;
     report(`Carregou em ${homeLoadTime}ms`, homeLoadTime < 10000, homeLoadTime > 5000 ? 'Lento (>5s)' : '');
     
@@ -119,7 +119,7 @@ async function runSuite(viewport, label) {
     // ── TEST 2: Blog Page ─────────────────────────────────
     console.log('\n📄 BLOG');
     const blogPage = await context.newPage();
-    await blogPage.goto(BASE_URL + '/blog/', { waitUntil: 'networkidle', timeout: 30000 });
+    await blogPage.goto(BASE_URL + '/blog/', { waitUntil: 'load', timeout: 30000 });
     
     const blogTitle = await blogPage.title();
     report(`Title: "${blogTitle.substring(0, 50)}"`, blogTitle.length > 0);
@@ -139,7 +139,7 @@ async function runSuite(viewport, label) {
     const articlePage = await context.newPage();
     const articleUrl = BASE_URL + '/blog/bem-vindo-ao-artigocomcafe-sua-pausa-para-o-conhecimento/';
     
-    await articlePage.goto(articleUrl, { waitUntil: 'networkidle', timeout: 30000 });
+    await articlePage.goto(articleUrl, { waitUntil: 'load', timeout: 30000 });
     const articleTitle = await articlePage.title();
     report(`Title carregado (${articleTitle.length} chars)`, articleTitle.length > 10);
     
@@ -203,7 +203,7 @@ async function runSuite(viewport, label) {
     // ── TEST 7: Service Worker ────────────────────────────
     console.log('\n⚙️  SERVICE WORKER');
     const swPage = await context.newPage();
-    await swPage.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 30000 });
+    await swPage.goto(BASE_URL, { waitUntil: 'load', timeout: 30000 });
     
     // Wait a bit for SW to register and activate
     await swPage.waitForTimeout(2000);
@@ -259,7 +259,7 @@ async function runSuite(viewport, label) {
     // ── TEST 9: Theme Toggle ──────────────────────────────
     console.log('\n🎨 THEME TOGGLE');
     const themePage = await context.newPage();
-    await themePage.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 30000 });
+    await themePage.goto(BASE_URL, { waitUntil: 'load', timeout: 30000 });
     
     // Theme toggle uses classList 'light' (not data-theme attribute)
     // Check if button exists and is visible
@@ -301,7 +301,7 @@ async function runSuite(viewport, label) {
     const perfPage = await context.newPage();
     
     const perfStart = Date.now();
-    await perfPage.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 30000 });
+    await perfPage.goto(BASE_URL, { waitUntil: 'load', timeout: 30000 });
     const perfTime = Date.now() - perfStart;
     
     const perfMetrics = await perfPage.evaluate(() => {

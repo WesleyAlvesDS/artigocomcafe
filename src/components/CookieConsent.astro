@@ -3,7 +3,7 @@ const consentVersion = 1
 const storageKey = 'cookie-consent'
 ---
 
-<div class="cookie-consent" id="cookie-consent" role="dialog" aria-label="Consentimento de cookies" aria-live="polite" hidden>
+<div class="cookie-consent" id="cookie-consent" role="dialog" aria-label="Consentimento de cookies" hidden>
   <div class="cookie-consent-inner">
     <div class="cookie-consent-icon" aria-hidden="true">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -197,7 +197,6 @@ const storageKey = 'cookie-consent'
   function hideBanner() {
     if (banner) {
       banner.setAttribute('hidden', '')
-      banner.setAttribute('aria-hidden', 'true')
     }
   }
 
@@ -209,7 +208,6 @@ const storageKey = 'cookie-consent'
     }
     if (banner) {
       banner.removeAttribute('hidden')
-      banner.setAttribute('aria-hidden', 'false')
     }
   }
 
