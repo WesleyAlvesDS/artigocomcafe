@@ -62,6 +62,7 @@ $cacheTtls = [
     '/integrations/headlines' => 60,
     '/integrations/exchange' => 30,
     '/ai/status' => 60,
+    '/test' => 30,
 ];
 $cacheable = ($method === 'GET') && isset($cacheTtls['/' . $path]);
 $cacheFile = $cacheable ? $cacheDir . '/' . sha1($path . '?' . $queryString) . '.json' : null;
