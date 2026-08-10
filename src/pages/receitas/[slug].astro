@@ -41,7 +41,7 @@ const schemaRecipe = recipe ? {
   image: recipe.cover_image || 'https://artigocomcafe.com/images/recipe-default.svg',
   datePublished: recipe.published_at,
   recipeCategory: recipe.category?.name,
-  recipeCuisine: 'Brasileira',
+  recipeCuisine: recipe.meta?.cuisine || 'Brasileira',
   prepTime: recipe.prep_time_minutes != null ? `PT${recipe.prep_time_minutes}M` : undefined,
   cookTime: recipe.cook_time_minutes != null ? `PT${recipe.cook_time_minutes}M` : undefined,
   totalTime: recipe.prep_time_minutes != null || recipe.cook_time_minutes != null

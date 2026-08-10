@@ -131,7 +131,7 @@ export async function getRecipes(page = 1, perPage = 9, category?: string, searc
 }
 
 export async function getAllRecipeSlugs(): Promise<string[]> {
-  const res = await fetch(`${API_BASE}/recipes?per_page=100`, { headers: { Accept: 'application/json' } })
+  const res = await fetch(`${API_BASE}/recipes?per_page=1000`, { headers: { Accept: 'application/json' } })
   if (!res.ok) return []
   const json: RecipeListResponse = await res.json()
   return json.data.map(r => r.slug)

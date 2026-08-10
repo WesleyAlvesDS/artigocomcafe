@@ -101,6 +101,11 @@ export interface Recipe {
   cover_image: string | null
   category: { id: number; name: string; slug: string; icon: string | null; color: string | null } | null
   tags: Array<{ id: number; name: string; slug: string }>
+  meta?: {
+    cuisine?: string | null
+    source?: string | null
+    source_url?: string | null
+  } | null
   views_count: number
   published_at: string
 }

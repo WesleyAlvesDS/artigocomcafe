@@ -1,120 +1,153 @@
 ---
 import Base from '../../layouts/Base.astro'
 import RecipeCard from '../../components/RecipeCard.astro'
-import Pagination from '../../components/Pagination.astro'
 import { getRecipes, getRecipeCategories } from '../../lib/laravel'
 
 export async function getStaticPaths() {
   return [{ params: { page: undefined } }]
 }
 
-const url = new URL(Astro.request.url)
-const currentPage = Number(url.searchParams.get('page')) || 1
-const search = url.searchParams.get('busca') || ''
-const categorySlug = url.searchParams.get('categoria') || ''
-const tagSlug = url.searchParams.get('tag') || ''
-
 const categories = await getRecipeCategories()
-
-const recipesResponse = await getRecipes(currentPage, 9, categorySlug || undefined, search || undefined, tagSlug || undefined)
+const recipesResponse = await getRecipes(1, 1000)
 const recipes = recipesResponse.data
-const pagination = {
-  last_page: recipesResponse.last_page,
-  current_page: recipesResponse.current_page,
-}
+const totalRecipes = recipesResponse.total || recipes.length
 ---
 
-<Base title="Receitas — Artigo com Café" description="Receitas práticas para acompanhar sua pausa para o conhecimento: café, bebidas, acompanhamentos e sobremesas." canonical="/receitas/" breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Receitas', slug: '/receitas/' }]}>
-  {pagination.last_page > 1 && currentPage < pagination.last_page && (
-    <link rel="next" href={`/receitas?page=${currentPage + 1}${categorySlug ? `&categoria=${categorySlug}` : ''}${search ? `&busca=${encodeURIComponent(search)}` : ''}`} />
-  )}
-  {pagination.last_page > 1 && currentPage > 1 && (
-    <link rel="prev" href={`/receitas?page=${currentPage - 1}${categorySlug ? `&categoria=${categorySlug}` : ''}${search ? `&busca=${encodeURIComponent(search)}` : ''}`} />
-  )}
+<Base title="Receitas — Artigo com Café" description={`${totalRecipes} receitas práticas para acompanhar sua pausa para o conhecimento: café, bebidas, acompanhamentos, sobremesas e muito mais.`} canonical="/receitas/" breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Receitas', slug: '/receitas/' }]}>
   <section class="section receitas-header">
     <div class="container">
       <div class="receitas-header-content" data-reveal>
         <span class="section-label">Receitas</span>
         <h1 class="section-title">Café, Pausa e Prática</h1>
         <p class="section-subtitle">
-          Receitas passo a passo para colocar em prática — do café coado perfeito às sobremesas para acompanhar a leitura.
+          {totalRecipes} receitas passo a passo para colocar em prática — do café coado perfeito às sobremesas, pratos principais e bebidas de todo o mundo.
         </p>
       </div>
 
       <div class="receitas-filters" data-reveal>
-        <form class="search-form" method="GET" action="/receitas">
+        <form class="search-form" role="search" aria-label="Filtrar receitas">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
           <input
-            type="text"
+            type="search"
             name="busca"
-            value={search}
-            placeholder="Buscar receitas…"
+            placeholder={`Buscar entre ${totalRecipes} receitas…`}
             class="search-input"
             aria-label="Buscar receitas"
           />
-          {categorySlug && <input type="hidden" name="categoria" value={categorySlug} />}
         </form>
 
-        <div class="categories-filter">
-          <a href="/receitas" class={`cat-chip ${!categorySlug && !tagSlug ? 'active' : ''}`}>Todas</a>
+        <div class="categories-filter" aria-label="Filtrar por categoria">
+          <button type="button" class="cat-chip" data-cat="" aria-pressed="true">Todas</button>
           {categories.map(cat => (
-            <a
-              href={`/receitas?categoria=${cat.slug}${search ? `&busca=${search}` : ''}${tagSlug ? `&tag=${tagSlug}` : ''}`}
-              class={`cat-chip ${categorySlug === cat.slug ? 'active' : ''}`}
-            >
+            <button type="button" class="cat-chip" data-cat={cat.slug} aria-pressed="false">
               {cat.icon && <span aria-hidden="true">{cat.icon}</span>}
               {cat.name}
               <span class="cat-count">{cat.recipes_count}</span>
-            </a>
+            </button>
           ))}
         </div>
-        {tagSlug && (
-          <div class="tag-filter-bar">
-            <span>Filtrando por tag:</span>
-            <a href="/receitas" class="tag-filter-chip">#{tagSlug}</a>
-          </div>
-        )}
+        <div class="tag-filter-bar" hidden>
+          <span>Filtrando por tag:</span>
+          <button type="button" class="tag-filter-chip" id="clear-tag">limpar filtro</button>
+        </div>
       </div>
     </div>
   </section>
 
   <section class="section">
     <div class="container">
-      {recipes.length > 0 ? (
-        <>
-          <div class="recipes-grid">
-            {recipes.map((recipe, i) => (
-              <RecipeCard recipe={recipe} revealDelay={`delay-${(i % 4) + 1}`} />
-            ))}
+      <div class="recipes-grid" id="recipes-grid">
+        {recipes.map((recipe, i) => (
+          <div
+            class="recipe-card-wrap"
+            data-cat={recipe.category?.slug || ''}
+            data-tags={(recipe.tags || []).map(t => t.slug).join(' ')}
+            data-search={(recipe.title + ' ' + (recipe.excerpt || '') + ' ' + (recipe.category?.name || '') + ' ' + (recipe.tags || []).map(t => t.name).join(' ')).toLowerCase()}
+          >
+            <RecipeCard recipe={recipe} revealDelay={`delay-${(i % 4) + 1}`} />
           </div>
-          {pagination.last_page > 1 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={pagination.last_page}
-              basePath="/receitas"
-              queryParams={{
-                ...(categorySlug ? { categoria: categorySlug } : {}),
-                ...(search ? { busca: search } : {}),
-              }}
-            />
-          )}
-        </>
-      ) : (
-        <div class="empty-state" data-reveal>
-          <div class="empty-icon">☕</div>
-          <h2 class="empty-title">Nenhuma receita encontrada</h2>
-          <p class="empty-desc">
-            {search ? `Nenhum resultado para "${search}".` : 'Nenhuma receita publicada nesta categoria ainda.'}
-          </p>
-          <a href="/receitas" class="btn-primary">Ver todas as receitas</a>
-        </div>
-      )}
+        ))}
+      </div>
+      <div class="empty-state" id="empty-state" hidden>
+        <div class="empty-icon">☕</div>
+        <h2 class="empty-title">Nenhuma receita encontrada</h2>
+        <p class="empty-desc">Tente ajustar a busca ou escolher outra categoria.</p>
+        <button type="button" class="btn-primary" id="clear-filters">Ver todas as receitas</button>
+      </div>
     </div>
   </section>
 
+  <script>
+    const grid = document.getElementById('recipes-grid')
+    const cards = Array.from(grid ? grid.querySelectorAll('.recipe-card-wrap') : [])
+    const chips = Array.from(document.querySelectorAll('.cat-chip[data-cat]'))
+    const searchInput = document.querySelector('.search-input')
+    const emptyState = document.getElementById('empty-state')
+    const clearTagBtn = document.getElementById('clear-tag')
+    const tagBar = document.querySelector('.tag-filter-bar')
+    const clearFiltersBtn = document.getElementById('clear-filters')
+
+    const params = new URL(window.location.href).searchParams
+    let activeCat = params.get('categoria') || ''
+    let activeTag = params.get('tag') || ''
+    let query = params.get('busca') || ''
+
+    const normalize = s => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+
+    function apply() {
+      const q = normalize(query)
+      let visible = 0
+      cards.forEach(card => {
+        const okCat = !activeCat || card.dataset.cat === activeCat
+        const okTag = !activeTag || (card.dataset.tags || '').split(' ').includes(activeTag)
+        const okSearch = !q || normalize(card.dataset.search).includes(q)
+        const show = okCat && okTag && okSearch
+        card.classList.toggle('hidden', !show)
+        if (show) visible++
+      })
+      chips.forEach(chip => {
+        const active = chip.dataset.cat === activeCat
+        chip.classList.toggle('active', active)
+        chip.setAttribute('aria-pressed', String(active))
+      })
+      if (searchInput) searchInput.value = query
+      if (tagBar) tagBar.hidden = !activeTag
+      if (emptyState) emptyState.hidden = visible > 0
+    }
+
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        activeCat = chip.dataset.cat
+        apply()
+      })
+    })
+
+    searchInput?.addEventListener('input', e => {
+      query = e.target.value
+      apply()
+    })
+
+    searchInput?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') e.preventDefault()
+    })
+
+    clearTagBtn?.addEventListener('click', () => {
+      activeTag = ''
+      apply()
+    })
+
+    clearFiltersBtn?.addEventListener('click', () => {
+      activeCat = ''
+      activeTag = ''
+      query = ''
+      apply()
+    })
+
+    apply()
+  </script>
 </Base>
 
 <style>
@@ -188,7 +221,9 @@ const pagination = {
     color: var(--color-text-secondary);
     font-size: 0.82rem;
     font-weight: 500;
+    font-family: inherit;
     text-decoration: none;
+    cursor: pointer;
     transition: all 0.3s;
   }
 
@@ -228,7 +263,8 @@ const pagination = {
     color: var(--color-accent);
     font-weight: 600;
     font-family: var(--font-mono);
-    text-decoration: none;
+    font-size: 0.82rem;
+    cursor: pointer;
     transition: all 0.25s;
   }
 
@@ -240,6 +276,14 @@ const pagination = {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1.5rem;
+  }
+
+  .recipe-card-wrap {
+    min-width: 0;
+  }
+
+  .recipe-card-wrap.hidden {
+    display: none;
   }
 
   .empty-state {
