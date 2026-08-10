@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import type { ChangeEvent, KeyboardEvent, FormEvent } from 'react'
 import AuthPage from './AuthPage'
 import { useAuth } from '../lib/auth'
@@ -117,7 +117,7 @@ function WeatherWidget() {
   const [weather, setWeather] = useState<WeatherData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
-  const [city, setCity] = useState<string>('São Paulo')
+  const [city, setCity] = useState<string>('S├úo Paulo')
 
   const fetchWeather = (targetCity: string) => {
     setLoading(true)
@@ -146,7 +146,7 @@ function WeatherWidget() {
 
   const requestGeolocation = () => {
     if (!navigator.geolocation) {
-      fetchWeather('São Paulo')
+      fetchWeather('S├úo Paulo')
       return
     }
     setLoading(true)
@@ -156,16 +156,16 @@ function WeatherWidget() {
         api.get<{ data: WeatherData }>(`/integrations/weather?lat=${latitude}&lon=${longitude}`)
           .then(d => {
             setWeather(d.data)
-            setCity(d.data.city || 'Sua localização')
+            setCity(d.data.city || 'Sua localiza├º├úo')
             try { sessionStorage.setItem('dash_weather', JSON.stringify({ ...d.data, cached_at: new Date().toISOString() })) } catch {}
           })
           .catch(() => {
             setError(true)
-            fetchWeather('São Paulo')
+            fetchWeather('S├úo Paulo')
           })
           .finally(() => setLoading(false))
       },
-      () => fetchWeather('São Paulo'),
+      () => fetchWeather('S├úo Paulo'),
       { timeout: 10000 }
     )
   }
@@ -177,7 +177,7 @@ function WeatherWidget() {
         const parsed = JSON.parse(cached) as WeatherData
         if (parsed.temperature_c != null && Date.now() - (parsed.cached_at ? Date.parse(parsed.cached_at) : 0) < 3600000) {
           setWeather(parsed)
-          setCity(parsed.city || 'São Paulo')
+          setCity(parsed.city || 'S├úo Paulo')
           setLoading(false)
           return
         }
@@ -190,7 +190,7 @@ function WeatherWidget() {
     <div class="glass-card p-6 transition-all">
       <div class="flex items-center justify-between mb-4">
         <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
-          Clima do Café
+          Clima do Caf├®
         </span>
         <div class="flex items-center gap-2">
           <span class="text-xs text-[var(--color-text-muted)] flex-shrink-0">{city}</span>
@@ -198,8 +198,8 @@ function WeatherWidget() {
             onClick={requestGeolocation}
             disabled={loading}
             class="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)] transition-colors"
-            aria-label="Atualizar localização"
-            title="Atualizar pela localização atual"
+            aria-label="Atualizar localiza├º├úo"
+            title="Atualizar pela localiza├º├úo atual"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="3" />
@@ -217,8 +217,8 @@ function WeatherWidget() {
         </div>
       ) : error ? (
         <div class="flex items-center gap-3">
-          <span class="text-2xl" aria-hidden="true">☁️</span>
-          <span class="text-sm text-[var(--color-text-muted)]">Indisponível</span>
+          <span class="text-2xl" aria-hidden="true">Ôÿü´©Å</span>
+          <span class="text-sm text-[var(--color-text-muted)]">Indispon├¡vel</span>
           <button
             onClick={requestGeolocation}
             class="text-xs font-medium text-[var(--color-accent)] hover:underline"
@@ -228,17 +228,17 @@ function WeatherWidget() {
         </div>
       ) : !weather || weather.temperature_c == null ? (
         <div class="flex items-center gap-3">
-          <span class="text-2xl" aria-hidden="true">☁️</span>
-          <span class="text-sm text-[var(--color-text-muted)]">Indisponível no momento</span>
+          <span class="text-2xl" aria-hidden="true">Ôÿü´©Å</span>
+          <span class="text-sm text-[var(--color-text-muted)]">Indispon├¡vel no momento</span>
         </div>
       ) : (
         <>
           <div class="flex items-center gap-4 mb-1">
             <span class="text-3xl font-bold text-[var(--color-text-primary)] tabular-nums">
-              {Math.round(weather.temperature_c)}°C
+              {Math.round(weather.temperature_c)}┬░C
             </span>
             <span class="text-sm text-[var(--color-text-secondary)] capitalize">
-              {weather.description || '—'}
+              {weather.description || 'ÔÇö'}
             </span>
           </div>
           <p class="text-sm text-[var(--color-text-secondary)] mb-3">
@@ -259,8 +259,8 @@ function WeatherWidget() {
             )}
             {weather.feels_like_c != null && (
               <div>
-                <div class="text-sm font-semibold text-[var(--color-text-primary)]">{Math.round(weather.feels_like_c)}°C</div>
-                <div class="text-[10px] text-[var(--color-text-muted)]">Sensação</div>
+                <div class="text-sm font-semibold text-[var(--color-text-primary)]">{Math.round(weather.feels_like_c)}┬░C</div>
+                <div class="text-[10px] text-[var(--color-text-muted)]">Sensa├º├úo</div>
               </div>
             )}
           </div>
@@ -309,13 +309,13 @@ function ExchangeWidget() {
       <div class="flex items-center justify-between mb-4">
         <div>
           <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
-            Câmbio ao Vivo
+            C├ómbio ao Vivo
           </span>
           <p class="text-xs text-[var(--color-text-muted)] mt-0.5">
-            {rates ? `1 ${rates.base} para outras moedas` : 'Taxas de câmbio'}
+            {rates ? `1 ${rates.base} para outras moedas` : 'Taxas de c├ómbio'}
           </p>
         </div>
-            <span class="text-2xl" aria-hidden="true">💱</span>
+            <span class="text-2xl" aria-hidden="true">­ƒÆ▒</span>
       </div>
 
       {loading ? (
@@ -329,8 +329,8 @@ function ExchangeWidget() {
         </div>
       ) : error ? (
         <div class="flex items-center gap-3">
-              <span class="text-2xl" aria-hidden="true">💱</span>
-          <span class="text-sm text-[var(--color-text-muted)]">Indisponível</span>
+              <span class="text-2xl" aria-hidden="true">­ƒÆ▒</span>
+          <span class="text-sm text-[var(--color-text-muted)]">Indispon├¡vel</span>
           <button
             onClick={fetchExchange}
             class="text-xs font-medium text-[var(--color-accent)] hover:underline"
@@ -340,8 +340,8 @@ function ExchangeWidget() {
         </div>
       ) : !rates || !rates.rates || rates.rates.length === 0 ? (
         <div class="flex items-center gap-3">
-              <span class="text-2xl" aria-hidden="true">💱</span>
-          <span class="text-sm text-[var(--color-text-muted)]">Indisponível no momento</span>
+              <span class="text-2xl" aria-hidden="true">­ƒÆ▒</span>
+          <span class="text-sm text-[var(--color-text-muted)]">Indispon├¡vel no momento</span>
         </div>
       ) : (
         <>
@@ -362,7 +362,7 @@ function ExchangeWidget() {
           </div>
           {rates.cached_at && (
             <p class="text-[10px] text-[var(--color-text-muted-dark)] mt-3 text-right">
-              atualizado há pouco · {rates.source}
+              atualizado h├í pouco ┬À {rates.source}
             </p>
           )}
         </>
@@ -415,7 +415,7 @@ function HeadlinesWidget() {
         <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
           Manchetes do Dia
         </span>
-        <span class="text-2xl" aria-hidden="true">📰</span>
+        <span class="text-2xl" aria-hidden="true">­ƒô░</span>
       </div>
 
       {loading ? (
@@ -426,8 +426,8 @@ function HeadlinesWidget() {
         </div>
       ) : error ? (
         <div class="flex items-center gap-3">
-            <span class="text-2xl" aria-hidden="true">📭</span>
-          <span class="text-sm text-[var(--color-text-muted)]">Indisponível</span>
+            <span class="text-2xl" aria-hidden="true">­ƒô¡</span>
+          <span class="text-sm text-[var(--color-text-muted)]">Indispon├¡vel</span>
           <button
             onClick={fetchHeadlines}
             class="text-xs font-medium text-[var(--color-accent)] hover:underline"
@@ -437,8 +437,8 @@ function HeadlinesWidget() {
         </div>
       ) : headlines.length === 0 ? (
         <div class="flex items-center gap-3">
-            <span class="text-2xl" aria-hidden="true">📭</span>
-          <span class="text-sm text-[var(--color-text-muted)]">Indisponível no momento</span>
+            <span class="text-2xl" aria-hidden="true">­ƒô¡</span>
+          <span class="text-sm text-[var(--color-text-muted)]">Indispon├¡vel no momento</span>
         </div>
       ) : (
         <ul class="space-y-2.5">
@@ -454,8 +454,8 @@ function HeadlinesWidget() {
                   {h.title}
                 </span>
                 <div class="flex items-center gap-2 mt-0.5 text-[10px] text-[var(--color-text-muted-dark)]">
-                  <span class="font-medium">{h.source || '—'}</span>
-                  {h.excerpt && <span>·</span>}
+                  <span class="font-medium">{h.source || 'ÔÇö'}</span>
+                  {h.excerpt && <span>┬À</span>}
                   {h.excerpt && <span class="truncate">{h.excerpt}</span>}
                 </div>
               </a>
@@ -574,7 +574,7 @@ function PostManagementWidget() {
   const statusLabels: Record<string, string> = {
     published: 'Publicado',
     draft: 'Rascunho',
-    review: 'Em Revisão',
+    review: 'Em Revis├úo',
     scheduled: 'Agendado',
     archived: 'Arquivado',
   }
@@ -585,7 +585,7 @@ function PostManagementWidget() {
         <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
           Meus Artigos
         </span>
-        <span class="text-2xl" aria-hidden="true">📝</span>
+        <span class="text-2xl" aria-hidden="true">­ƒôØ</span>
       </div>
 
       {error && (
@@ -597,14 +597,14 @@ function PostManagementWidget() {
       {showCreate || editingPost ? (
         <form onSubmit={editingPost ? handleUpdate : handleCreate} class="space-y-3">
           <div>
-            <label class="form-label">Título</label>
+            <label class="form-label">T├¡tulo</label>
             <input
               type="text"
               required
               value={formData.title || ''}
               onChange={e => setFormData({ ...formData, title: e.target.value })}
               class="form-input"
-              placeholder="Título do artigo"
+              placeholder="T├¡tulo do artigo"
             />
           </div>
           <div>
@@ -618,7 +618,7 @@ function PostManagementWidget() {
             />
           </div>
           <div>
-            <label class="form-label">Conteúdo (Markdown)</label>
+            <label class="form-label">Conte├║do (Markdown)</label>
             <textarea
               value={formData.content || ''}
               onChange={e => setFormData({ ...formData, content: e.target.value })}
@@ -636,7 +636,7 @@ function PostManagementWidget() {
                 class="form-input form-select"
               >
                 <option value="draft">Rascunho</option>
-                <option value="review">Em Revisão</option>
+                <option value="review">Em Revis├úo</option>
                 <option value="scheduled">Agendado</option>
                 <option value="published">Publicado</option>
                 <option value="archived">Arquivado</option>
@@ -654,18 +654,18 @@ function PostManagementWidget() {
             </div>
           </div>
           <div>
-            <label class="form-label">Tags (separadas por vírgula)</label>
+            <label class="form-label">Tags (separadas por v├¡rgula)</label>
             <input
               type="text"
               value={formData.tags_input || ''}
               onChange={e => setFormData({ ...formData, tags_input: e.target.value })}
               class="form-input"
-              placeholder="café, torrefação, método, etc."
+              placeholder="caf├®, torrefa├º├úo, m├®todo, etc."
             />
           </div>
           <div class="flex gap-2">
             <button type="submit" class="btn-primary form-submit flex-1">
-              {editingPost ? 'Salvar Alterações' : 'Criar Artigo'}
+              {editingPost ? 'Salvar Altera├º├Áes' : 'Criar Artigo'}
             </button>
             <button
               type="button"
@@ -686,7 +686,7 @@ function PostManagementWidget() {
             </div>
           ) : posts.length === 0 ? (
             <div class="text-center py-8">
-              <span class="text-3xl mb-3 block" aria-hidden="true">📄</span>
+              <span class="text-3xl mb-3 block" aria-hidden="true">­ƒôä</span>
               <p class="text-sm text-[var(--color-text-muted)] mb-4">Nenhum artigo ainda</p>
               <button onClick={startCreate} class="btn-primary form-submit">
                 Criar Primeiro Artigo
@@ -704,13 +704,13 @@ function PostManagementWidget() {
                           style={{ background: `${statusColors[post.status] || 'var(--color-text-muted)'}22`, color: statusColors[post.status] || 'var(--color-text-muted)' }}>
                           {statusLabels[post.status] || post.status}
                         </span>
-                        {post.featured_image && <span class="text-[10px] text-[var(--color-text-muted)]" aria-hidden="true">🖼️</span>}
+                        {post.featured_image && <span class="text-[10px] text-[var(--color-text-muted)]" aria-hidden="true">­ƒû╝´©Å</span>}
                       </div>
                       <div class="flex items-center gap-3 text-[10px] text-[var(--color-text-muted-dark)]">
                         <span>{new Date(post.date).toLocaleDateString('pt-BR')}</span>
-                        {post.category && <span>· {post.category.name}</span>}
-                        {post.reading_time && <span>⏱️ {post.reading_time} min</span>}
-                        {post.tags.length > 0 && <span>🏷️ {post.tags.slice(0, 3).map(t => t.name).join(', ')}{post.tags.length > 3 ? '…' : ''}</span>}
+                        {post.category && <span>┬À {post.category.name}</span>}
+                        {post.reading_time && <span>ÔÅ▒´©Å {post.reading_time} min</span>}
+                        {post.tags.length > 0 && <span>­ƒÅÀ´©Å {post.tags.slice(0, 3).map(t => t.name).join(', ')}{post.tags.length > 3 ? 'ÔÇª' : ''}</span>}
                       </div>
                     </div>
                     <div class="flex items-center gap-1.5">
@@ -751,14 +751,14 @@ function PostManagementWidget() {
                     Anterior
                   </button>
                   <span class="text-sm text-[var(--color-text-muted)]">
-                    Página {page} de {totalPages}
+                    P├ígina {page} de {totalPages}
                   </span>
                   <button
                     onClick={() => fetchPosts(page + 1)}
                     disabled={page === totalPages}
                     class="px-3 py-1.5 text-sm text-[var(--color-text-secondary)] border border-[var(--color-bg-card-border)] rounded-lg hover:bg-[var(--color-bg-card-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    Próxima
+                    Pr├│xima
                   </button>
                 </div>
               )}
@@ -769,379 +769,6 @@ function PostManagementWidget() {
             </>
           )}
         </>
-      )}
-    </div>
-  )
-}
-
-function ContentCalendarWidget() {
-  const [events, setEvents] = useState<Array<{ date: string; title: string; status: string; type: 'post' | 'deadline' | 'idea' }>>([])
-  const [loading, setLoading] = useState(true)
-  const [currentMonth, setCurrentMonth] = useState(new Date())
-
-  useEffect(() => {
-    const fetchEvents = async () => {
-      setLoading(true)
-      try {
-        const res = await api.get<{ data: PostItem[] }>('/user/posts?per_page=100')
-        const postEvents = res.data.data.map(post => ({
-          date: post.date,
-          title: post.title,
-          status: post.status,
-          type: 'post' as const,
-        }))
-        setEvents(postEvents)
-      } catch {}
-      finally { setLoading(false) }
-    }
-    fetchEvents()
-  }, [])
-
-  const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate()
-  const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay()
-  const monthName = currentMonth.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
-
-  const getEventsForDay = (day: number) => {
-    const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    return events.filter(e => e.date.startsWith(dateStr))
-  }
-
-  const statusColors: Record<string, string> = {
-    published: '#22c55e',
-    draft: '#6b7280',
-    review: '#f59e0b',
-    scheduled: '#3b82f6',
-    archived: '#6b7280',
-    idea: '#8b5cf6',
-    deadline: '#ef4444',
-  }
-
-  if (loading) {
-    return (
-      <div class="glass-card p-6">
-        <div class="flex items-center justify-between mb-4">
-          <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
-            Calendário Editorial
-          </span>
-          <span class="text-2xl" aria-hidden="true">📅</span>
-        </div>
-        <div class="h-64 bg-[var(--color-bg-card-border)]/30 rounded-xl animate-pulse" />
-      </div>
-    )
-  }
-
-  return (
-    <div class="glass-card p-6">
-      <div class="flex items-center justify-between mb-4">
-        <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
-          Calendário Editorial
-        </span>
-        <div class="flex items-center gap-2">
-          <span class="text-sm font-medium text-[var(--color-text-primary)]">{monthName}</span>
-          <button onClick={() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))} class="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)]" aria-label="Mês anterior">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-          <button onClick={() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))} class="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)]" aria-label="Próximo mês">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-7 gap-1 mb-2">
-        {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(d => (
-          <div key={d} class="text-center text-[10px] font-medium text-[var(--color-text-muted)] py-1">{d}</div>
-        ))}
-      </div>
-
-      <div class="grid grid-cols-7 gap-1">
-        {[...Array(firstDay)].map((_, i) => (
-          <div key={`empty-${i}`} class="aspect-square" />
-        ))}
-        {[...Array(daysInMonth)].map((_, i) => {
-          const day = i + 1
-          const dayEvents = getEventsForDay(day)
-          const isToday = day === new Date().getDate() && currentMonth.getMonth() === new Date().getMonth() && currentMonth.getFullYear() === new Date().getFullYear()
-          return (
-            <div key={day} class="relative aspect-square min-h-[80px] p-1 rounded-xl transition-colors"
-              style={{ background: isToday ? 'color-mix(in srgb, var(--color-accent) 12%, transparent)' : 'transparent' }}>
-              <div class="text-[11px] font-medium text-[var(--color-text-primary)]">{day}</div>
-              {dayEvents.length > 0 && (
-                <div class="mt-1 space-y-1 max-h-[60px] overflow-y-auto">
-                  {dayEvents.slice(0, 3).map((ev, idx) => (
-                    <div key={idx} class="text-[9px] px-1.5 py-0.5 rounded truncate"
-                      style={{ background: `${statusColors[ev.status] || '#6b7280'}22`, color: statusColors[ev.status] || '#6b7280', border: `1px solid ${statusColors[ev.status] || '#6b7280'}44` }}>
-                      {ev.title}
-                    </div>
-                  ))}
-                  {dayEvents.length > 3 && (
-                    <div class="text-[9px] text-[var(--color-text-muted)] text-center">+{dayEvents.length - 3} mais</div>
-                  )}
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-
-      <div class="mt-4 flex flex-wrap gap-2">
-        {Object.entries({ Publicado: '#22c55e', Rascunho: '#6b7280', 'Em Revisão': '#f59e0b', Agendado: '#3b82f6', Ideia: '#8b5cf6', Prazo: '#ef4444' }).map(([label, color]) => (
-          <span key={label} class="flex items-center gap-1.5 text-[10px] text-[var(--color-text-secondary)]">
-            <span class="w-2.5 h-2.5 rounded" style={{ background: color }} />
-            {label}
-          </span>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function ContentAnalyticsWidget() {
-  const [analytics, setAnalytics] = useState<{
-    totalPosts: number
-    publishedPosts: number
-    draftPosts: number
-    totalViews: number
-    avgReadingTime: number
-    topCategories: Array<{ name: string; count: number }>
-    topTags: Array<{ name: string; count: number }>
-    postsPerMonth: Array<{ month: string; count: number }>
-  } | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const fetchAnalytics = async () => {
-      setLoading(true)
-      try {
-        const res = await api.get<{ data: PostItem[] }>('/user/posts?per_page=200')
-        const posts = res.data.data
-        const published = posts.filter(p => p.status === 'published')
-        const drafts = posts.filter(p => p.status === 'draft')
-
-        const categoryCount: Record<string, number> = {}
-        const tagCount: Record<string, number> = {}
-        const monthCount: Record<string, number> = {}
-
-        posts.forEach(p => {
-          if (p.category) categoryCount[p.category.name] = (categoryCount[p.category.name] || 0) + 1
-          p.tags.forEach(t => tagCount[t.name] = (tagCount[t.name] || 0) + 1)
-          const month = p.date.substring(0, 7)
-          monthCount[month] = (monthCount[month] || 0) + 1
-        })
-
-        setAnalytics({
-          totalPosts: posts.length,
-          publishedPosts: published.length,
-          draftPosts: drafts.length,
-          totalViews: published.reduce((sum, p) => sum + (p.views || 0), 0),
-          avgReadingTime: posts.length > 0 ? Math.round(posts.reduce((s, p) => s + (p.reading_time || 0), 0) / posts.length) : 0,
-          topCategories: Object.entries(categoryCount).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, count]) => ({ name, count })),
-          topTags: Object.entries(tagCount).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([name, count]) => ({ name, count })),
-          postsPerMonth: Object.entries(monthCount).sort().slice(-6).map(([month, count]) => ({ month, count })),
-        })
-      } catch {}
-      finally { setLoading(false) }
-    }
-    fetchAnalytics()
-  }, [])
-
-  if (loading || !analytics) {
-    return (
-      <div class="glass-card p-6">
-        <div class="flex items-center justify-between mb-4">
-          <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
-            Análise de Conteúdo
-          </span>
-          <span class="text-2xl" aria-hidden="true">📊</span>
-        </div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} class="glass-card p-4 animate-pulse">
-              <div class="h-8 w-3/4 bg-[var(--color-bg-card-border)] rounded mb-2" />
-              <div class="h-4 w-1/2 bg-[var(--color-bg-card-border)] rounded" />
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div class="glass-card p-6">
-      <div class="flex items-center justify-between mb-4">
-        <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
-          Análise de Conteúdo
-        </span>
-        <span class="text-2xl" aria-hidden="true">📊</span>
-      </div>
-
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <StatCard label="Total de Posts" value={analytics.totalPosts} icon="📄" color="var(--color-accent)" />
-        <StatCard label="Publicados" value={analytics.publishedPosts} icon="✅" color="#22c55e" />
-        <StatCard label="Rascunhos" value={analytics.draftPosts} icon="📝" color="#f59e0b" />
-        <StatCard label="Tempo Médio" value={`${analytics.avgReadingTime} min`} icon="⏱️" color="#3b82f6" />
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div class="glass-card p-4">
-          <div class="text-sm font-medium text-[var(--color-text-secondary)] mb-3">Top Categorias</div>
-          <div class="space-y-2">
-            {analytics.topCategories.map((cat, i) => (
-              <div key={cat.name} class="flex items-center justify-between">
-                <span class="text-sm text-[var(--color-text-primary)]">{cat.name}</span>
-                <div class="flex items-center gap-2">
-                  <div class="flex-1 h-2 bg-[var(--color-bg-card-border)] rounded-full overflow-hidden">
-                    <div class="h-full rounded-full bg-[var(--color-accent)] transition-all" style={{ width: `${(cat.count / analytics.topCategories[0]?.count || 1) * 100}%` }} />
-                  </div>
-                  <span class="text-[10px] font-mono text-[var(--color-text-muted)]">{cat.count}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div class="glass-card p-4">
-          <div class="text-sm font-medium text-[var(--color-text-secondary)] mb-3">Top Tags</div>
-          <div class="flex flex-wrap gap-1.5">
-            {analytics.topTags.map(tag => (
-              <span key={tag.name} class="text-[10px] px-2 py-1 rounded-full"
-                style={{ background: 'color-mix(in srgb, var(--color-accent) 14%, transparent)', color: 'var(--color-accent)' }}>
-                #{tag.name} <span class="font-mono">({tag.count})</span>
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div class="glass-card p-4">
-        <div class="text-sm font-medium text-[var(--color-text-secondary)] mb-3">Posts por Mês (últimos 6)</div>
-        <div class="flex items-end gap-2 h-32">
-          {analytics.postsPerMonth.map((m, i) => (
-            <div key={m.month} class="flex-1 flex flex-col items-center">
-              <div class="flex-1 w-full rounded-t bg-gradient-to-t from-[var(--color-accent)] to-[var(--color-accent-secondary)] transition-all"
-                style={{ height: `${(m.count / Math.max(...analytics.postsPerMonth.map(p => p.count), 1)) * 100}%` }} />
-              <span class="text-[9px] text-[var(--color-text-muted)] mt-1">{m.month}</span>
-              <span class="text-[9px] font-bold text-[var(--color-text-primary)]">{m.count}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function StatCard({ label, value, icon, color }: { label: string; value: number | string; icon: string; color: string }) {
-  return (
-    <div class="glass-card p-4 text-center group transition-all">
-      <div class="w-10 h-10 rounded-xl mx-auto mb-2 flex items-center justify-center text-xl"
-        style={{ background: `color-mix(in srgb, ${color} 12%, transparent)` }} role="img" aria-hidden="true">
-        {icon}
-      </div>
-      <div class="text-2xl font-bold text-[var(--color-text-primary)] tabular-nums">{value}</div>
-      <div class="text-xs text-[var(--color-text-muted)] mt-0.5">{label}</div>
-    </div>
-  )
-}
-
-function QuickCreateWidget() {
-  const [activeType, setActiveType] = useState<'article' | 'recipe' | 'news' | 'guide'>('article')
-  const [title, setTitle] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<string | null>(null)
-
-  const templates = {
-    article: {
-      label: 'Artigo de Blog',
-      icon: '📝',
-      prompt: 'Escreva um artigo completo em Markdown sobre: {title}. Inclua: introdução envolvente, 4-5 seções com H2, exemplos práticos, conclusão com call-to-action, e meta description no final.',
-    },
-    recipe: {
-      label: 'Receita de Café',
-      icon: '☕',
-      prompt: 'Crie uma receita detalhada em Markdown para: {title}. Inclua: ingredientes com medidas, passo a passo numerado, dicas de preparo, tempo de preparo, rendimento, e variações.',
-    },
-    news: {
-      label: 'Notícia/Curadoria',
-      icon: '📰',
-      prompt: 'Escreva uma curadoria de notícias sobre: {title}. Formato: título chamativo, resumo de 2 linhas, 3-5 pontos principais com bullet points, fonte citada, e sua análise/comentário.',
-    },
-    guide: {
-      label: 'Guia Completo',
-      icon: '📚',
-      prompt: 'Crie um guia definitivo em Markdown sobre: {title}. Estrutura: introdução (por que isso importa), pré-requisitos, 6-8 seções H2 com H3, checklist final, FAQ 5 perguntas, recursos recomendados.',
-    },
-  }
-
-  const generateWithAI = async () => {
-    if (!title.trim()) return
-    setLoading(true)
-    setResult(null)
-    const template = templates[activeType]
-    const prompt = template.prompt.replace('{title}', title)
-    try {
-      const res = await api.get<{ data: { reply: string } }>(`/ai/ask?q=${encodeURIComponent(prompt)}`)
-      setResult(res.data.reply)
-    } catch (err: any) {
-      setResult('Erro: ' + (err?.message || 'Não foi possível gerar'))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <div class="glass-card p-6">
-      <div class="flex items-center justify-between mb-4">
-        <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
-          Criação Rápida com IA
-        </span>
-        <span class="text-2xl" aria-hidden="true">⚡</span>
-      </div>
-
-      <div class="flex gap-2 mb-4 flex-wrap">
-        {Object.entries(templates).map(([key, t]) => (
-          <button
-            key={key}
-            onClick={() => setActiveType(key as any)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-              activeType === key
-                ? 'bg-[var(--color-accent)] text-[var(--color-btn-text)]'
-                : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-card-hover)] border border-[var(--color-bg-card-border)]'
-            }`}
-          >
-            {t.icon} {t.label}
-          </button>
-        ))}
-      </div>
-
-      <div class="mb-4">
-        <label class="form-label">Título / Tópico</label>
-        <input
-          type="text"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          class="form-input"
-          placeholder={templates[activeType].label === 'Artigo de Blog' ? 'Ex: Como fazer cold brew perfeito' : 'Digite o tema...'}
-        />
-      </div>
-
-      <button
-        onClick={generateWithAI}
-        disabled={loading || !title.trim()}
-        class="w-full btn-primary form-submit mb-4"
-      >
-        {loading ? (
-          <>
-            <span class="inline-block w-4 h-4 border-2 border-[var(--color-btn-text)]/30 border-t-[var(--color-btn-text)] rounded-full animate-spin" />
-            Gerando com IA...
-          </>
-        ) : (
-          `Gerar ${templates[activeType].label}`
-        )}
-      </button>
-
-      {result && (
-        <div class="prose prose-sm max-w-none text-[var(--color-text-primary)] border-t border-[var(--color-bg-card-border)] pt-4">
-          {result.split('\n').map((line, i) => <p key={i}>{line || '\u00A0'}</p>)}
-        </div>
       )}
     </div>
   )
@@ -1160,7 +787,7 @@ function DashboardContent() {
     api.get<DashboardResponse>('/user/dashboard')
       .then(d => setDash(d))
       .catch(err => {
-        setError(err?.message || 'Não foi possível carregar os dados do dashboard')
+        setError(err?.message || 'N├úo foi poss├¡vel carregar os dados do dashboard')
       })
       .finally(() => setLoading(false))
   }
@@ -1177,13 +804,13 @@ function DashboardContent() {
 
   const statCards = [
     { label: vocab.currency, value: s?.total_grains ?? 0, icon: vocab.currency_icon },
-    { label: 'Artigos Lidos', value: s?.articles_read ?? 0, icon: '📖' },
-    { label: 'Horas de Leitura', value: s?.reading_time_hours ?? 0, icon: '⏱️' },
-    { label: 'Trilhas Completas', value: s?.trails_completed ?? 0, icon: '🎯' },
-    { label: 'Conquistas', value: s?.achievements_unlocked ?? 0, icon: '🏆' },
-    { label: 'Coleções', value: s?.collections_count ?? 0, icon: '📚' },
-    { label: 'Categorias', value: s?.categories_explored ?? 0, icon: '🌍' },
-    { label: 'Dias Seguidos', value: s?.daily_streak ?? 0, icon: '🔥' },
+    { label: 'Artigos Lidos', value: s?.articles_read ?? 0, icon: '­ƒôû' },
+    { label: 'Horas de Leitura', value: s?.reading_time_hours ?? 0, icon: 'ÔÅ▒´©Å' },
+    { label: 'Trilhas Completas', value: s?.trails_completed ?? 0, icon: '­ƒÄ»' },
+    { label: 'Conquistas', value: s?.achievements_unlocked ?? 0, icon: '­ƒÅå' },
+    { label: 'Cole├º├Áes', value: s?.collections_count ?? 0, icon: '­ƒôÜ' },
+    { label: 'Categorias', value: s?.categories_explored ?? 0, icon: '­ƒîì' },
+    { label: 'Dias Seguidos', value: s?.daily_streak ?? 0, icon: '­ƒöÑ' },
   ]
 
   const maxReading = 100
@@ -1202,13 +829,13 @@ function DashboardContent() {
     : 0
 
   const quickActions = [
-    { label: 'Mapa do Conhecimento', icon: '🗺️', href: '/mapa' },
-    { label: 'Torrefação', icon: '☕', href: '/torrefacao' },
-    { label: 'Biblioteca', icon: '📚', href: '/biblioteca' },
+    { label: 'Mapa do Conhecimento', icon: '­ƒù║´©Å', href: '/mapa' },
+    { label: 'Torrefa├º├úo', icon: 'Ôÿò', href: '/torrefacao' },
+    { label: 'Biblioteca', icon: '­ƒôÜ', href: '/biblioteca' },
     { label: vocab.currency, icon: vocab.currency_icon, href: '/graos' },
-    { label: 'Conquistas', icon: '🏆', href: '/conquistas' },
-    { label: 'Missões', icon: '🎯', href: '/missoes' },
-    { label: 'Trilhas', icon: '🎓', href: '/trilhas' },
+    { label: 'Conquistas', icon: '­ƒÅå', href: '/conquistas' },
+    { label: 'Miss├Áes', icon: '­ƒÄ»', href: '/missoes' },
+    { label: 'Trilhas', icon: '­ƒÄô', href: '/trilhas' },
   ]
 
   return (
@@ -1222,12 +849,12 @@ function DashboardContent() {
           <div>
             <h1 class="text-2xl font-bold text-[var(--color-text-primary)]">{user?.name || 'Carregando...'}</h1>
             <div class="flex items-center gap-2 mt-1 flex-wrap">
-              <span class="text-sm text-[var(--color-text-secondary)]">@{user?.username || '—'}</span>
+              <span class="text-sm text-[var(--color-text-secondary)]">@{user?.username || 'ÔÇö'}</span>
               {s && s.daily_streak > 0 && (
                 <>
-                  <span class="text-[var(--color-text-muted)]">·</span>
+                  <span class="text-[var(--color-text-muted)]">┬À</span>
                   <span class="inline-flex items-center gap-1 text-xs font-medium text-amber-400">
-                    🔥 {s.daily_streak} dias seguidos
+                    ­ƒöÑ {s.daily_streak} dias seguidos
                   </span>
                 </>
               )}
@@ -1244,7 +871,7 @@ function DashboardContent() {
 
       {/* Stats Grid */}
       <div data-reveal>
-        <div class="section-label mb-3">Sua Evolução</div>
+        <div class="section-label mb-3">Sua Evolu├º├úo</div>
         {error ? (
           <div class="glass-card p-6 text-center">
             <p class="text-sm text-[var(--color-text-secondary)] mb-3">{error}</p>
@@ -1353,11 +980,11 @@ function DashboardContent() {
               <div class="grid grid-cols-2 gap-3 text-center pt-2">
                 <div>
                   <div class="text-lg font-bold text-[var(--color-text-primary)]">{s?.articles_read || 0}</div>
-                  <div class="text-[10px] text-[var(--color-text-muted)]">Artigos concluídos</div>
+                  <div class="text-[10px] text-[var(--color-text-muted)]">Artigos conclu├¡dos</div>
                 </div>
                 <div>
                   <div class="text-lg font-bold text-[var(--color-text-primary)]">{s?.trails_completed || 0}</div>
-                  <div class="text-[10px] text-[var(--color-text-muted)]">Trilhas concluídas</div>
+                  <div class="text-[10px] text-[var(--color-text-muted)]">Trilhas conclu├¡das</div>
                 </div>
               </div>
             </div>
@@ -1400,7 +1027,7 @@ function DashboardContent() {
       <div data-reveal>
         <div class="section-label mb-2">Assistente do Criador</div>
         <p class="text-sm text-[var(--color-text-muted)] mb-4">
-          Pergunte ao assistente de IA para sugestões de títulos, resumos ou dúvidas sobre café.
+          Pergunte ao assistente de IA para sugest├Áes de t├¡tulos, resumos ou d├║vidas sobre caf├®.
         </p>
         <CreatorAssistantWidget />
       </div>
@@ -1409,36 +1036,9 @@ function DashboardContent() {
       <div data-reveal>
         <div class="section-label mb-2">Meus Artigos</div>
         <p class="text-sm text-[var(--color-text-muted)] mb-4">
-          Gerencie seus artigos: crie, edite, publique e organize seu conteúdo.
+          Gerencie seus artigos: crie, edite, publique e organize seu conte├║do.
         </p>
         <PostManagementWidget />
-      </div>
-
-      {/* Content Calendar */}
-      <div data-reveal>
-        <div class="section-label mb-2">Calendário Editorial</div>
-        <p class="text-sm text-[var(--color-text-muted)] mb-4">
-          Planeje e visualize seus posts agendados e publicados.
-        </p>
-        <ContentCalendarWidget />
-      </div>
-
-      {/* Content Analytics */}
-      <div data-reveal>
-        <div class="section-label mb-2">Análise de Conteúdo</div>
-        <p class="text-sm text-[var(--color-text-muted)] mb-4">
-          Métricas de performance dos seus artigos.
-        </p>
-        <ContentAnalyticsWidget />
-      </div>
-
-      {/* Quick Content Creation */}
-      <div data-reveal>
-        <div class="section-label mb-2">Criação Rápida</div>
-        <p class="text-sm text-[var(--color-text-muted)] mb-4">
-          Atalhos para criar novo conteúdo com IA.
-        </p>
-        <QuickCreateWidget />
       </div>
     </div>
   )
@@ -1485,23 +1085,23 @@ function CreatorAssistantWidget() {
         setReply(d.data.reply)
       })
       .catch(err => {
-        setError(err?.message || 'Não foi possível conectar ao assistente de IA')
+        setError(err?.message || 'N├úo foi poss├¡vel conectar ao assistente de IA')
       })
       .finally(() => setLoading(false))
   }
 
   const aiAction = (action: string, prompt: string) => {
     if (!selectedPost) return
-    const fullPrompt = `${action}\n\nTítulo: ${selectedPost.title}\n\nConteúdo:\n${selectedPost.excerpt || 'Sem resumo'}\n\nCategoria: ${selectedPost.category?.name || 'Sem categoria'}`
+    const fullPrompt = `${action}\n\nT├¡tulo: ${selectedPost.title}\n\nConte├║do:\n${selectedPost.excerpt || 'Sem resumo'}\n\nCategoria: ${selectedPost.category?.name || 'Sem categoria'}`
     ask(fullPrompt)
   }
 
   const actionPrompts = {
-    translate: 'Traduza o artigo abaixo para inglês, mantendo o tom e a formatação em Markdown.',
+    translate: 'Traduza o artigo abaixo para ingl├¬s, mantendo o tom e a formata├º├úo em Markdown.',
     summarize: 'Crie um resumo executivo de 3-5 bullet points do artigo abaixo.',
-    seo: 'Analise o artigo abaixo e sugira: 1) Meta title otimizado (até 60 chars), 2) Meta description (até 155 chars), 3) 5 palavras-chave SEO, 4) Sugestões de headings H2/H3.',
-    improve: 'Melhore o texto abaixo: corrija gramática, torne mais fluido, adicione exemplos práticos, mantenha o tom autoral.',
-    titles: 'Sugira 5 títulos alternativos atrativos e otimizados para SEO para o artigo abaixo.',
+    seo: 'Analise o artigo abaixo e sugira: 1) Meta title otimizado (at├® 60 chars), 2) Meta description (at├® 155 chars), 3) 5 palavras-chave SEO, 4) Sugest├Áes de headings H2/H3.',
+    improve: 'Melhore o texto abaixo: corrija gram├ítica, torne mais fluido, adicione exemplos pr├íticos, mantenha o tom autoral.',
+    titles: 'Sugira 5 t├¡tulos alternativos atrativos e otimizados para SEO para o artigo abaixo.',
     outline: 'Crie um outline detalhado (H2, H3) para expandir este artigo em um guia completo.',
   }
 
@@ -1511,13 +1111,13 @@ function CreatorAssistantWidget() {
         <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
           Assistente do Criador
         </span>
-        <span class="text-2xl" aria-hidden="true">🤖</span>
+        <span class="text-2xl" aria-hidden="true">­ƒñû</span>
       </div>
 
       {!status?.available ? (
         <div class="flex items-center gap-3 text-sm text-[var(--color-text-muted)]">
-          <span>⚠️</span>
-          <span>Assistente de IA não configurado no servidor</span>
+          <span>ÔÜá´©Å</span>
+          <span>Assistente de IA n├úo configurado no servidor</span>
         </div>
       ) : (
         <>
@@ -1551,7 +1151,7 @@ function CreatorAssistantWidget() {
                   type="text"
                   value={query}
                   onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
-                  placeholder="Como preparar um bom café?"
+                  placeholder="Como preparar um bom caf├®?"
                   class="flex-1 px-3 py-2 text-sm bg-[var(--color-bg-card-border)]/20 rounded-xl border border-[var(--color-bg-card-border)] focus:outline-none focus:border-[var(--color-accent)] text-[var(--color-text-primary)]"
                   onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => { if (e.key === 'Enter') ask() }}
                   aria-label="Pergunte ao assistente de IA"
@@ -1561,7 +1161,7 @@ function CreatorAssistantWidget() {
                   disabled={loading || !query.trim()}
                   class="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-accent)]/20 hover:bg-[var(--color-accent)]/30 disabled:opacity-50 rounded-xl transition-colors border border-[var(--color-accent)]/30"
                 >
-                  {loading ? '…' : 'Enviar'}
+                  {loading ? 'ÔÇª' : 'Enviar'}
                 </button>
               </div>
 
@@ -1575,7 +1175,7 @@ function CreatorAssistantWidget() {
 
               {error && (
                 <div class="flex items-center gap-2 p-3 text-sm text-red-400 bg-red-50 dark:bg-red-950/30 rounded-xl">
-                  <span>⚠️</span>
+                  <span>ÔÜá´©Å</span>
                   <span>{error}</span>
                 </div>
               )}
@@ -1621,7 +1221,7 @@ function CreatorAssistantWidget() {
                   <div class="flex items-center gap-3 mt-1 text-[10px] text-[var(--color-text-muted)]">
                     <span>{statusLabels[selectedPost.status] || selectedPost.status}</span>
                     {selectedPost.category && <span>{selectedPost.category.name}</span>}
-                    <span>⏱️ {selectedPost.reading_time || '?'} min</span>
+                    <span>ÔÅ▒´©Å {selectedPost.reading_time || '?'} min</span>
                   </div>
                 </div>
               )}
@@ -1649,7 +1249,7 @@ function CreatorAssistantWidget() {
 
               {error && (
                 <div class="mt-4 flex items-center gap-2 p-3 text-sm text-red-400 bg-red-50 dark:bg-red-950/30 rounded-xl">
-                  <span>⚠️</span>
+                  <span>ÔÜá´©Å</span>
                   <span>{error}</span>
                 </div>
               )}
@@ -1672,7 +1272,7 @@ function CreatorAssistantWidget() {
 const statusLabels: Record<string, string> = {
   published: 'Publicado',
   draft: 'Rascunho',
-  review: 'Em Revisão',
+  review: 'Em Revis├úo',
   scheduled: 'Agendado',
   archived: 'Arquivado',
 }
