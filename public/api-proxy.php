@@ -63,7 +63,7 @@ $cacheTtls = [
     '/integrations/exchange' => 30,
     '/ai/status' => 60,
 ];
-$cacheable = ($method === 'GET') && isset($cacheTtls[$path]);
+$cacheable = ($method === 'GET') && isset($cacheTtls['/' . $path]);
 $cacheFile = $cacheable ? $cacheDir . '/' . sha1($path . '?' . $queryString) . '.json' : null;
 
 function proxy_cache_serve($cacheFile, $cacheData, $hit) {
