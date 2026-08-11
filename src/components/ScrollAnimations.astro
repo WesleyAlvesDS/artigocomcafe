@@ -1,0 +1,299 @@
+---
+---
+
+<script is:inline>
+  // Scroll-triggered animation system
+  (function() {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    
+    if (prefersReducedMotion) {
+      document.querySelectorAll('[data-scroll-reveal]').forEach(el => {
+        el.classList.add('scroll-revealed')
+      })
+      document.querySelectorAll('[data-stagger] > [data-stagger-item]').forEach(item => {
+        item.classList.add('stagger-revealed')
+      })
+      return
+    }
+
+    // Scroll reveal animations
+    const scrollObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target
+          const delay = parseInt(el.dataset.scrollDelay || '0', 10)
+          setTimeout(() => {
+            el.classList.add('scroll-revealed')
+          }, delay)
+          scrollObserver.unobserve(el)
+        }
+      })
+    }, { threshold: 0.1, rootMargin: '0px 0px -10% 0px' })
+
+    document.querySelectorAll('[data-scroll-reveal]').forEach(el => {
+      scrollObserver.observe(el)
+    })
+
+    // Stagger animations
+    const staggerObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const container = entry.target
+          const items = container.querySelectorAll('[data-stagger-item]')
+          const baseDelay = parseInt(container.dataset.staggerDelay || '80', 10)
+          const startDelay = parseInt(container.dataset.staggerStart || '0', 10)
+          
+          items.forEach((item, index) => {
+            const delay = startDelay + (index * baseDelay)
+            setTimeout(() => {
+              item.classList.add('stagger-revealed')
+            }, delay)
+          })
+          
+          staggerObserver.unobserve(container)
+        }
+      })
+    }, { threshold: 0.1, rootMargin: '0px 0px -10% 0px' })
+
+    document.querySelectorAll('[data-stagger]').forEach(el => {
+      staggerObserver.observe(el)
+    })
+
+    // Parallax elements
+    const parallaxElements = document.querySelectorAll('[data-parallax]')
+    if (parallaxElements.length) {
+      let ticking = false
+      function updateParallax() {
+        const scrollY = window.pageYOffset
+        parallaxElements.forEach(el => {
+          const speed = parseFloat(el.dataset.parallaxSpeed || '0.3')
+          const offset = parseFloat(el.dataset.parallaxOffset || '0')
+          const y = scrollY * speed + offset
+          el.style.transform = `translate3d(0, ${y}px, 0)`
+        })
+        ticking = false
+      }
+
+      function requestTick() {
+        if (!ticking) {
+          requestAnimationFrame(updateParallax)
+          ticking = true
+        }
+      }
+
+      window.addEventListener('scroll', requestTick, { passive: true })
+      window.addEventListener('resize', requestTick, { passive: true })
+      updateParallax()
+    }
+
+    // Counter animations
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target
+          const target = parseInt(el.dataset.counterTarget || '0', 10)
+          const duration = parseInt(el.dataset.counterDuration || '2000', 10)
+          const isDecimal = el.dataset.counterDecimal === 'true'
+          const decimals = parseInt(el.dataset.counterDecimals || '0', 10)
+          
+          let startTime = null
+          const startValue = 0
+          
+          function animateCounter(currentTime) {
+            if (!startTime) startTime = currentTime
+            const progress = Math.min((currentTime - startTime) / duration, 1)
+            const eased = 1 - Math.pow(1 - progress, 3)
+            const current = startValue + (target - startValue) * eased
+            
+            if (isDecimal) {
+              el.textContent = current.toFixed(decimals)
+            } else {
+              el.textContent = Math.floor(current).toLocaleString()
+            }
+            
+            if (progress < 1) {
+              requestAnimationFrame(animateCounter)
+            } else {
+              el.textContent = isDecimal ? target.toFixed(decimals) : target.toLocaleString()
+            }
+          }
+          
+          if (prefersReducedMotion) {
+            el.textContent = isDecimal ? target.toFixed(decimals) : target.toLocaleString()
+          } else {
+            requestAnimationFrame(animateCounter)
+          }
+          
+          counterObserver.unobserve(el)
+        }
+      })
+    }, { threshold: 0.5, rootMargin: '0px' })
+
+    document.querySelectorAll('[data-counter]').forEach(el => {
+      counterObserver.observe(el)
+    })
+
+    // Typewriter effect
+    const typewriterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target
+          const text = el.dataset.typewriterText || el.textContent
+          const speed = parseInt(el.dataset.typewriterSpeed || '30', 10)
+          const delay = parseInt(el.dataset.typewriterDelay || '0', 10)
+          
+          el.textContent = ''
+          el.style.borderRight = '2px solid var(--color-accent)'
+          
+          setTimeout(() => {
+            let i = 0
+            function type() {
+              if (i < text.length) {
+                el.textContent += text.charAt(i)
+                i++
+                setTimeout(type, speed + Math.random() * 50)
+              } else {
+                el.style.borderRight = 'none'
+                el.classList.add('typewriter-done')
+              }
+            }
+            type()
+          }, delay)
+          
+          typewriterObserver.unobserve(el)
+        }
+      })
+    }, { threshold: 0.5 })
+
+    document.querySelectorAll('[data-typewriter]').forEach(el => {
+      typewriterObserver.observe(el)
+    })
+  })()
+</script>
+
+<style is:global>
+  [data-scroll-reveal] {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1),
+                transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  [data-scroll-reveal].scroll-revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  [data-scroll-reveal="fade"] {
+    transform: none;
+  }
+
+  [data-scroll-reveal="fade"].scroll-revealed {
+    transform: none;
+  }
+
+  [data-scroll-reveal="slide-left"] {
+    transform: translateX(-40px);
+  }
+
+  [data-scroll-reveal="slide-left"].scroll-revealed {
+    transform: translateX(0);
+  }
+
+  [data-scroll-reveal="slide-right"] {
+    transform: translateX(40px);
+  }
+
+  [data-scroll-reveal="slide-right"].scroll-revealed {
+    transform: translateX(0);
+  }
+
+  [data-scroll-reveal="scale"] {
+    transform: scale(0.9);
+  }
+
+  [data-scroll-reveal="scale"].scroll-revealed {
+    transform: scale(1);
+  }
+
+  [data-scroll-reveal="flip"] {
+    transform: perspective(1000px) rotateY(90deg);
+    transform-origin: center;
+  }
+
+  [data-scroll-reveal="flip"].scroll-revealed {
+    transform: perspective(1000px) rotateY(0deg);
+  }
+
+  [data-stagger] > [data-stagger-item] {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+                transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  [data-stagger] > [data-stagger-item].stagger-revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  [data-stagger="fade"] > [data-stagger-item] {
+    transform: none;
+  }
+
+  [data-stagger="scale"] > [data-stagger-item] {
+    transform: scale(0.9);
+  }
+
+  [data-stagger="slide-up"] > [data-stagger-item] {
+    transform: translateY(30px);
+  }
+
+  [data-stagger="slide-down"] > [data-stagger-item] {
+    transform: translateY(-30px);
+  }
+
+  [data-parallax] {
+    will-change: transform;
+  }
+
+  [data-counter] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  [data-typewriter] {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  [data-typewriter].typewriter-done {
+    border-right: none !important;
+    animation: cursor-blink 1s infinite;
+  }
+
+  @keyframes cursor-blink {
+    0%, 50% { border-right-color: var(--color-accent); }
+    51%, 100% { border-right-color: transparent; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-scroll-reveal],
+    [data-stagger] > [data-stagger-item],
+    [data-parallax],
+    [data-counter],
+    [data-typewriter] {
+      transition: none !important;
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+
+    [data-scroll-reveal] {
+      transform: none !important;
+    }
+
+    [data-typewriter] {
+      border-right: none !important;
+    }
+  }
+</style>

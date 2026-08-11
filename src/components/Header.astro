@@ -3,44 +3,45 @@ import ThemeToggle from './ThemeToggle'
 import UserMenu from './UserMenu'
 ---
 
-<header class="header">
+<header class="header" transition:name="site-header" transition:persist="site-header" transition:animate="none">
   <div class="header-inner container">
-    <a href="/" class="header-logo" aria-label="Artigo com Café - Home">
-      <span class="header-logo-icon">&#9749;</span>
+    <a href="/" class="header-logo" aria-label="Artigo com Café - Home" transition:name="site-logo" transition:persist="site-logo">
+      <span class="header-logo-icon" aria-hidden="true">&#9749;</span>
       <span class="header-logo-text">
         Artigo com <span class="gradient-text">Café</span>
       </span>
     </a>
 
-    <nav class="header-nav" aria-label="Navegação principal">
-      <a href="/" class="nav-link">Início</a>
-      <a href="/blog" class="nav-link">Blog</a>
-      <a href="/mapa" class="nav-link">Mapa</a>
-      <a href="/jornada" class="nav-link">Jornada</a>
-      <a href="/sobre" class="nav-link">Sobre</a>
-      <a href="/contato" class="nav-link">Contato</a>
+    <nav class="header-nav" aria-label="Navegação principal" transition:name="site-nav" transition:persist="site-nav">
+      <a href="/" class="nav-link" data-page="home">Início</a>
+      <a href="/blog" class="nav-link" data-page="blog">Blog</a>
+      <a href="/receitas" class="nav-link" data-page="receitas">Receitas</a>
+      <a href="/mapa" class="nav-link" data-page="mapa">Mapa</a>
+      <a href="/jornada" class="nav-link" data-page="jornada">Jornada</a>
+      <a href="/sobre" class="nav-link" data-page="sobre">Sobre</a>
+      <a href="/contato" class="nav-link" data-page="contato">Contato</a>
     </nav>
 
     <div class="header-actions">
-      <button class="nav-icon-btn" id="search-toggle" data-testid="search-toggle" aria-label="Buscar artigos" title="Buscar (Ctrl+K)" type="button">
+      <button class="nav-icon-btn" id="search-toggle" data-testid="search-toggle" aria-label="Buscar artigos (Ctrl+K)" title="Buscar (Ctrl+K)" type="button" transition:name="search-btn" transition:persist="search-btn">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
       </button>
-      <ThemeToggle client:idle />
-      <UserMenu client:load />
-      <a href="/newsletter" class="nav-cta btn-primary">Newsletter</a>
+      <ThemeToggle client:idle transition:name="theme-toggle" transition:persist="theme-toggle" />
+      <UserMenu client:load transition:name="user-menu" transition:persist="user-menu" />
+      <a href="/newsletter" class="nav-cta btn-primary" transition:name="newsletter-cta" transition:persist="newsletter-cta">Newsletter</a>
     </div>
 
-    <button class="hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false">
+    <button class="hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false" transition:name="hamburger" transition:persist="hamburger">
       <span class="hamburger-line"></span>
       <span class="hamburger-line"></span>
       <span class="hamburger-line"></span>
     </button>
   </div>
 
-  <nav class="mobile-menu" id="mobile-menu" aria-hidden="true">
+  <nav class="mobile-menu" id="mobile-menu" aria-hidden="true" transition:name="mobile-menu" transition:persist="mobile-menu">
     <div class="mobile-menu-head">
       <button class="mobile-icon-btn" id="search-toggle-mobile" data-testid="search-toggle-mobile" aria-label="Buscar artigos" type="button">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -51,27 +52,27 @@ import UserMenu from './UserMenu'
       </button>
       <div class="mobile-theme"><ThemeToggle client:idle /></div>
     </div>
-    <a href="/" class="mobile-link">Início</a>
-    <a href="/blog" class="mobile-link">Blog</a>
-    <a href="/mapa" class="mobile-link">Mapa</a>
-    <a href="/sobre" class="mobile-link">Sobre</a>
-    <a href="/contato" class="mobile-link">Contato</a>
+    <a href="/" class="mobile-link" data-page="home">Início</a>
+    <a href="/blog" class="mobile-link" data-page="blog">Blog</a>
+    <a href="/receitas" class="mobile-link" data-page="receitas">🍳 Receitas</a>
+    <a href="/mapa" class="mobile-link" data-page="mapa">Mapa</a>
+    <a href="/sobre" class="mobile-link" data-page="sobre">Sobre</a>
+    <a href="/contato" class="mobile-link" data-page="contato">Contato</a>
     <a href="/newsletter" class="mobile-link btn-primary btn-block">Newsletter</a>
     <span class="mobile-section-label">Sua Jornada</span>
-    <a href="/jornada" class="mobile-link">📊 Jornada</a>
-    <a href="/missoes" class="mobile-link">🎯 Missões</a>
-    <a href="/trilhas" class="mobile-link">🎓 Trilhas</a>
-    <a href="/conquistas" class="mobile-link">🏆 Conquistas</a>
+    <a href="/jornada" class="mobile-link" data-page="jornada">📊 Jornada</a>
+    <a href="/missoes" class="mobile-link" data-page="missoes">🎯 Missões</a>
+    <a href="/trilhas" class="mobile-link" data-page="trilhas">🎓 Trilhas</a>
+    <a href="/conquistas" class="mobile-link" data-page="conquistas">🏆 Conquistas</a>
     <span class="mobile-section-label">Personalizado</span>
-    <a href="/graos" class="mobile-link">🫘 Grãos</a>
-    <a href="/torrefacao" class="mobile-link">☕ Torrefação</a>
-    <a href="/biblioteca" class="mobile-link">📚 Biblioteca</a>
-    <a href="/perfil" class="mobile-link">👤 Perfil</a>
+    <a href="/graos" class="mobile-link" data-page="graos">🫘 Grãos</a>
+    <a href="/torrefacao" class="mobile-link" data-page="torrefacao">☕ Torrefação</a>
+    <a href="/biblioteca" class="mobile-link" data-page="biblioteca">📚 Biblioteca</a>
+    <a href="/perfil" class="mobile-link" data-page="perfil">👤 Perfil</a>
   </nav>
 </header>
 
 <style>
-  /* Updated styles using the new design tokens */
   .header {
     position: fixed;
     top: 0;
@@ -83,17 +84,18 @@ import UserMenu from './UserMenu'
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--color-glass-border);
     border-radius: var(--radius-card);
-    margin: 1rem; /* Add some margin to make it float */
-    transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+    margin: 1rem;
+    transition: background var(--transition), border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+    will-change: transform, box-shadow, background;
+    contain: layout style paint;
   }
 
-  /* When scrolled, make it more solid */
   .header.scrolled {
     background: var(--color-glass-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border: 1px solid var(--color-glass-border);
-    box-shadow: var(--shadow-card);
+    box-shadow: var(--shadow-card), 0 0 0 1px rgba(255,255,255,0.03);
   }
 
   .header-inner {
@@ -114,6 +116,11 @@ import UserMenu from './UserMenu'
     font-weight: 800;
     font-size: 1.15rem;
     letter-spacing: -0.01em;
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .header-logo:hover {
+    transform: translateY(-1px);
   }
 
   .header-logo-icon {
@@ -127,15 +134,16 @@ import UserMenu from './UserMenu'
     background: linear-gradient(135deg, var(--gradient-from), var(--gradient-to));
     color: var(--color-btn-text);
     box-shadow: 0 0 18px color-mix(in srgb, var(--color-accent) 40%, transparent);
-    transition: transform var(--transition);
+    transition: transform var(--transition), box-shadow var(--transition);
   }
 
   .header-logo:hover .header-logo-icon {
     transform: rotate(-8deg) scale(1.06);
+    box-shadow: 0 0 28px color-mix(in srgb, var(--color-accent) 55%, transparent);
   }
 
   .header-logo-text {
-    font-family: var(--font-sans);
+    font-family: var(--font-serif);
   }
 
   .header-nav {
@@ -161,6 +169,7 @@ import UserMenu from './UserMenu'
     transition: color var(--transition), background var(--transition);
     border-radius: var(--radius-button);
     white-space: nowrap;
+    overflow: hidden;
   }
 
   .nav-link::before {
@@ -268,11 +277,6 @@ import UserMenu from './UserMenu'
     background: var(--color-bg-card-hover);
   }
 
-  .mobile-theme {
-    display: flex;
-    align-items: center;
-  }
-
   .hamburger {
     display: none;
     flex-direction: column;
@@ -290,6 +294,7 @@ import UserMenu from './UserMenu'
     background: var(--color-text-primary);
     border-radius: 2px;
     transition: all var(--transition);
+    transform-origin: center;
   }
 
   .hamburger.active .hamburger-line:nth-child(1) {
@@ -314,7 +319,7 @@ import UserMenu from './UserMenu'
     flex-direction: column;
     padding: 1.5rem;
     padding-top: 5.25rem;
-    background: color-mix(in srgb, var(--color-bg-primary) 96%, transparent);
+    background: color-mix(in srgb, var(--color-bg-primary) 97%, transparent);
     backdrop-filter: blur(26px);
     -webkit-backdrop-filter: blur(26px);
     opacity: 0;
@@ -333,8 +338,6 @@ import UserMenu from './UserMenu'
     transform: translateY(0);
   }
 
-  /* Cada item recebe um índice via --i no JS, garantindo o stagger para TODOS
-     os itens (links, seções, cabeçalho) — corrige links 13+ que ficavam invisíveis. */
   .mobile-menu > * {
     opacity: 0;
     transform: translateY(14px);
@@ -355,7 +358,7 @@ import UserMenu from './UserMenu'
     font-size: 1rem;
     font-weight: 500;
     border-radius: 12px;
-    transition: background var(--transition), color var(--transition), padding var(--transition);
+    transition: background var(--transition), color var(--transition), padding var(--transition), transform var(--transition);
     display: block;
     width: 100%;
     text-align: left;
@@ -365,6 +368,12 @@ import UserMenu from './UserMenu'
     background: color-mix(in srgb, var(--color-bg-card) 80%, transparent);
     color: var(--color-accent);
     padding-left: 1.35rem;
+    transform: translateX(4px);
+  }
+
+  .mobile-link.active {
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    color: var(--color-accent);
   }
 
   .mobile-section-label {
@@ -377,7 +386,6 @@ import UserMenu from './UserMenu'
     color: var(--color-accent);
   }
 
-  /* Responsive */
   @media (max-width: 1000px) {
     .header-inner { gap: 0.5rem; }
     .nav-link { padding: 0.5rem 0.65rem; font-size: 0.82rem; }
@@ -385,26 +393,38 @@ import UserMenu from './UserMenu'
   }
 
   @media (max-width: 768px) {
-    .header-nav {
-      display: none;
-    }
-    .hamburger {
-      display: flex;
-    }
-    .header-inner {
-      grid-template-columns: auto 1fr auto;
-    }
+    .header-nav { display: none; }
+    .hamburger { display: flex; }
+    .header-inner { grid-template-columns: auto 1fr auto; }
+    .header { margin: 0.5rem; border-radius: var(--radius-card); }
   }
 
   @media (min-width: 769px) {
-    .mobile-menu {
-      display: none !important;
+    .mobile-menu { display: none !important; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .header,
+    .nav-link,
+    .nav-link::before,
+    .nav-link::after,
+    .hamburger-line,
+    .mobile-menu,
+    .mobile-menu > *,
+    .mobile-link,
+    .header-logo-icon,
+    .nav-icon-btn {
+      transition: none !important;
+      animation: none !important;
+    }
+    .mobile-menu[aria-hidden="false"] > * {
+      opacity: 1 !important;
+      transform: none !important;
     }
   }
 </style>
 
 <script>
-  // Same script as before, but we'll keep it unchanged for now.
   const hamburger = document.getElementById('hamburger')
   const mobileMenu = document.getElementById('mobile-menu')
 
@@ -426,14 +446,9 @@ import UserMenu from './UserMenu'
     hamburger.addEventListener('click', (e) => {
       e.stopPropagation()
       const isOpen = hamburger.classList.contains('active')
-      if (isOpen) {
-        closeMenu()
-      } else {
-        openMenu()
-      }
+      if (isOpen) { closeMenu() } else { openMenu() }
     })
 
-    // Close when clicking outside
     document.addEventListener('click', (e) => {
       if (hamburger.classList.contains('active')) {
         const target = e.target
@@ -443,30 +458,39 @@ import UserMenu from './UserMenu'
       }
     })
 
-    // Close on Escape key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && hamburger.classList.contains('active')) {
         closeMenu()
       }
     })
 
-    // Close when link is clicked
     mobileMenu.querySelectorAll('.mobile-link').forEach(link => {
-      link.addEventListener('click', () => {
-        closeMenu()
-      })
+      link.addEventListener('click', () => { closeMenu() })
     })
 
-    // Stagger index for every direct child so the entrance animation covers all items
     Array.prototype.forEach.call(mobileMenu.children, (el, i) => {
       el.style.setProperty('--i', String(i))
     })
 
-    // Re-enable scroll on page transition
     document.addEventListener('astro:before-swap', closeMenu)
+    document.addEventListener('astro:after-swap', () => {
+      const path = window.location.pathname
+      const links = document.querySelectorAll('.header-nav .nav-link, .mobile-menu .mobile-link')
+      function match(href) {
+        if (path === '/' && href === '/') return true
+        if (path === href) return true
+        if (href !== '/' && path.indexOf(href + '/') === 0) return true
+        if (href === '/blog' && path.indexOf('/blog/') === 0) return true
+        return false
+      }
+      links.forEach(function (a) {
+        a.classList.remove('active')
+        var href = a.getAttribute('href')
+        if (href && match(href)) a.classList.add('active')
+      })
+    })
   }
 
-  // Header scroll effect
   let lastScrollY = window.pageYOffset;
   let ticking = false;
 
@@ -490,9 +514,8 @@ import UserMenu from './UserMenu'
   window.addEventListener('scroll', () => {
     lastScrollY = window.pageYOffset;
     requestTick();
-  });
+  }, { passive: true });
 
-  // Highlight the nav link matching the current page
   (function () {
     var path = window.location.pathname
     var links = document.querySelectorAll('.header-nav .nav-link, .mobile-menu .mobile-link')
@@ -510,7 +533,6 @@ import UserMenu from './UserMenu'
     })
   })()
 
-  // Open global search modal (SearchModal listens for 'search:open')
   const searchToggle = document.getElementById('search-toggle')
   const searchToggleMobile = document.getElementById('search-toggle-mobile')
 
@@ -528,4 +550,11 @@ import UserMenu from './UserMenu'
 
   searchToggle?.addEventListener('click', openSearch)
   searchToggleMobile?.addEventListener('click', openSearch)
+
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault()
+      openSearch()
+    }
+  })
 </script>

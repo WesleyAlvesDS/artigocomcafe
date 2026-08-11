@@ -6,6 +6,9 @@ import ArticleCard from '../../components/ArticleCard.astro'
 import ArticleActions from '../../components/ArticleActions'
 import ArticleToc from '../../components/ArticleToc'
 import { ToastProvider } from '../../components/Toast'
+import ScrollAnimations from '../../components/ScrollAnimations.astro'
+import SmartSidebar from '../../components/SmartSidebar.astro'
+import LazyRelated from '../../components/LazyRelated.astro'
 import { formatDate } from '../../lib/utils'
 import { getPost, getAllSlugs } from '../../lib/laravel'
 import type { BlogPost } from '../../lib/types'
@@ -107,6 +110,7 @@ if (post) {
       { name: 'Blog', slug: '/blog/' },
       { name: post!.title, slug: `/blog/${post!.slug}/` }
     ]}
+    transitionName="article-page"
   >
     <script type="application/ld+json" set:html={JSON.stringify({
       "@context": "https://schema.org",
@@ -125,27 +129,27 @@ if (post) {
       }
     })} />
 
-    <article class="article-page">
-      <div class="article-header-section">
+    <article class="article-page" transition:name="article-content" transition:animate="fade">
+      <div class="article-header-section" transition:name="article-header-bg" transition:animate="none">
         <div class="article-header-bg">
           <div class="article-header-sphere a-hs-1"></div>
           <div class="article-header-sphere a-hs-2"></div>
         </div>
         <div class="container">
-          <div class="article-header" data-reveal>
+          <div class="article-header" data-scroll-reveal="slide-up" transition:name="article-header-text">
             <div class="article-meta">
               {post!.categories.length > 0 && (
-                <a href={`/blog?categoria=${post!.categories[0].slug}`} class="article-category">
+                <a href={`/blog?categoria=${post!.categories[0].slug}`} class="article-category" transition:name={`article-category-${post!.slug}`} transition:animate="slide">
                   {post!.categories[0].name}
                 </a>
               )}
               <span class="article-date">{formatDate(post!.date)}</span>
               <span class="article-reading">☕ {post!.readingTime} min de leitura</span>
             </div>
-            <h1 class="article-title">{post!.title}</h1>
+            <h1 class="article-title" transition:name={`article-title-${post!.slug}`} transition:animate="fade">{post!.title}</h1>
             <p class="article-excerpt-header">{post!.excerpt}</p>
             {post!.tags.length > 0 && (
-              <div class="article-tags">
+              <div class="article-tags" transition:name={`article-tags-${post!.slug}`} transition:animate="slide">
                 {post!.tags.map(tag => (
                   <a href={`/blog?tag=${tag.slug}`} class="tag">#{tag.name}</a>
                 ))}
@@ -156,7 +160,7 @@ if (post) {
       </div>
 
       {post!.featuredImage && (
-        <div class="article-cover" data-reveal>
+        <div class="article-cover" data-scroll-reveal="fade" transition:name={`article-cover-${post!.slug}`} transition:animate="morph">
           <div class="container">
             <div class="cover-frame">
               <img
@@ -168,19 +172,20 @@ if (post) {
                 decoding="async"
               />
               <div class="cover-shine"></div>
+              <div class="cover-gradient"></div>
             </div>
           </div>
         </div>
       )}
 
-      <div class="article-content-section">
+      <div class="article-content-section" transition:name="article-body" transition:animate="fade">
         <div class="container">
           <div class="article-layout">
             <div class="article-main">
               <div class="article-content prose" set:html={post!.content.replace(/<h1([^>]*)>/gi, '<h2$1>').replace(/<\/h1>/gi, '</h2>')} />
 
               {/* Author box */}
-              <div class="article-author" data-reveal>
+              <div class="article-author" data-scroll-reveal="fade">
                 <div class="author-avatar">&#9749;</div>
                 <div class="author-info">
                   <span class="author-label">Escrito por</span>
@@ -195,13 +200,13 @@ if (post) {
               {/* Prev / Next navigation */}
               <nav class="article-nav" aria-label="Navegação entre artigos">
                 {prev ? (
-                  <a href={`/blog/${prev.slug}/`} class="article-nav-card prev" data-reveal>
+                  <a href={`/blog/${prev.slug}/`} class="article-nav-card prev" data-scroll-reveal="slide-left">
                     <span class="article-nav-label">← Anterior</span>
                     <span class="article-nav-title">{prev.title}</span>
                   </a>
                 ) : <div />}
                 {next ? (
-                  <a href={`/blog/${next.slug}/`} class="article-nav-card next" data-reveal>
+                  <a href={`/blog/${next.slug}/`} class="article-nav-card next" data-scroll-reveal="slide-right">
                     <span class="article-nav-label">Próximo →</span>
                     <span class="article-nav-title">{next.title}</span>
                   </a>
@@ -209,59 +214,21 @@ if (post) {
               </nav>
             </div>
 
-            <aside class="article-sidebar">
-              {/* Actions */}
-              <div class="sidebar-card glass-card" data-reveal>
-                <h3 class="sidebar-title">Ações</h3>
-                <ArticleActions articleId={post!.id} client:load />
-              </div>
-
-              {/* Table of contents */}
-              {tocHeadings.length > 0 && (
-                <div class="sidebar-card glass-card" data-reveal>
-                  <h3 class="sidebar-title">Neste artigo</h3>
-                  <ArticleToc client:load />
-                </div>
-              )}
-
-              {post!.categories.length > 0 && (
-                <div class="sidebar-card glass-card" data-reveal>
-                  <h3 class="sidebar-title">Categorias</h3>
-                  <div class="sidebar-tags">
-                    {post!.categories.map(cat => (
-                      <a href={`/blog?categoria=${cat.slug}`} class="sidebar-tag">{cat.name}</a>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {post!.tags.length > 0 && (
-                <div class="sidebar-card glass-card" data-reveal>
-                  <h3 class="sidebar-title">Tags</h3>
-                  <div class="sidebar-tags">
-                    {post!.tags.map(tag => (
-                      <span class="sidebar-tag">{tag.name}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <div class="sidebar-card glass-card" data-reveal>
-                <h3 class="sidebar-title">Compartilhar</h3>
-                <div class="share-links">
-                  <a
-                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post!.title)}&url=${encodeURIComponent(`https://artigocomcafe.com/blog/${post!.slug}`)}`}
-                    target="_blank"
-                    rel="noopener"
-                    class="share-link"
-                    aria-label="Compartilhar no Twitter"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                  </a>
-                  <a
-                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://artigocomcafe.com/blog/${post!.slug}`)}`}
-                    target="_blank"
-                    rel="noopener"
-                    class="share-link"
-                    aria-label="Compartilhar no Facebook"
+            <aside class="article-sidebar smart-sidebar">
+              <SmartSidebar
+                client:load
+                articleTitle={post!.title}
+                articleUrl={`https://artigocomcafe.com/blog/${post!.slug}`}
+                tocHeadings={tocHeadings}
+                categories={post!.categories}
+                tags={post!.tags}
+                readingTime={post!.readingTime}
+              />
+            </aside>
+          </div>
+        </div>
+      </div>
+    </article>
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                   </a>
@@ -293,78 +260,31 @@ if (post) {
       </div>
     </article>
 
-    {/* Related Articles */}
-    {related.length > 0 && (
-      <section class="section" data-reveal>
-        <div class="container">
-          <div class="section-header">
-            <span class="section-label">Continue Lendo</span>
-            <h2 class="section-title">Artigos Relacionados</h2>
-          </div>
-          <div class="articles-grid">
-            {related.slice(0, 4).map((r, i) => (
-              <ArticleCard post={r} revealDelay={`delay-${(i % 4) + 1}`} />
-            ))}
+    {/* Related Articles - Lazy Loaded */}
+    <section class="section" data-scroll-reveal="fade">
+      <div class="container">
+        <div class="section-header" data-scroll-reveal="slide-up">
+          <span class="section-label">Continue Lendo</span>
+          <h2 class="section-title">Artigos Relacionados</h2>
+        </div>
+        <div class="articles-grid" data-lazy-related>
+          <div class="related-skeleton">
+            <div class="related-skeleton-item"></div>
+            <div class="related-skeleton-item"></div>
+            <div class="related-skeleton-item"></div>
+            <div class="related-skeleton-item"></div>
           </div>
         </div>
-      </section>
-    )}
+      </div>
+    </section>
 
-    {/* Back to top */}
-    <button id="back-to-top" class="back-to-top" aria-label="Voltar ao topo">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="12" y1="19" x2="12" y2="5" />
-        <polyline points="5 12 12 5 19 12" />
-      </svg>
-    </button>
-
-    {/* Effective CPM Network ad -- placed below the fold, away from all
-        navigation links/buttons per AdSense multi-network policy.
-        Visible only after user scrolls past related articles. */}
-    <div class="ecpm-ad-wrapper" data-adsafe="true">
-      <div class="ecpm-ad-label" aria-hidden="true">Conteúdo patrocinado</div>
-      <script async data-cfasync="false" src="https://pl30726903.effectivecpmnetwork.com/b286da2e2fe2bfd4ecebf03e8a877de9/invoke.js"></script>
-      <div id="container-b286da2e2fe2bfd4ecebf03e8a877de9"></div>
-    </div>
+    <ScrollAnimations />
+    <LazyRelated client:load />
 
     <ToastProvider>
       <ReadingTracker articleId={post!.id} articleTitle={post!.title} client:load />
     </ToastProvider>
     <ReaderAssistant client:visible />
-
-    <script>
-      const copyBtn = document.getElementById('copy-link')
-      if (copyBtn) {
-        copyBtn.addEventListener('click', async () => {
-          const url = copyBtn.getAttribute('data-url')
-          if (url) {
-            try {
-              await navigator.clipboard.writeText(url)
-              const original = copyBtn.innerHTML
-              copyBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
-              copyBtn.style.color = 'var(--color-accent)'
-              setTimeout(() => { copyBtn.innerHTML = original; copyBtn.style.color = '' }, 2000)
-            } catch {}
-          }
-        })
-      }
-
-      const backToTop = document.getElementById('back-to-top')
-      if (backToTop) {
-        const onScroll = () => {
-          if (window.scrollY > 600) {
-            backToTop.classList.add('visible')
-          } else {
-            backToTop.classList.remove('visible')
-          }
-        }
-        window.addEventListener('scroll', onScroll, { passive: true })
-        onScroll()
-        backToTop.addEventListener('click', () => {
-          window.scrollTo({ top: 0, behavior: 'smooth' })
-        })
-      }
-    </script>
   </Base>
 )}
 
@@ -502,28 +422,49 @@ if (post) {
     position: relative;
     border-radius: var(--radius-card-lg);
     overflow: hidden;
-    box-shadow: var(--shadow-card);
+    box-shadow: var(--shadow-card), 0 0 0 1px rgba(255,255,255,0.02);
     border: 1px solid var(--color-bg-card-border);
+    background: var(--color-bg-secondary);
   }
 
   .cover-image {
     width: 100%;
-    height: clamp(260px, 40vw, 480px);
+    height: clamp(280px, 45vw, 520px);
     object-fit: cover;
     display: block;
-    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), filter 0.6s ease;
+    will-change: transform, filter;
   }
 
   .cover-frame:hover .cover-image {
-    transform: scale(1.02);
+    transform: scale(1.03);
+    filter: brightness(0.95) saturate(1.1);
+  }
+
+  .cover-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      transparent 40%,
+      rgba(var(--color-bg-primary-rgb, 10, 8, 5), 0.3) 65%,
+      rgba(var(--color-bg-primary-rgb, 10, 8, 5), 0.85) 100%
+    );
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .cover-frame:hover .cover-gradient {
+    opacity: 1;
   }
 
   .cover-shine {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, transparent 40%, color-mix(in srgb, white 10%, transparent) 50%, transparent 60%);
+    background: linear-gradient(135deg, transparent 40%, color-mix(in srgb, white 8%, transparent) 50%, transparent 60%);
     background-size: 200% 200%;
-    animation: gradient-shift 10s ease infinite;
+    animation: gradient-shift 12s ease infinite;
     pointer-events: none;
   }
 

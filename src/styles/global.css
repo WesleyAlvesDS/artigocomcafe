@@ -24,6 +24,8 @@
   --color-accent-secondary-rgb: 139, 90, 43;
   --color-accent-secondary-dark-rgb: 111, 68, 32;
 
+  --color-bg-primary-rgb: 10, 8, 5;
+
   --gradient-from: #d4a373;
   --gradient-to: #8b5a2b;
 
@@ -1046,4 +1048,40 @@ a, button { -webkit-tap-highlight-color: transparent; }
   }
   .app-aurora::before { transform: none; }
   .app-aurora::after { transform: none; }
+}
+
+/* ===== Dashboard: navegação por seções ===== */
+.dash-section:not([hidden]) {
+  animation: dash-section-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes dash-section-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dash-nav-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-bg-card-border) transparent;
+}
+.dash-nav-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+.dash-nav-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-bg-card-border);
+  border-radius: 4px;
+}
+.dash-nav-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-section:not([hidden]) {
+    animation: none;
+  }
 }

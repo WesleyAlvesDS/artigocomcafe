@@ -1,0 +1,211 @@
+---
+---
+
+<style is:global>
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+
+  @keyframes morph-in {
+    0% {
+      opacity: 0;
+      transform: scale(0.92) translateY(20px);
+      border-radius: 24px;
+    }
+    50% {
+      opacity: 0.6;
+      transform: scale(1.02) translateY(-4px);
+      border-radius: 16px;
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      border-radius: var(--radius-card, 14px);
+    }
+  }
+
+  @keyframes morph-out {
+    0% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      border-radius: var(--radius-card, 14px);
+    }
+    50% {
+      opacity: 0.6;
+      transform: scale(1.02) translateY(-4px);
+      border-radius: 16px;
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.92) translateY(20px);
+      border-radius: 24px;
+    }
+  }
+
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.9) translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  @keyframes scale-out {
+    from {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.9) translateY(16px);
+    }
+  }
+
+  @keyframes hero-slide-up-in {
+    0% {
+      opacity: 0;
+      transform: translateY(60px) scale(0.98);
+      filter: blur(8px);
+    }
+    60% {
+      opacity: 0.8;
+      transform: translateY(-8px) scale(1.01);
+      filter: blur(2px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
+  }
+
+  @keyframes hero-slide-up-out {
+    0% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
+    40% {
+      opacity: 0.5;
+      transform: translateY(-20px) scale(0.99);
+      filter: blur(4px);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-60px) scale(0.98);
+      filter: blur(8px);
+    }
+  }
+
+  @keyframes card-stagger-in {
+    from {
+      opacity: 0;
+      transform: translateY(30px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes card-stagger-out {
+    from {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-20px) scale(0.95);
+    }
+  }
+
+  @keyframes page-slide-right-in {
+    from {
+      opacity: 0;
+      transform: translateX(40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes page-slide-left-in {
+    from {
+      opacity: 0;
+      transform: translateX(-40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes page-slide-left-out {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(-40px);
+    }
+  }
+
+  @keyframes page-slide-right-out {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(40px);
+    }
+  }
+
+  @keyframes shimmer-sweep {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  @keyframes float-gentle {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-12px) rotate(1deg); }
+  }
+
+  @keyframes pulse-ring {
+    0% { transform: scale(1); opacity: 0.5; }
+    100% { transform: scale(2.5); opacity: 0; }
+  }
+
+  @keyframes gradient-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  @keyframes text-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(1.2em);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes line-draw {
+    from { stroke-dashoffset: 100; }
+    to { stroke-dashoffset: 0; }
+  }
+</style>

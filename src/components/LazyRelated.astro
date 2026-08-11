@@ -1,0 +1,72 @@
+---
+import ArticleCard from './ArticleCard.astro'
+import RecipeCard from './RecipeCard.astro'
+---
+
+<script>
+  export function initLazyRelated(selector = '[data-lazy-related]') {
+    const containers = document.querySelectorAll(selector);
+    if (!containers.length) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const container = entry.target;
+          const loaded = container.dataset.loaded;
+          if (loaded) return;
+
+          container.dataset.loaded = 'true';
+          const skeleton = container.querySelector('.related-skeleton');
+          if (skeleton) skeleton.remove();
+
+          // Trigger custom event for content loading
+          container.dispatchEvent(new CustomEvent('lazy-related:load', {
+            detail: { container }
+          }));
+
+          observer.unobserve(container);
+        }
+      });
+    }, {
+      rootMargin: '200px 0px',
+      threshold: 0.01
+    });
+
+    containers.forEach(el => observer.observe(el));
+  }
+</script>
+
+<style is:global>
+  .related-skeleton {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .related-skeleton-item {
+    border-radius: var(--radius-card);
+    background: linear-gradient(
+      90deg,
+      var(--color-bg-card) 25%,
+      var(--color-bg-card-hover) 50%,
+      var(--color-bg-card) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    min-height: 320px;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  .lazy-related-loaded {
+    animation: fade-in-up 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>

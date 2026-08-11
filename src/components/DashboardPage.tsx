@@ -5,6 +5,7 @@ import { useAuth } from '../lib/auth'
 import { api } from '../lib/api'
 import { getCurrentVocabulary } from '../lib/themes'
 import { getLocationPref, saveLocationPref, type LocationPref } from '../lib/consent'
+import { saveDraft, readDraft, clearDraft, emitDraftChange, type PostFormData } from '../lib/draft'
 
 interface EvolutionData {
   total_grains: number
@@ -120,6 +121,32 @@ const statusColors: Record<string, string> = {
   archived: '#6b7280',
 }
 
+const SECTIONS = [
+  { id: 'overview', label: 'Visão Geral', icon: '📊' },
+  { id: 'context', label: 'Contexto do Dia', icon: '🌤️' },
+  { id: 'posts', label: 'Meus Artigos', icon: '📝' },
+  { id: 'assistant', label: 'Assistente IA', icon: '🤖' },
+] as const
+
+type SectionId = (typeof SECTIONS)[number]['id']
+
+function currentSection(): SectionId {
+  if (typeof window !== 'undefined') {
+    const h = window.location.hash.replace('#', '')
+    if (SECTIONS.some(s => s.id === h)) return h as SectionId
+  }
+  return 'overview'
+}
+
+const emptyFormData = (): PostFormData => ({
+  title: '',
+  excerpt: '',
+  content: '',
+  status: 'draft',
+  category: null,
+  tags_input: '',
+})
+
 function StatSkeleton() {
   return (
     <div class="glass-card p-5 animate-pulse">
@@ -226,7 +253,7 @@ function WeatherWidget() {
   }, [])
 
   return (
-    <div class="glass-card p-6 transition-all hover:shadow-glow">
+    <div class="glass-card p-6 transition-all hover:shadow-glow h-full">
       <div class="flex items-center justify-between mb-4">
         <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
           Clima do Café
@@ -349,7 +376,7 @@ function ExchangeWidget() {
   }, [])
 
   return (
-    <div class="glass-card p-6 transition-all hover:shadow-glow">
+    <div class="glass-card p-6 transition-all hover:shadow-glow h-full">
       <div class="flex items-center justify-between mb-4">
         <div>
           <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
@@ -454,7 +481,7 @@ function HeadlinesWidget() {
   }, [])
 
   return (
-    <div class="glass-card p-6 transition-all hover:shadow-glow">
+    <div class="glass-card p-6 transition-all hover:shadow-glow h-full">
       <div class="flex items-center justify-between mb-4">
         <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
           Manchetes do Dia
@@ -519,14 +546,13 @@ function PostManagementWidget() {
   const [totalPages, setTotalPages] = useState(1)
   const [showCreate, setShowCreate] = useState(false)
   const [editingPost, setEditingPost] = useState<PostItem | null>(null)
-  const [formData, setFormData] = useState<Partial<PostItem> & { content: string; tags_input: string }>({
-    title: '',
-    excerpt: '',
-    content: '',
-    status: 'draft',
-    category: null,
-    tags_input: '',
-  })
+  const [formData, setFormData] = useState<PostFormData>(emptyFormData())
+  const [draft, setDraft] = useState<import('../lib/draft').DraftData | null>(null)
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const composing = showCreate || !!editingPost
 
   const fetchPosts = async (p = 1) => {
     setLoading(true)
@@ -545,6 +571,43 @@ function PostManagementWidget() {
 
   useEffect(() => { fetchPosts() }, [])
 
+  useEffect(() => {
+    const sync = () => setDraft(readDraft())
+    sync()
+    window.addEventListener('dash-draft-change', sync)
+    return () => window.removeEventListener('dash-draft-change', sync)
+  }, [])
+
+  useEffect(() => {
+    if (!composing) return
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    setSaveState('saving')
+    saveTimer.current = setTimeout(() => {
+      saveDraft({
+        mode: editingPost ? 'edit' : 'create',
+        postId: editingPost?.id,
+        data: formData,
+        saved_at: new Date().toISOString(),
+      })
+      setLastSaved(new Date())
+      setSaveState('saved')
+      emitDraftChange()
+    }, 400)
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current)
+    }
+  }, [formData, composing, editingPost])
+
+  const resetComposer = () => {
+    clearDraft()
+    emitDraftChange()
+    setShowCreate(false)
+    setEditingPost(null)
+    setFormData(emptyFormData())
+    setSaveState('idle')
+    setLastSaved(null)
+  }
+
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -553,9 +616,8 @@ function PostManagementWidget() {
         ...formData,
         tags: formData.tags_input.split(',').map(t => t.trim()).filter(Boolean),
       })
-      setShowCreate(false)
-      setFormData({ title: '', excerpt: '', content: '', status: 'draft', category: null, tags_input: '' })
-      fetchPosts(page)
+      resetComposer()
+      fetchPosts(1)
     } catch (err: any) {
       setError(err?.message || 'Erro ao criar post')
     }
@@ -570,8 +632,7 @@ function PostManagementWidget() {
         ...formData,
         tags: formData.tags_input.split(',').map(t => t.trim()).filter(Boolean),
       })
-      setEditingPost(null)
-      setFormData({ title: '', excerpt: '', content: '', status: 'draft', category: null, tags_input: '' })
+      resetComposer()
       fetchPosts(page)
     } catch (err: any) {
       setError(err?.message || 'Erro ao atualizar post')
@@ -603,9 +664,30 @@ function PostManagementWidget() {
 
   const startCreate = () => {
     setEditingPost(null)
-    setFormData({ title: '', excerpt: '', content: '', status: 'draft', category: null, tags_input: '' })
+    setFormData(emptyFormData())
     setShowCreate(true)
   }
+
+  const restoreDraft = () => {
+    if (!draft) return
+    setFormData(draft.data)
+    const editPost = draft.mode === 'edit' && draft.postId ? posts.find(p => p.id === draft.postId) : undefined
+    if (editPost) {
+      setEditingPost(editPost)
+      setShowCreate(false)
+    } else {
+      setEditingPost(null)
+      setShowCreate(true)
+    }
+  }
+
+  const discardDraft = () => {
+    clearDraft()
+    emitDraftChange()
+  }
+
+  const fmtTime = (iso: string) =>
+    new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 
   return (
     <div class="glass-card p-6">
@@ -622,7 +704,35 @@ function PostManagementWidget() {
         </div>
       )}
 
-      {showCreate || editingPost ? (
+      {draft && !composing && (
+        <div class="mb-4 p-3 rounded-xl border border-amber-500/30 bg-amber-500/8 flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
+          <span class="flex-1 min-w-0">
+            <span class="font-medium text-[var(--color-text-primary)]">✍️ Rascunho não salvo</span>
+            <span class="text-[var(--color-text-muted)]">
+              {' "'}<span class="text-[var(--color-text-secondary)]">{draft.data.title || 'Sem título'}</span>{'" · '}
+              {draft.mode === 'edit' ? 'edição' : 'novo artigo'} · salvo às {fmtTime(draft.saved_at)}
+            </span>
+          </span>
+          <span class="flex gap-2 flex-shrink-0">
+            <button
+              type="button"
+              onClick={restoreDraft}
+              class="px-3 py-1.5 text-xs font-semibold text-[var(--color-btn-text)] bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-secondary)] rounded-lg hover:opacity-90 transition-opacity"
+            >
+              Restaurar
+            </button>
+            <button
+              type="button"
+              onClick={discardDraft}
+              class="px-3 py-1.5 text-xs font-medium text-[var(--color-text-muted)] border border-[var(--color-bg-card-border)] rounded-lg hover:text-red-400 transition-colors"
+            >
+              Descartar
+            </button>
+          </span>
+        </div>
+      )}
+
+      {composing ? (
         <form onSubmit={editingPost ? handleUpdate : handleCreate} class="space-y-3">
           <div>
             <label class="form-label">Título</label>
@@ -691,13 +801,32 @@ function PostManagementWidget() {
               placeholder="café, torrefação, método, etc."
             />
           </div>
+
+          <div class="flex items-center gap-2">
+            {(saveState === 'saving' || saveState === 'saved') && (
+              <p class="flex items-center gap-1.5 text-[11px] text-[var(--color-text-muted)] flex-1 min-w-0">
+                {saveState === 'saving' ? (
+                  <>
+                    <span class="w-3 h-3 rounded-full border-2 border-[var(--color-bg-card-border)] border-t-[var(--color-accent)] animate-spin" aria-hidden="true" />
+                    Salvando rascunho…
+                  </>
+                ) : (
+                  <>
+                    <span class="text-[var(--color-accent)]" aria-hidden="true">✓</span>
+                    Rascunho salvo automaticamente às {lastSaved?.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  </>
+                )}
+              </p>
+            )}
+          </div>
+
           <div class="flex gap-2">
             <button type="submit" class="btn-primary form-submit flex-1">
-              {editingPost ? 'Salvar Alterações' : 'Criar Artigo'}
+              {editingPost ? 'Salvar Alterações' : 'Publicar Rascunho'}
             </button>
             <button
               type="button"
-              onClick={() => { setShowCreate(false); setEditingPost(null); }}
+              onClick={resetComposer}
               class="px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] border border-[var(--color-bg-card-border)] rounded-xl hover:bg-[var(--color-bg-card-hover)] transition-colors"
             >
               Cancelar
@@ -889,7 +1018,7 @@ function CreatorAssistantWidget() {
         </div>
       ) : (
         <>
-          <div class="flex gap-2 mb-4 border-b border-[var(--color-bg-card-border)] pb-3">
+          <div class="flex gap-2 mb-4 border-b border-[var(--color-bg-card-border)] pb-3 overflow-x-auto">
             <button
               onClick={() => setActiveTab('chat')}
               class={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
@@ -1044,6 +1173,39 @@ function DashboardContent() {
   const [error, setError] = useState<string | null>(null)
   const vocab = getCurrentVocabulary()
 
+  const [active, setActive] = useState<SectionId>(currentSection)
+  const [visited, setVisited] = useState<Set<string>>(() => new Set([currentSection()]))
+  const [hasDraft, setHasDraft] = useState(false)
+
+  useEffect(() => {
+    const sync = () => setHasDraft(!!readDraft())
+    sync()
+    window.addEventListener('dash-draft-change', sync)
+    return () => window.removeEventListener('dash-draft-change', sync)
+  }, [])
+
+  const goTo = (id: SectionId) => {
+    setActive(id)
+    setVisited(prev => {
+      const next = new Set(prev)
+      next.add(id)
+      return next
+    })
+    try { history.replaceState(null, '', `#${id}`) } catch {}
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  useEffect(() => {
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      const t = e.target as HTMLElement | null
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return
+      const idx = parseInt(e.key, 10)
+      if (idx >= 1 && idx <= SECTIONS.length) goTo(SECTIONS[idx - 1].id)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
   const fetchDashboard = () => {
     setLoading(true)
     setError(null)
@@ -1092,6 +1254,7 @@ function DashboardContent() {
     : 0
 
   const level = s ? Math.min(10, 1 + Math.floor((s.total_grains || 0) / 300)) : 1
+  const levelProgress = s ? ((s.total_grains || 0) % 300) / 300 * 100 : 0
 
   const quickActions = [
     { label: 'Mapa do Conhecimento', icon: '🗺️', href: '/mapa' },
@@ -1105,12 +1268,38 @@ function DashboardContent() {
 
   const firstName = user?.name?.split(' ')[0] || 'Explorador'
 
+  const navItem = (sec: (typeof SECTIONS)[number], mobile = false) => (
+    <button
+      key={sec.id}
+      type="button"
+      onClick={() => goTo(sec.id)}
+      aria-current={active === sec.id ? 'page' : undefined}
+      class={mobile
+        ? `flex-shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold rounded-full transition-all ${
+            active === sec.id
+              ? 'bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-secondary)] text-[var(--color-btn-text)] shadow-[var(--shadow-glow)]'
+              : 'text-[var(--color-text-secondary)] bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] hover:text-[var(--color-accent)]'
+          }`
+        : `w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+            active === sec.id
+              ? 'bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-secondary)] text-[var(--color-btn-text)] shadow-[var(--shadow-glow)]'
+              : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-card-hover)] hover:text-[var(--color-text-primary)]'
+          }`}
+    >
+      <span class={mobile ? 'text-base' : 'text-lg w-7 text-center'} aria-hidden="true">{sec.icon}</span>
+      <span class="flex-1 text-left text-sm font-semibold whitespace-nowrap">{sec.label}</span>
+      {sec.id === 'posts' && hasDraft && (
+        <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b]" aria-hidden="true" title="Rascunho salvo disponível" />
+      )}
+    </button>
+  )
+
   return (
-    <div class="space-y-8">
+    <div class="space-y-5">
       {/* Header */}
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-1">
         <div class="flex items-center gap-4">
-          <div class="relative">
+          <div class="relative flex-shrink-0">
             <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--gradient-from)] to-[var(--gradient-to)] flex items-center justify-center text-3xl font-bold text-[var(--color-btn-text)] shadow-[0_0_30px_var(--color-accent-glow)]">
               {user?.name?.charAt(0)?.toUpperCase() || 'U'}
             </div>
@@ -1120,7 +1309,7 @@ function DashboardContent() {
               </span>
             )}
           </div>
-          <div>
+          <div class="min-w-0">
             <h1 class="text-2xl font-bold text-[var(--color-text-primary)]">
               Olá, <span class="gradient-text">{firstName}</span> 👋
             </h1>
@@ -1143,191 +1332,260 @@ function DashboardContent() {
         </div>
         <button
           onClick={logout}
-          class="px-4 py-2 text-sm text-[var(--color-text-muted)] hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl border border-[var(--color-bg-card-border)] transition-colors"
+          class="px-4 py-2 text-sm text-[var(--color-text-muted)] hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl border border-[var(--color-bg-card-border)] transition-colors flex-shrink-0"
         >
           Sair
         </button>
       </div>
 
-      {/* Stats Grid */}
-      <div data-reveal>
-        <div class="section-label mb-3">Sua Evolução</div>
-        {error ? (
-          <div class="glass-card p-6 text-center">
-            <p class="text-sm text-[var(--color-text-secondary)] mb-3">{error}</p>
+      {/* Global draft banner */}
+      {hasDraft && (
+        <div class="p-3 rounded-xl border border-amber-500/30 bg-amber-500/8 flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
+          <span class="flex-1 min-w-0 font-medium text-[var(--color-text-secondary)]">
+            ✍️ Você tem um rascunho não salvo em seus artigos
+          </span>
+          <span class="flex gap-2 flex-shrink-0">
             <button
-              onClick={fetchDashboard}
-              class="px-4 py-2 text-sm font-medium text-[var(--color-accent)] border border-[var(--color-accent)]/30 hover:bg-[var(--color-accent)]/10 rounded-xl transition-colors"
+              type="button"
+              onClick={() => goTo('posts')}
+              class="px-3 py-1.5 text-xs font-semibold text-[var(--color-btn-text)] bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-secondary)] rounded-lg hover:opacity-90 transition-opacity"
             >
-              Tentar novamente
+              Continuar escrevendo
             </button>
-          </div>
-        ) : (
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {loading ? (
-            <>
-              {statCards.map((_, i) => (
-                <StatSkeleton key={i} />
-              ))}
-            </>
-          ) : (
-            statCards.map(stat => (
-              <div key={stat.label} class="glass-card p-5 text-center group transition-all hover:-translate-y-1">
-                <div class="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"
-                  style={{ background: 'color-mix(in srgb, var(--color-accent) 12%, transparent)' }}
-                  role="img" aria-hidden="true">
-                  {stat.icon}
-                </div>
-                <div class="text-2xl font-bold text-[var(--color-text-primary)] tabular-nums">
-                  <CountUp value={stat.value} />
-                </div>
-                <div class="text-xs text-[var(--color-text-muted)] mt-0.5">
-                  {stat.label}
-                </div>
-              </div>
-            ))
-          )}
+          </span>
         </div>
-        )}
+      )}
+
+      {/* Mobile nav */}
+      <div class="lg:hidden sticky top-[68px] z-30 -mx-4 px-4 py-2 border-b border-[var(--color-bg-card-border)] bg-[color-mix(in srgb,var(--color-bg-primary) 84%,transparent)] backdrop-blur-xl">
+        <div class="flex gap-2 overflow-x-auto dash-nav-scroll">
+          {SECTIONS.map(sec => navItem(sec, true))}
+        </div>
       </div>
 
-      {/* Progress Visualization + Quick Actions */}
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" data-reveal>
-        {/* Progress viz */}
-        <div class="glass-card p-6 lg:col-span-1">
-          <div class="section-label mb-4">Progresso Geral</div>
-          {loading ? (
-            <div class="flex flex-col items-center py-6">
-              <div class="w-24 h-24 rounded-full bg-[var(--color-bg-card-border)] animate-pulse mb-4" />
-              <div class="h-4 w-20 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
-            </div>
-          ) : (
-            <div class="flex flex-col items-center text-center">
-              <div class="relative w-28 h-28">
-                <svg class="w-full h-full" viewBox="0 0 100 100">
-                  <circle
-                    cx="50" cy="50" r="42"
-                    fill="none"
-                    stroke="var(--color-bg-card-border)"
-                    stroke-width="8"
-                  />
-                  <circle
-                    cx="50" cy="50" r="42"
-                    fill="none"
-                    stroke="url(#progressGradient)"
-                    stroke-width="8"
-                    stroke-linecap="round"
-                    stroke-dasharray={`${264 * (progressPct / 100)} 264`}
-                    transform="rotate(-90 50 50)"
-                    style={{ transition: 'stroke-dasharray 0.8s ease' }}
-                  />
-                  <defs>
-                    <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="var(--color-accent)" />
-                      <stop offset="100%" stop-color="var(--color-accent-secondary)" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <div class="absolute inset-0 flex items-center justify-center">
-                  <span class="text-2xl font-bold text-[var(--color-text-primary)] tabular-nums">
-                    {progressPct}%
-                  </span>
-                </div>
-              </div>
-              <p class="text-xs text-[var(--color-text-muted)] mt-3">
-                Baseado na sua atividade recente
-              </p>
-              <span class="mt-2 inline-flex items-center gap-1 text-[11px] font-medium px-3 py-1 rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)]">
-                Nível {level} · Continue evoluindo
+      <div class="grid grid-cols-1 lg:grid-cols-[264px_1fr] gap-6 items-start">
+        {/* Desktop sidebar */}
+        <aside class="hidden lg:block lg:sticky lg:top-24">
+          <nav class="glass-card p-3 space-y-1" aria-label="Seções do dashboard">
+            {SECTIONS.map(sec => navItem(sec, false))}
+          </nav>
+          <div class="mt-4 glass-card p-4">
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+              <span class="text-xs font-semibold text-[var(--color-text-primary)]">
+                Nível {level} · {!!s ? `${Math.round(levelProgress)}% para o próximo` : '…'}
               </span>
             </div>
-          )}
-        </div>
-
-        {/* Reading time bar */}
-        <div class="glass-card p-6 lg:col-span-1">
-          <div class="section-label mb-4">Tempo de Leitura</div>
-          {loading ? (
-            <div class="space-y-3">
-              <div class="h-3 w-full bg-[var(--color-bg-card-border)] rounded-full animate-pulse" />
-              <div class="h-3 w-3/4 bg-[var(--color-bg-card-border)] rounded-full animate-pulse" />
+            <div class="h-1.5 bg-[var(--color-bg-card-border)] rounded-full overflow-hidden">
+              <div
+                class="h-full rounded-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-secondary)] transition-all duration-700"
+                style={{ width: `${levelProgress}%` }}
+              />
             </div>
-          ) : (
-            <div class="space-y-4">
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-[var(--color-text-secondary)]">
-                  {s?.reading_time_hours || 0} horas de leitura
-                </span>
-                <span class="text-xs text-[var(--color-text-muted)]">meta: {maxReading}h</span>
-              </div>
-              <div class="h-2.5 bg-[var(--color-bg-card-border)] rounded-full overflow-hidden">
-                <div
-                  class="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-secondary)]"
-                  style={{ width: `${readingPct}%` }}
-                />
-              </div>
-              <div class="grid grid-cols-2 gap-3 text-center pt-2">
-                <div>
-                  <div class="text-lg font-bold text-[var(--color-text-primary)]">{s?.articles_read || 0}</div>
-                  <div class="text-[10px] text-[var(--color-text-muted)]">Artigos concluídos</div>
-                </div>
-                <div>
-                  <div class="text-lg font-bold text-[var(--color-text-primary)]">{s?.trails_completed || 0}</div>
-                  <div class="text-[10px] text-[var(--color-text-muted)]">Trilhas concluídas</div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Quick Actions */}
-        <div class="glass-card p-6 lg:col-span-1">
-          <div class="section-label mb-4">Atalhos</div>
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-1 gap-2.5">
-            {quickActions.map(action => (
-              <a
-                key={action.label}
-                href={action.href}
-                class="flex items-center gap-2.5 p-3 rounded-xl text-[var(--color-text-primary)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)] transition-all text-sm font-medium"
-                style={{ background: 'color-mix(in srgb, var(--color-bg-card) 40%, transparent)' }}
-              >
-                <span class="text-xl flex-shrink-0">{action.icon}</span>
-                <span>{action.label}</span>
-              </a>
-            ))}
+            <p class="text-[10px] text-[var(--color-text-muted)] mt-3">
+              Navegue rápido: <span class="font-mono">1</span>–<span class="font-mono">4</span> trocam de seção.
+            </p>
           </div>
-        </div>
-      </div>
+        </aside>
 
-      {/* API Plan Integrations Section */}
-      <div data-reveal>
-        <div class="section-label mb-2">Contexto do Dia</div>
-        <p class="text-sm text-[var(--color-text-muted)] mb-4">
-          Dados em tempo real integrados ao seu painel de acordo com o plano de APIs do projeto.
-        </p>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <WeatherWidget />
-          <ExchangeWidget />
-          <HeadlinesWidget />
-        </div>
-      </div>
+        {/* Content */}
+        <main class="min-w-0">
+          {visited.has('overview') && (
+            <section class="dash-section" hidden={active !== 'overview'} aria-hidden={active !== 'overview'}>
+              <div class="mb-5">
+                <div class="section-label">Visão Geral</div>
+                <h2 class="text-xl font-bold text-[var(--color-text-primary)] mt-0.5">Sua evolução no café</h2>
+              </div>
 
-      {/* Creator Assistant (AI) */}
-      <div data-reveal>
-        <div class="section-label mb-2">Assistente do Criador</div>
-        <p class="text-sm text-[var(--color-text-muted)] mb-4">
-          Pergunte ao assistente de IA para sugestões de títulos, resumos ou dúvidas sobre café.
-        </p>
-        <CreatorAssistantWidget />
-      </div>
+              {error ? (
+                <div class="glass-card p-6 text-center mb-6">
+                  <p class="text-sm text-[var(--color-text-secondary)] mb-3">{error}</p>
+                  <button
+                    onClick={fetchDashboard}
+                    class="px-4 py-2 text-sm font-medium text-[var(--color-accent)] border border-[var(--color-accent)]/30 hover:bg-[var(--color-accent)]/10 rounded-xl transition-colors"
+                  >
+                    Tentar novamente
+                  </button>
+                </div>
+              ) : (
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-6">
+                  {loading ? (
+                    <>
+                      {statCards.map((_, i) => (
+                        <StatSkeleton key={i} />
+                      ))}
+                    </>
+                  ) : (
+                    statCards.map(stat => (
+                      <div key={stat.label} class="glass-card p-5 text-center group transition-all hover:-translate-y-1">
+                        <div class="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"
+                          style={{ background: 'color-mix(in srgb, var(--color-accent) 12%, transparent)' }}
+                          role="img" aria-hidden="true">
+                          {stat.icon}
+                        </div>
+                        <div class="text-2xl font-bold text-[var(--color-text-primary)] tabular-nums">
+                          <CountUp value={stat.value} />
+                        </div>
+                        <div class="text-xs text-[var(--color-text-muted)] mt-0.5">
+                          {stat.label}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
 
-      {/* Post Management */}
-      <div data-reveal>
-        <div class="section-label mb-2">Meus Artigos</div>
-        <p class="text-sm text-[var(--color-text-muted)] mb-4">
-          Gerencie seus artigos: crie, edite, publique e organize seu conteúdo.
-        </p>
-        <PostManagementWidget />
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Progress viz */}
+                <div class="glass-card p-6 lg:col-span-1">
+                  <div class="section-label mb-4">Progresso Geral</div>
+                  {loading ? (
+                    <div class="flex flex-col items-center py-6">
+                      <div class="w-24 h-24 rounded-full bg-[var(--color-bg-card-border)] animate-pulse mb-4" />
+                      <div class="h-4 w-20 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
+                    </div>
+                  ) : (
+                    <div class="flex flex-col items-center text-center">
+                      <div class="relative w-28 h-28">
+                        <svg class="w-full h-full" viewBox="0 0 100 100">
+                          <circle
+                            cx="50" cy="50" r="42"
+                            fill="none"
+                            stroke="var(--color-bg-card-border)"
+                            stroke-width="8"
+                          />
+                          <circle
+                            cx="50" cy="50" r="42"
+                            fill="none"
+                            stroke="url(#progressGradient)"
+                            stroke-width="8"
+                            stroke-linecap="round"
+                            stroke-dasharray={`${264 * (progressPct / 100)} 264`}
+                            transform="rotate(-90 50 50)"
+                            style={{ transition: 'stroke-dasharray 0.8s ease' }}
+                          />
+                          <defs>
+                            <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                              <stop offset="0%" stop-color="var(--color-accent)" />
+                              <stop offset="100%" stop-color="var(--color-accent-secondary)" />
+                            </linearGradient>
+                          </defs>
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                          <span class="text-2xl font-bold text-[var(--color-text-primary)] tabular-nums">
+                            {progressPct}%
+                          </span>
+                        </div>
+                      </div>
+                      <p class="text-xs text-[var(--color-text-muted)] mt-3">
+                        Baseado na sua atividade recente
+                      </p>
+                      <span class="mt-2 inline-flex items-center gap-1 text-[11px] font-medium px-3 py-1 rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)]">
+                        Nível {level} · Continue evoluindo
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Reading time bar */}
+                <div class="glass-card p-6 lg:col-span-1">
+                  <div class="section-label mb-4">Tempo de Leitura</div>
+                  {loading ? (
+                    <div class="space-y-3">
+                      <div class="h-3 w-full bg-[var(--color-bg-card-border)] rounded-full animate-pulse" />
+                      <div class="h-3 w-3/4 bg-[var(--color-bg-card-border)] rounded-full animate-pulse" />
+                    </div>
+                  ) : (
+                    <div class="space-y-4">
+                      <div class="flex items-center justify-between">
+                        <span class="text-sm text-[var(--color-text-secondary)]">
+                          {s?.reading_time_hours || 0} horas de leitura
+                        </span>
+                        <span class="text-xs text-[var(--color-text-muted)]">meta: {maxReading}h</span>
+                      </div>
+                      <div class="h-2.5 bg-[var(--color-bg-card-border)] rounded-full overflow-hidden">
+                        <div
+                          class="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-secondary)]"
+                          style={{ width: `${readingPct}%` }}
+                        />
+                      </div>
+                      <div class="grid grid-cols-2 gap-3 text-center pt-2">
+                        <div>
+                          <div class="text-lg font-bold text-[var(--color-text-primary)]">{s?.articles_read || 0}</div>
+                          <div class="text-[10px] text-[var(--color-text-muted)]">Artigos concluídos</div>
+                        </div>
+                        <div>
+                          <div class="text-lg font-bold text-[var(--color-text-primary)]">{s?.trails_completed || 0}</div>
+                          <div class="text-[10px] text-[var(--color-text-muted)]">Trilhas concluídas</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Quick Actions */}
+                <div class="glass-card p-6 lg:col-span-1">
+                  <div class="section-label mb-4">Atalhos</div>
+                  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-1 gap-2.5">
+                    {quickActions.map(action => (
+                      <a
+                        key={action.label}
+                        href={action.href}
+                        class="flex items-center gap-2.5 p-3 rounded-xl text-[var(--color-text-primary)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)] transition-all text-sm font-medium"
+                        style={{ background: 'color-mix(in srgb, var(--color-bg-card) 40%, transparent)' }}
+                      >
+                        <span class="text-xl flex-shrink-0">{action.icon}</span>
+                        <span>{action.label}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {visited.has('context') && (
+            <section class="dash-section" hidden={active !== 'context'} aria-hidden={active !== 'context'}>
+              <div class="mb-5">
+                <div class="section-label">Contexto do Dia</div>
+                <h2 class="text-xl font-bold text-[var(--color-text-primary)] mt-0.5">Clima, câmbio e notícias</h2>
+                <p class="text-sm text-[var(--color-text-muted)] mt-1">
+                  Dados em tempo real integrados ao seu painel de acordo com o plano de APIs do projeto.
+                </p>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <WeatherWidget />
+                <ExchangeWidget />
+                <HeadlinesWidget />
+              </div>
+            </section>
+          )}
+
+          {visited.has('posts') && (
+            <section class="dash-section" hidden={active !== 'posts'} aria-hidden={active !== 'posts'}>
+              <div class="mb-5">
+                <div class="section-label">Meus Artigos</div>
+                <h2 class="text-xl font-bold text-[var(--color-text-primary)] mt-0.5">Gerencie seu conteúdo</h2>
+                <p class="text-sm text-[var(--color-text-muted)] mt-1">
+                  Crie, edite e publique seus artigos. Rascunhos são salvos automaticamente.
+                </p>
+              </div>
+              <PostManagementWidget />
+            </section>
+          )}
+
+          {visited.has('assistant') && (
+            <section class="dash-section" hidden={active !== 'assistant'} aria-hidden={active !== 'assistant'}>
+              <div class="mb-5">
+                <div class="section-label">Assistente do Criador</div>
+                <h2 class="text-xl font-bold text-[var(--color-text-primary)] mt-0.5">Crie e refine com IA</h2>
+                <p class="text-sm text-[var(--color-text-muted)] mt-1">
+                  Pergunte, traduza, melhore ou gere títulos para seus artigos.
+                </p>
+              </div>
+              <CreatorAssistantWidget />
+            </section>
+          )}
+        </main>
       </div>
     </div>
   )
