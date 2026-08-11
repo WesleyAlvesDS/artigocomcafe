@@ -1,30 +1,41 @@
 ---
-import ArticleCard from './ArticleCard.astro'
-import RecipeCard from './RecipeCard.astro'
 ---
 
-<script>
-  export function initLazyRelated(selector = '[data-lazy-related]') {
-    const containers = document.querySelectorAll(selector);
-    if (!containers.length) return;
+<div id="lazy-related-container" class="lazy-related-container">
+  <div class="related-skeleton" aria-hidden="true">
+    <div class="related-skeleton-item"></div>
+    <div class="related-skeleton-item"></div>
+    <div class="related-skeleton-item"></div>
+    <div class="related-skeleton-item"></div>
+  </div>
+</div>
+
+<script is:inline>
+  // Lazy Related Articles Loader
+  (function() {
+    const container = document.getElementById('lazy-related-container');
+    if (!container) return;
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          const container = entry.target;
-          const loaded = container.dataset.loaded;
-          if (loaded) return;
+          const el = entry.target;
+          if (el.dataset.loaded === 'true') return;
+          el.dataset.loaded = 'true';
 
-          container.dataset.loaded = 'true';
-          const skeleton = container.querySelector('.related-skeleton');
+          // Remove skeleton
+          const skeleton = el.querySelector('.related-skeleton');
           if (skeleton) skeleton.remove();
 
-          // Trigger custom event for content loading
-          container.dispatchEvent(new CustomEvent('lazy-related:load', {
-            detail: { container }
+          // Trigger load event for parent page to handle
+          el.dispatchEvent(new CustomEvent('lazy-related:load', {
+            bubbles: true,
+            detail: { container: el }
           }));
 
-          observer.unobserve(container);
+          observer.unobserve(el);
         }
       });
     }, {
@@ -32,11 +43,26 @@ import RecipeCard from './RecipeCard.astro'
       threshold: 0.01
     });
 
-    containers.forEach(el => observer.observe(el));
-  }
+    observer.observe(container);
+
+    // Also listen for manual trigger from sidebar
+    const relatedPlaceholder = document.getElementById('related-content');
+    if (relatedPlaceholder) {
+      relatedPlaceholder.addEventListener('load-related', () => {
+        container.dispatchEvent(new CustomEvent('lazy-related:load', {
+          bubbles: true,
+          detail: { container }
+        }));
+      });
+    }
+  })();
 </script>
 
 <style is:global>
+  .lazy-related-container {
+    min-height: 200px;
+  }
+
   .related-skeleton {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));

@@ -1,179 +1,206 @@
 ---
 import Base from '../../layouts/Base.astro'
 import RecipeCard from '../../components/RecipeCard.astro'
+import Pagination from '../../components/Pagination.astro'
+import ExchangeRateWidget from '../../components/ExchangeRateWidget'
+import ScrollAnimations from '../../components/ScrollAnimations.astro'
 import { getRecipes, getRecipeCategories } from '../../lib/laravel'
 
 export async function getStaticPaths() {
   return [{ params: { page: undefined } }]
 }
 
+const url = new URL(Astro.request.url)
+const currentPage = Number(url.searchParams.get('page')) || 1
+const search = url.searchParams.get('busca') || ''
+const categorySlug = url.searchParams.get('categoria') || ''
+const tagSlug = url.searchParams.get('tag') || ''
+const difficulty = url.searchParams.get('dificuldade') || ''
+const timeMax = url.searchParams.get('tempo_max') || ''
+
 const categories = await getRecipeCategories()
-const recipesResponse = await getRecipes(1, 1000)
-const recipes = recipesResponse.data
-const totalRecipes = recipesResponse.total || recipes.length
+
+const { recipes, pagination } = await getRecipes(currentPage, 12, {
+  category: categorySlug || undefined,
+  search: search || undefined,
+  tag: tagSlug || undefined,
+  difficulty: difficulty || undefined,
+  timeMax: timeMax || undefined
+})
 ---
 
-<Base title="Receitas — Artigo com Café" description={`${totalRecipes} receitas práticas para acompanhar sua pausa para o conhecimento: café, bebidas, acompanhamentos, sobremesas e muito mais.`} canonical="/receitas/" breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Receitas', slug: '/receitas/' }]}>
-  <section class="section receitas-header">
+<Base title="Receitas — Artigo com Café" description="Receitas deliciosas com café e para acompanhar seu café. Do café da manhã ao jantar, sobremesas e drinks." canonical="/receitas/" breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Receitas', slug: '/receitas/' }]}>
+  {pagination.totalPages > 1 && currentPage < pagination.totalPages && (
+    <link rel="next" href={`/receitas?page=${currentPage + 1}${categorySlug ? `&categoria=${categorySlug}` : ''}${search ? `&busca=${encodeURIComponent(search)}` : ''}${tagSlug ? `&tag=${tagSlug}` : ''}${difficulty ? `&dificuldade=${difficulty}` : ''}${timeMax ? `&tempo_max=${timeMax}` : ''}`} />
+  )}
+  {pagination.totalPages > 1 && currentPage > 1 && (
+    <link rel="prev" href={`/receitas?page=${currentPage - 1}${categorySlug ? `&categoria=${categorySlug}` : ''}${search ? `&busca=${encodeURIComponent(search)}` : ''}${tagSlug ? `&tag=${tagSlug}` : ''}${difficulty ? `&dificuldade=${difficulty}` : ''}${timeMax ? `&tempo_max=${timeMax}` : ''}`} />
+  )}
+  
+  <section class="section recipes-hero">
     <div class="container">
-      <div class="receitas-header-content" data-reveal>
+      <div class="hero-content" data-scroll-reveal="slide-up">
         <span class="section-label">Receitas</span>
-        <h1 class="section-title">Café, Pausa e Prática</h1>
+        <h1 class="section-title">Todas as Receitas</h1>
         <p class="section-subtitle">
-          {totalRecipes} receitas passo a passo para colocar em prática — do café coado perfeito às sobremesas, pratos principais e bebidas de todo o mundo.
+          Receitas autorais para acompanhar sua pausa — do café da manhã ao drink noturno.
         </p>
       </div>
-
-      <div class="receitas-filters" data-reveal>
-        <form class="search-form" role="search" aria-label="Filtrar receitas">
+      
+      <div class="recipes-filters" data-scroll-reveal="fade" data-scroll-delay="100">
+        <form class="search-form" method="GET" action="/receitas">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
           <input
-            type="search"
+            type="text"
             name="busca"
-            placeholder={`Buscar entre ${totalRecipes} receitas…`}
+            value={search}
+            placeholder="Buscar receitas…"
             class="search-input"
             aria-label="Buscar receitas"
           />
+          {categorySlug && <input type="hidden" name="categoria" value={categorySlug} />}
+          {tagSlug && <input type="hidden" name="tag" value={tagSlug} />}
+          {difficulty && <input type="hidden" name="dificuldade" value={difficulty} />}
+          {timeMax && <input type="hidden" name="tempo_max" value={timeMax} />}
         </form>
-
-        <div class="categories-filter" aria-label="Filtrar por categoria">
-          <button type="button" class="cat-chip" data-cat="" aria-pressed="true">Todas</button>
-          {categories.map(cat => (
-            <button type="button" class="cat-chip" data-cat={cat.slug} aria-pressed="false">
-              {cat.icon && <span aria-hidden="true">{cat.icon}</span>}
-              {cat.name}
-              <span class="cat-count">{cat.recipes_count}</span>
-            </button>
-          ))}
+        
+        <div class="filters-row">
+          <div class="categories-filter" data-stagger data-stagger-delay="60">
+            <a href="/receitas" class={`cat-chip ${!categorySlug && !tagSlug ? 'active' : ''}`}>Todas</a>
+            {categories.slice(0, 12).map(cat => (
+              <a
+                href={`/receitas?categoria=${cat.slug}${search ? `&busca=${search}` : ''}${tagSlug ? `&tag=${tagSlug}` : ''}${difficulty ? `&dificuldade=${difficulty}` : ''}${timeMax ? `&tempo_max=${timeMax}` : ''}`}
+                class={`cat-chip ${categorySlug === cat.slug ? 'active' : ''}`}
+              >
+                {cat.icon && <span aria-hidden="true">{cat.icon}</span>}
+                {cat.name}
+                <span class="cat-count">{cat.recipes_count}</span>
+              </a>
+            ))}
+          </div>
+          
+          <div class="quick-filters" data-stagger data-stagger-delay="60" data-stagger-start="200">
+            <select name="dificuldade" class="filter-select" onchange="this.form.submit()">
+              <option value="">Todas as dificuldades</option>
+              <option value="facil" selected={difficulty === 'facil'}>Fácil</option>
+              <option value="media" selected={difficulty === 'media'}>Média</option>
+              <option value="dificil" selected={difficulty === 'dificil'}>Difícil</option>
+            </select>
+            <select name="tempo_max" class="filter-select" onchange="this.form.submit()">
+              <option value="">Qualquer tempo</option>
+              <option value="15" selected={timeMax === '15'}>Até 15 min</option>
+              <option value="30" selected={timeMax === '30'}>Até 30 min</option>
+              <option value="60" selected={timeMax === '60'}>Até 1 hora</option>
+              <option value="120" selected={timeMax === '120'}>Até 2 horas</option>
+            </select>
+          </div>
         </div>
-        <div class="tag-filter-bar" hidden>
-          <span>Filtrando por tag:</span>
-          <button type="button" class="tag-filter-chip" id="clear-tag">limpar filtro</button>
-        </div>
+        
+        {(tagSlug || difficulty || timeMax) && (
+          <div class="active-filters" data-scroll-reveal="fade">
+            {tagSlug && (
+              <span class="filter-tag">
+                Tag: #{tagSlug}
+                <a href="/receitas" class="remove-filter" aria-label="Remover filtro de tag">×</a>
+              </span>
+            )}
+            {difficulty && (
+              <span class="filter-tag">
+                Dificuldade: {difficulty === 'facil' ? 'Fácil' : difficulty === 'media' ? 'Média' : 'Difícil'}
+                <a href="/receitas" class="remove-filter" aria-label="Remover filtro de dificuldade">×</a>
+              </span>
+            )}
+            {timeMax && (
+              <span class="filter-tag">
+                Tempo: até {timeMax} min
+                <a href="/receitas" class="remove-filter" aria-label="Remover filtro de tempo">×</a>
+              </span>
+            )}
+            <a href="/receitas" class="clear-filters">Limpar todos</a>
+          </div>
+        )}
       </div>
+    </div>
+  </section>
+
+  <section class="section" data-scroll-reveal="fade" style="padding-top: 0.5rem; padding-bottom: 0;">
+    <div class="container">
+      <ExchangeRateWidget client:visible compact={true} maxRates={5} />
     </div>
   </section>
 
   <section class="section">
     <div class="container">
-      <div class="recipes-grid" id="recipes-grid">
-        {recipes.map((recipe, i) => (
-          <div
-            class="recipe-card-wrap"
-            data-cat={recipe.category?.slug || ''}
-            data-tags={(recipe.tags || []).map(t => t.slug).join(' ')}
-            data-search={(recipe.title + ' ' + (recipe.excerpt || '') + ' ' + (recipe.category?.name || '') + ' ' + (recipe.tags || []).map(t => t.name).join(' ')).toLowerCase()}
-          >
-            <RecipeCard recipe={recipe} revealDelay={`delay-${(i % 4) + 1}`} />
+      {recipes.length > 0 ? (
+        <>
+          <div class="recipes-grid" data-stagger data-stagger-delay="80" data-stagger-start="100">
+            {recipes.map((recipe, i) => (
+              <RecipeCard recipe={recipe} index={i} />
+            ))}
           </div>
-        ))}
-      </div>
-      <div class="empty-state" id="empty-state" hidden>
-        <div class="empty-icon">☕</div>
-        <h2 class="empty-title">Nenhuma receita encontrada</h2>
-        <p class="empty-desc">Tente ajustar a busca ou escolher outra categoria.</p>
-        <button type="button" class="btn-primary" id="clear-filters">Ver todas as receitas</button>
-      </div>
+          {pagination.totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={pagination.totalPages}
+              basePath="/receitas"
+              queryParams={{
+                ...(categorySlug ? { categoria: categorySlug } : {}),
+                ...(search ? { busca: search } : {}),
+                ...(tagSlug ? { tag: tagSlug } : {}),
+                ...(difficulty ? { dificuldade: difficulty } : {}),
+                ...(timeMax ? { tempo_max: timeMax } : {}),
+              }}
+            />
+          )}
+        </>
+      ) : (
+        <div class="empty-state" data-scroll-reveal="scale">
+          <div class="empty-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+              <path d="M12 6v6l4 2" />
+            </svg>
+          </div>
+          <h2 class="empty-title">Nenhuma receita encontrada</h2>
+          <p class="empty-desc">
+            {search ? `Nenhum resultado para "${search}".` : 'Nenhuma receita publicada com estes filtros.'}
+          </p>
+          <a href="/receitas" class="btn-primary">Ver todas as receitas</a>
+        </div>
+      )}
     </div>
   </section>
 
-  <script>
-    const grid = document.getElementById('recipes-grid')
-    const cards = Array.from(grid ? grid.querySelectorAll('.recipe-card-wrap') : [])
-    const chips = Array.from(document.querySelectorAll('.cat-chip[data-cat]'))
-    const searchInput = document.querySelector('.search-input')
-    const emptyState = document.getElementById('empty-state')
-    const clearTagBtn = document.getElementById('clear-tag')
-    const tagBar = document.querySelector('.tag-filter-bar')
-    const clearFiltersBtn = document.getElementById('clear-filters')
-
-    const params = new URL(window.location.href).searchParams
-    let activeCat = params.get('categoria') || ''
-    let activeTag = params.get('tag') || ''
-    let query = params.get('busca') || ''
-
-    const normalize = s => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-
-    function apply() {
-      const q = normalize(query)
-      let visible = 0
-      cards.forEach(card => {
-        const okCat = !activeCat || card.dataset.cat === activeCat
-        const okTag = !activeTag || (card.dataset.tags || '').split(' ').includes(activeTag)
-        const okSearch = !q || normalize(card.dataset.search).includes(q)
-        const show = okCat && okTag && okSearch
-        card.classList.toggle('hidden', !show)
-        if (show) visible++
-      })
-      chips.forEach(chip => {
-        const active = chip.dataset.cat === activeCat
-        chip.classList.toggle('active', active)
-        chip.setAttribute('aria-pressed', String(active))
-      })
-      if (searchInput) searchInput.value = query
-      if (tagBar) tagBar.hidden = !activeTag
-      if (emptyState) emptyState.hidden = visible > 0
-    }
-
-    chips.forEach(chip => {
-      chip.addEventListener('click', () => {
-        activeCat = chip.dataset.cat
-        apply()
-      })
-    })
-
-    searchInput?.addEventListener('input', e => {
-      query = e.target.value
-      apply()
-    })
-
-    searchInput?.addEventListener('keydown', e => {
-      if (e.key === 'Enter') e.preventDefault()
-    })
-
-    clearTagBtn?.addEventListener('click', () => {
-      activeTag = ''
-      apply()
-    })
-
-    clearFiltersBtn?.addEventListener('click', () => {
-      activeCat = ''
-      activeTag = ''
-      query = ''
-      apply()
-    })
-
-    apply()
-  </script>
+  <ScrollAnimations />
 </Base>
 
 <style>
-  .receitas-header {
+  .recipes-hero {
     padding-bottom: 1rem;
   }
-
-  .receitas-header-content {
+  
+  .hero-content {
     margin-bottom: 2rem;
   }
-
-  .receitas-header-content .section-subtitle {
+  
+  .hero-content .section-subtitle {
     margin: 0;
   }
-
-  .receitas-filters {
+  
+  .recipes-filters {
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
   }
-
+  
   .search-form {
     position: relative;
     max-width: 400px;
   }
-
+  
   .search-icon {
     position: absolute;
     left: 1rem;
@@ -182,7 +209,7 @@ const totalRecipes = recipesResponse.total || recipes.length
     color: var(--color-text-muted);
     pointer-events: none;
   }
-
+  
   .search-form .search-input {
     width: 100%;
     padding: 0.75rem 1rem 0.75rem 2.75rem;
@@ -195,21 +222,35 @@ const totalRecipes = recipesResponse.total || recipes.length
     outline: none;
     transition: border-color 0.3s;
   }
-
+  
   .search-form .search-input:focus {
     border-color: var(--color-accent);
   }
-
+  
   .search-form .search-input::placeholder {
     color: var(--color-text-muted);
   }
-
+  
+  .filters-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  @media (min-width: 768px) {
+    .filters-row {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+  }
+  
   .categories-filter {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+    flex: 1;
   }
-
+  
   .cat-chip {
     display: inline-flex;
     align-items: center;
@@ -221,38 +262,65 @@ const totalRecipes = recipesResponse.total || recipes.length
     color: var(--color-text-secondary);
     font-size: 0.82rem;
     font-weight: 500;
-    font-family: inherit;
     text-decoration: none;
-    cursor: pointer;
     transition: all 0.3s;
   }
-
+  
   .cat-chip:hover,
   .cat-chip.active {
     background: color-mix(in srgb, var(--color-accent) 12%, transparent);
     border-color: var(--color-accent);
     color: var(--color-accent);
   }
-
+  
   .cat-count {
     font-size: 0.7rem;
     opacity: 0.7;
     font-family: var(--font-mono);
   }
-
-  .tag-filter-bar {
+  
+  .quick-filters {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  
+  .filter-select {
+    padding: 0.5rem 2rem 0.5rem 0.85rem;
+    border-radius: 100px;
+    border: 1px solid var(--color-bg-card-border);
+    background: var(--color-bg-card);
+    color: var(--color-text-primary);
     font-size: 0.82rem;
-    color: var(--color-text-secondary);
+    font-weight: 500;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23b8b0a3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    transition: all 0.3s;
+    min-width: 160px;
   }
-
-  .tag-filter-bar span {
-    color: var(--color-text-muted);
+  
+  .filter-select:hover,
+  .filter-select:focus {
+    border-color: var(--color-accent);
+    outline: none;
   }
-
-  .tag-filter-chip {
+  
+  .active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.75rem;
+    background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 15%, transparent);
+    border-radius: var(--radius-card);
+  }
+  
+  .filter-tag {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
@@ -261,50 +329,274 @@ const totalRecipes = recipesResponse.total || recipes.length
     background: color-mix(in srgb, var(--color-accent) 12%, transparent);
     border: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);
     color: var(--color-accent);
+    font-size: 0.78rem;
+    font-weight: 500;
+  }
+  
+  .filter-tag .remove-filter {
+    margin-left: 0.35rem;
+    color: inherit;
+    opacity: 0.7;
+    font-size: 1.1rem;
+    line-height: 1;
+    text-decoration: none;
+  }
+  
+  .filter-tag .remove-filter:hover {
+    opacity: 1;
+  }
+  
+  .clear-filters {
+    margin-left: auto;
+    font-size: 0.78rem;
+    color: var(--color-accent);
     font-weight: 600;
-    font-family: var(--font-mono);
-    font-size: 0.82rem;
-    cursor: pointer;
-    transition: all 0.25s;
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
-
-  .tag-filter-chip:hover {
-    background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+  
+  .clear-filters:hover {
+    opacity: 0.8;
   }
-
+  
   .recipes-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1.5rem;
   }
-
-  .recipe-card-wrap {
-    min-width: 0;
-  }
-
-  .recipe-card-wrap.hidden {
-    display: none;
-  }
-
+  
   .empty-state {
     text-align: center;
     padding: 4rem 2rem;
   }
-
+  
   .empty-icon {
-    font-size: 3rem;
+    color: var(--color-text-muted);
     margin-bottom: 1rem;
   }
-
+  
   .empty-title {
     font-size: 1.25rem;
     font-weight: 700;
     color: var(--color-text-primary);
     margin-bottom: 0.5rem;
   }
-
+  
   .empty-desc {
     color: var(--color-text-muted);
     margin-bottom: 1.5rem;
+  }
+  
+  /* Recipe Card Enhancements */
+  .recipe-card {
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+                box-shadow 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+                border-color 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  
+  .recipe-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 45%, transparent), transparent 40%, color-mix(in srgb, var(--color-accent-secondary) 40%, transparent));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  
+  .recipe-card:hover::before {
+    opacity: 1;
+  }
+  
+  .recipe-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-glow), 0 8px 32px rgba(0, 0, 0, 0.35);
+  }
+  
+  .recipe-image-wrapper {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .recipe-image {
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), filter 0.4s ease;
+  }
+  
+  .recipe-card:hover .recipe-image {
+    transform: scale(1.08);
+    filter: brightness(0.9);
+  }
+  
+  .recipe-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 50%, rgba(10,8,5,0.5) 100%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+  
+  .recipe-card:hover .recipe-overlay {
+    opacity: 1;
+  }
+  
+  .recipe-card:hover .recipe-save-btn {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  
+  .recipe-save-btn {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 2;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--color-glass-border);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(8px) scale(0.9);
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  
+  .recipe-save-btn:hover {
+    background: var(--color-accent);
+    color: var(--color-btn-text);
+    border-color: var(--color-accent);
+  }
+  
+  .recipe-save-btn.saved {
+    background: var(--color-accent);
+    color: var(--color-btn-text);
+    border-color: var(--color-accent);
+  }
+  
+  .recipe-save-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2.5;
+  }
+  
+  .recipe-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .recipe-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+  }
+  
+  .recipe-category {
+    padding: 0.15rem 0.5rem;
+    border-radius: 100px;
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    color: var(--color-accent);
+    font-weight: 500;
+    font-family: var(--font-sans);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  
+  .recipe-difficulty {
+    padding: 0.15rem 0.5rem;
+    border-radius: 100px;
+    font-weight: 600;
+    text-transform: capitalize;
+    font-family: var(--font-sans);
+  }
+  
+  .recipe-difficulty.facil {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+  }
+  
+  .recipe-difficulty.media {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+  }
+  
+  .recipe-difficulty.dificil {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+  }
+  
+  .recipe-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--color-text-primary);
+    margin: 0.25rem 0;
+  }
+  
+  .recipe-excerpt {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .recipe-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--color-bg-card-border);
+  }
+  
+  .recipe-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+  }
+  
+  .recipe-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  
+  .recipe-stat svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .recipe-card,
+    .recipe-image,
+    .recipe-overlay,
+    .recipe-save-btn {
+      transition: none !important;
+    }
+    .recipe-card:hover .recipe-image {
+      transform: none;
+    }
   }
 </style>

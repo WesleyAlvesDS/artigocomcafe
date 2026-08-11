@@ -36,6 +36,15 @@ function warn(name, detail = '') {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+// Remove o overlay de cookies (bloqueia cliques nas seções do dashboard).
+async function dismissCookies(page) {
+  const accept = page.locator('#cookie-accept');
+  if (await accept.count()) {
+    await accept.click({ timeout: 5000 }).catch(() => {});
+    await sleep(400);
+  }
+}
+
 const PREEXISTING_WARNINGS = [
   'class className',
   'htmlFor',
@@ -114,19 +123,36 @@ const MOCK_HEADLINES = {
   },
 };
 
+// O widget "Meus Artigos" lê `res.data.data` e `res.data.meta.*`, então o
+// mock espelha a resposta embrulhada em `data` (igual ao backend real).
+const MOCK_POSTS = {
+  data: {
+    data: [
+      {
+        id: 1, title: 'Meu primeiro artigo sobre café', slug: 'meu-primeiro-artigo-sobre-cafe',
+        excerpt: 'Um resumo do artigo', status: 'draft', featured_image: null, reading_time: 3,
+        category: { name: 'Guias', slug: 'guias' },
+        tags: [{ name: 'café', slug: 'cafe' }],
+        date: '2026-08-10', created_at: '2026-08-10T10:00:00Z', updated_at: '2026-08-10T10:00:00Z',
+      },
+    ],
+    meta: { current_page: 1, last_page: 1, per_page: 10, total: 1 },
+  },
+};
+
 function setupApiMocks(page) {
   page.route('**/api-proxy.php/auth/me', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ user: MOCK_USER, token: 'mocked-token' }),
+      body: JSON.stringify({ user: MOCK_USER }),
     });
   });
-   page.route('**/api-proxy.php/auth/me', async (route) => {
+  page.route('**/api-proxy.php/user/posts**', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ user: MOCK_USER }),
+      body: JSON.stringify(MOCK_POSTS),
     });
   });
   page.route('**/api-proxy.php/user/dashboard', async (route) => {
@@ -162,7 +188,7 @@ function setupApiMocks(page) {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ available: true, providers: { groq: true, gemini: true } }),
+      body: JSON.stringify({ data: { available: true, providers: { groq: true, gemini: true } } }),
     });
   });
   page.route('**/api-proxy.php/ai/ask*', async (route) => {
@@ -203,6 +229,12 @@ async function testRedirect(browser, viewport, label) {
 
   const page = await context.newPage();
   try {
+    // Mock do AI status (no preview local o PHP do api-proxy não roda e
+    // o AIFloatingWidget da página /entrar geraria um 404 no console).
+    page.route('**/api-proxy.php/ai/status', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ available: false, providers: {} }) });
+    });
+
     const resp = await page.goto(BASE_URL + '/dashboard/', { waitUntil: 'networkidle', timeout: 30000 });
     const status = resp?.status() || 0;
     report(`Dashboard carrega (HTTP ${status})`, status === 200, `Status: ${status}`);
@@ -227,6 +259,46 @@ async function testRedirect(browser, viewport, label) {
     await context.close();
   }
   return consoleErrors;
+}
+
+async function testLoggedInRedirect(browser, viewport, label) {
+  console.log(`\n${'='.repeat(50)}`);
+  console.log(`📱 ${label} — Usuário já logado visita /entrar`);
+  console.log(`${'='.repeat(50)}`);
+
+  const context = await browser.newContext({ viewport, ignoreHTTPSErrors: true });
+  const page = await context.newPage();
+  try {
+    await setupApiMocks(page);
+
+    await context.addInitScript(() => {
+      localStorage.setItem('auth_token', 'mocked-token');
+      localStorage.setItem('user_theme', 'cafe');
+    });
+
+    // Usuário autenticado não deve ficar preso na página de login —
+    // a aresta /entrar → (já logado) → Dashboard deve fechar o ciclo.
+    await page.goto(BASE_URL + '/entrar/', { waitUntil: 'domcontentloaded', timeout: 20000 });
+    await dismissCookies(page);
+
+    await page.waitForURL((url) => url.pathname.includes('/dashboard'), { timeout: 15000 }).catch(() => {});
+    await sleep(800);
+
+    const url = page.url();
+    const redirectedToDashboard = url.includes('/dashboard');
+    report('Usuário logado em /entrar é redirecionado para /dashboard', redirectedToDashboard, url);
+
+    // /cadastro também deve redirecionar usuário logado
+    await page.goto(BASE_URL + '/cadastro/', { waitUntil: 'domcontentloaded', timeout: 20000 });
+    await page.waitForURL((url) => url.pathname.includes('/dashboard'), { timeout: 15000 }).catch(() => {});
+    await sleep(800);
+    const url2 = page.url();
+    report('Usuário logado em /cadastro é redirecionado para /dashboard', url2.includes('/dashboard'), url2);
+  } catch (err) {
+    report('Redirect usuário logado', false, err.message.substring(0, 100));
+  } finally {
+    await context.close();
+  }
 }
 
 async function testAuthenticated(browser, viewport, label) {
@@ -261,6 +333,7 @@ async function testAuthenticated(browser, viewport, label) {
 
     // Navigate to dashboard — token is in localStorage, API calls are mocked
     await page.goto(BASE_URL + '/dashboard/', { waitUntil: 'domcontentloaded', timeout: 20000 });
+    await dismissCookies(page);
 
     // Wait for all API mocks to resolve
     await page.waitForResponse((resp) => resp.url().includes('/api-proxy.php/auth/me'), { timeout: 10000 }).catch(() => {});
@@ -273,14 +346,43 @@ async function testAuthenticated(browser, viewport, label) {
     const bodyText = await page.locator('body').innerText();
     console.log(`  DEBUG: body text length=${bodyText.length}`);
 
-    const hasDashboardContent = bodyText.includes('Admin Café') || bodyText.includes('Evolução') || bodyText.includes('Progresso');
+    // O dashboard renderiza o header do usuário (nome/username) + seções.
+    // Usamos marcadores reais da UI em vez de textos exatos frágeis.
+    const hasDashboardContent =
+      /Olá,|Visão Geral|dias seguidos/i.test(bodyText) &&
+      (bodyText.includes('@admin') || /Admin/i.test(bodyText));
     report('Dashboard renderiza conteúdo (autenticado)', hasDashboardContent, bodyText.substring(0, 100));
 
     const statIndicators = await page.locator('text=/grãos|artigos lidos|horas de leitura|trilhas completas|conquistas|coleções|categorias|dias seguidos/i').count();
     report('Cards de estatísticas visíveis', statIndicators >= 4, `encontrados: ${statIndicators}`);
 
-    // Check API plan widgets
-    console.log('\n--- API Plan Widgets ---');
+    // Widgets ficam em seções do dashboard (Contexto do Dia, Meus Artigos,
+    // Assistente IA). O audit navega como o usuário real: clica em cada seção
+    // e valida o conteúdo. Isso também garante que as arestas de navegação
+    // interna do dashboard funcionam de ponta a ponta.
+    const goToSection = async (label) => {
+      // Em mobile a sidebar desktop fica oculta (lg:block); o filtro
+      // `:visible` garante que clicamos no botão de navegação correto.
+      let btn = page.locator(`button:has-text("${label}")`).filter({ visible: true }).first();
+      let found = await btn.count();
+      if (found === 0) {
+        // Mobile: a navegação vive em um bottom sheet aberto pelo FAB.
+        // Reproduzimos o fluxo real do usuário: FAB → sheet → seção.
+        const fab = page.locator('.dash-mobile-fab').filter({ visible: true }).first();
+        const fabCount = await fab.count();
+        if (fabCount > 0) {
+          await fab.click({ timeout: 5000 }).catch(() => {});
+          await sleep(500);
+          btn = page.locator(`.dash-mobile-sheet.open button:has-text("${label}")`).first();
+        }
+      }
+      await btn.click({ timeout: 8000 }).catch(() => {});
+      await sleep(900);
+    };
+
+    // Contexto do Dia → widgets de API
+    console.log('\n--- API Plan Widgets (seção Contexto do Dia) ---');
+    await goToSection('Contexto do Dia');
     const weatherWidget = await page.locator('text=/clima do café/i').count();
     report('Widget Clima (API plan) visível', weatherWidget >= 1, `matches: ${weatherWidget}`);
 
@@ -296,8 +398,21 @@ async function testAuthenticated(browser, viewport, label) {
     const headlinesWidget = await page.locator('text=/manchetes do dia/i').count();
     report('Widget Manchetes (API plan) visível', headlinesWidget >= 1, `matches: ${headlinesWidget}`);
 
-    // Check AI Assistant widget
+    // Meus Artigos → CRUD de posts do usuário (rota /user/posts)
+    console.log('\n--- Meus Artigos Widget ---');
+    await goToSection('Meus Artigos');
+    const myPostsWidget = await page.locator('text=/meus artigos/i').count();
+    report('Widget Meus Artigos visível', myPostsWidget >= 1, `matches: ${myPostsWidget}`);
+
+    const firstPost = await page.locator('text=/Meu primeiro artigo sobre café/i').count();
+    report('Meus Artigos lista posts do usuário', firstPost >= 1, `matches: ${firstPost}`);
+
+    const createPostBtn = await page.locator('text=/Novo Artigo/i').count();
+    report('Botão de criar artigo presente', createPostBtn >= 1, `matches: ${createPostBtn}`);
+
+    // Assistente IA
     console.log('\n--- AI Assistant Widget ---');
+    await goToSection('Assistente IA');
     const aiWidget = await page.locator('text=/assistente do criador/i').count();
     report('Widget Assistente do Criador visível', aiWidget >= 1, `matches: ${aiWidget}`);
 
@@ -445,6 +560,9 @@ async function run() {
 
   const desktopRedirect = await testRedirect(browser, { width: 1280, height: 800 }, 'DESKTOP (1280x800)');
   const mobileRedirect = await testRedirect(browser, { width: 375, height: 812 }, 'MOBILE (375x812)');
+
+  const desktopLoggedIn = await testLoggedInRedirect(browser, { width: 1280, height: 800 }, 'DESKTOP (1280x800)');
+  const mobileLoggedIn = await testLoggedInRedirect(browser, { width: 375, height: 812 }, 'MOBILE (375x812)');
 
   const desktopAuth = await testAuthenticated(browser, { width: 1280, height: 800 }, 'DESKTOP (1280x800)');
   const mobileAuth = await testAuthenticated(browser, { width: 375, height: 812 }, 'MOBILE (375x812)');

@@ -1,16 +1,202 @@
 ---
-import { ToastProvider } from './Toast'
-import ReadingTracker from './ReadingTracker'
+interface Props {
+  articleTitle: string
+  articleUrl: string
+  tocHeadings: { id: string; text: string; level: number }[]
+  categories: { name: string; slug: string }[]
+  tags: { name: string; slug: string }[]
+  readingTime: number
+}
+
+const { articleTitle, articleUrl, tocHeadings, categories, tags, readingTime } = Astro.props
 ---
 
-<script>
-  export function initSmartSidebar() {
+<div class="smart-sidebar" id="smart-sidebar">
+  {/* Reading Progress Ring */}
+  <div class="sidebar-card">
+    <div class="reading-progress" aria-label="Progresso de leitura">
+      <div class="progress-ring" id="reading-progress-ring" role="img" aria-label={`${Math.round(0)}% lido`}>
+        <svg class="progress-ring-svg" width="64" height="64">
+          <circle
+            class="progress-ring-circle-bg"
+            cx="32"
+            cy="32"
+            r="16"
+            fill="none"
+            stroke="var(--color-bg-card-border)"
+            stroke-width="4"
+          />
+          <circle
+            class="progress-ring-circle"
+            cx="32"
+            cy="32"
+            r="16"
+            fill="none"
+            stroke="var(--color-accent)"
+            stroke-width="4"
+            stroke-linecap="round"
+            stroke-dasharray="100.53"
+            stroke-dashoffset="100.53"
+            style="transform: rotate(-90deg); transform-origin: 32px 32px;"
+          />
+        </svg>
+        <div class="progress-ring-text">
+          <span class="progress-ring-value" id="reading-progress-text">0%</span>
+          <span class="progress-ring-label">Lido</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-divider"></div>
+
+  {/* Table of Contents */}
+  {tocHeadings.length > 0 && (
+    <div class="sidebar-card">
+      <h3 class="sidebar-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 11l3 3L22 4" />
+          <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+        </svg>
+        Neste artigo
+      </h3>
+      <nav class="toc-nav" aria-label="Sumário">
+        <ul class="toc-list">
+          {tocHeadings.map(heading => (
+            <li class="toc-item">
+              <a href={`#${heading.id}`} class={`toc-link ${heading.level === 3 ? 'toc-h3' : ''}`} data-toc-level={heading.level}>
+                {heading.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+    <div class="sidebar-divider"></div>
+  )}
+
+  {/* Categories */}
+  {categories.length > 0 && (
+    <div class="sidebar-card">
+      <h3 class="sidebar-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
+          <line x1="7" y1="7" x2="7.01" y2="7" />
+        </svg>
+        Categorias
+      </h3>
+      <div class="sidebar-tags">
+        {categories.map(cat => (
+          <a href={`/blog?categoria=${cat.slug}`} class="sidebar-tag">{cat.name}</a>
+        ))}
+      </div>
+    </div>
+    <div class="sidebar-divider"></div>
+  )}
+
+  {/* Tags */}
+  {tags.length > 0 && (
+    <div class="sidebar-card">
+      <h3 class="sidebar-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
+          <line x1="7" y1="7" x2="7.01" y2="7" />
+        </svg>
+        Tags
+      </h3>
+      <div class="sidebar-tags">
+        {tags.map(tag => (
+          <a href={`/blog?tag=${tag.slug}`} class="sidebar-tag">#{tag.name}</a>
+        ))}
+      </div>
+    </div>
+    <div class="sidebar-divider"></div>
+  )}
+
+  {/* Quick Actions */}
+  <div class="sidebar-card">
+    <h3 class="sidebar-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="4 7 4 4 20 4 20 7" />
+        <line x1="9" y1="20" x2="15" y2="20" />
+        <line x1="12" y1="4" x2="12" y2="20" />
+      </svg>
+      Ações rápidas
+    </h3>
+    <div class="quick-actions">
+      <button class="action-btn" id="copy-link" aria-label="Copiar link" data-url={articleUrl}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+        </svg>
+        <span>Copiar link</span>
+      </button>
+      <button class="action-btn" id="share-native" aria-label="Compartilhar nativo" style="display: none;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3" />
+          <circle cx="6" cy="12" r="3" />
+          <circle cx="18" cy="19" r="3" />
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+        </svg>
+        <span>Compartilhar</span>
+      </button>
+      <button class="action-btn" id="font-decrease" aria-label="Diminuir fonte" data-font-size="small">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <text x="4" y="20" font-size="16">A-</text>
+        </svg>
+        <span>Fonte -</span>
+      </button>
+      <button class="action-btn" id="font-increase" aria-label="Aumentar fonte" data-font-size="large">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <text x="4" y="20" font-size="16">A+</text>
+        </svg>
+        <span>Fonte +</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="sidebar-divider"></div>
+
+  {/* Reading Time */}
+  <div class="sidebar-card">
+    <div class="reading-time">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+      </svg>
+      <span>Tempo de leitura: <strong id="reading-time-estimate">{readingTime} min</strong></span>
+    </div>
+  </div>
+
+  {/* Related Articles Placeholder - Lazy Loaded */}
+  <div class="sidebar-card" id="related-placeholder">
+    <h3 class="sidebar-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+        <polyline points="15 3 21 3 21 9" />
+        <line x1="10" y1="14" x2="21" y2="3" />
+      </svg>
+      Artigos Relacionados
+    </h3>
+    <div class="related-placeholder" id="related-content">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12V7H5" />
+        <path d="M16 7l-4 4" />
+      </svg>
+      <p>Carregando sugestões...</p>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  // Smart Sidebar initialization
+  (function() {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     // Reading progress ring
-    const progressRing = document.getElementById('reading-progress-ring');
-    const progressText = document.getElementById('reading-progress-text');
     const progressCircle = document.querySelector('.progress-ring-circle');
+    const progressText = document.getElementById('reading-progress-text');
     const radius = 16;
     const circumference = 2 * Math.PI * radius;
 
@@ -35,9 +221,6 @@ import ReadingTracker from './ReadingTracker'
       }
       if (progressText) {
         progressText.textContent = `${Math.round(progress * 100)}%`;
-      }
-      if (progressRing) {
-        progressRing.style.setProperty('--progress', progress);
       }
     }
 
@@ -65,50 +248,61 @@ import ReadingTracker from './ReadingTracker'
       headings.forEach(h => observer.observe(h));
     }
 
-    // Floating TOC toggle for mobile
-    const tocToggle = document.getElementById('toc-toggle');
-    const tocPanel = document.getElementById('toc-panel');
-    const tocClose = document.getElementById('toc-close');
-
-    if (tocToggle && tocPanel) {
-      tocToggle.addEventListener('click', () => {
-        tocPanel.classList.toggle('open');
-        tocToggle.setAttribute('aria-expanded', tocPanel.classList.contains('open'));
-      });
-      tocClose?.addEventListener('click', () => {
-        tocPanel.classList.remove('open');
-        tocToggle.setAttribute('aria-expanded', 'false');
-      });
-      // Close on link click
-      tocPanel.querySelectorAll('.toc-link').forEach(link => {
-        link.addEventListener('click', () => {
-          tocPanel.classList.remove('open');
-          tocToggle.setAttribute('aria-expanded', 'false');
-        });
-      });
-    }
-
     // Font size controls
-    const fontSizeButtons = document.querySelectorAll('[data-font-size]');
+    const fontDecrease = document.getElementById('font-decrease');
+    const fontIncrease = document.getElementById('font-increase');
     const articleContent = document.querySelector('.article-content, .recipe-main');
 
-    fontSizeButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const size = btn.dataset.fontSize;
-        if (articleContent) {
-          articleContent.style.fontSize = size === 'small' ? '0.9rem' : size === 'large' ? '1.15rem' : '1rem';
-        }
-        fontSizeButtons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        localStorage.setItem('article-font-size', size);
-      });
-    });
+    function setFontSize(size) {
+      if (articleContent) {
+        articleContent.style.fontSize = size === 'small' ? '0.9rem' : size === 'large' ? '1.15rem' : '1rem';
+      }
+      [fontDecrease, fontIncrease].forEach(b => b?.classList.remove('active'));
+      if (size === 'small') fontDecrease?.classList.add('active');
+      else if (size === 'large') fontIncrease?.classList.add('active');
+      localStorage.setItem('article-font-size', size);
+    }
+
+    fontDecrease?.addEventListener('click', () => setFontSize('small'));
+    fontIncrease?.addEventListener('click', () => setFontSize('large'));
 
     // Restore font size
     const savedFontSize = localStorage.getItem('article-font-size');
     if (savedFontSize && articleContent) {
-      articleContent.style.fontSize = savedFontSize === 'small' ? '0.9rem' : savedFontSize === 'large' ? '1.15rem' : '1rem';
-      fontSizeButtons.forEach(b => b.classList.toggle('active', b.dataset.fontSize === savedFontSize));
+      setFontSize(savedFontSize);
+    }
+
+    // Copy link with feedback
+    const copyLinkBtn = document.getElementById('copy-link');
+    if (copyLinkBtn) {
+      copyLinkBtn.addEventListener('click', async () => {
+        const url = copyLinkBtn.getAttribute('data-url') || window.location.href;
+        try {
+          await navigator.clipboard.writeText(url);
+          copyLinkBtn.classList.add('copied');
+          copyLinkBtn.setAttribute('aria-label', 'Link copiado!');
+          copyLinkBtn.querySelector('span').textContent = 'Copiado!';
+          setTimeout(() => {
+            copyLinkBtn.classList.remove('copied');
+            copyLinkBtn.setAttribute('aria-label', 'Copiar link');
+            copyLinkBtn.querySelector('span').textContent = 'Copiar link';
+          }, 2000);
+        } catch {}
+      });
+    }
+
+    // Share Web API
+    const shareBtn = document.getElementById('share-native');
+    if (shareBtn && navigator.share) {
+      shareBtn.style.display = 'flex';
+      shareBtn.addEventListener('click', async () => {
+        const title = document.querySelector('h1')?.textContent || document.title;
+        try {
+          await navigator.share({ title, url: window.location.href });
+        } catch {}
+      });
+    } else if (shareBtn) {
+      shareBtn.style.display = 'none';
     }
 
     // Scroll listeners
@@ -137,48 +331,18 @@ import ReadingTracker from './ReadingTracker'
       readingTimeEl.textContent = `${minutes} min`;
     }
 
-    // Back to top
-    const backToTop = document.getElementById('back-to-top');
-    if (backToTop) {
-      const toggleBackToTop = () => {
-        backToTop.classList.toggle('visible', window.scrollY > 400);
-      };
-      window.addEventListener('scroll', toggleBackToTop, { passive: true });
-      toggleBackToTop();
-      backToTop.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
-      });
-    }
-
-    // Copy link with feedback
-    const copyLinkBtn = document.getElementById('copy-link');
-    if (copyLinkBtn) {
-      copyLinkBtn.addEventListener('click', async () => {
-        const url = copyLinkBtn.getAttribute('data-url') || window.location.href;
-        try {
-          await navigator.clipboard.writeText(url);
-          copyLinkBtn.classList.add('copied');
-          copyLinkBtn.setAttribute('aria-label', 'Link copiado!');
-          setTimeout(() => {
-            copyLinkBtn.classList.remove('copied');
-            copyLinkBtn.setAttribute('aria-label', 'Copiar link');
-          }, 2000);
-        } catch {}
-      });
-    }
-
-    // Share Web API
-    const shareBtn = document.getElementById('share-native');
-    if (shareBtn && navigator.share) {
-      shareBtn.style.display = 'flex';
-      shareBtn.addEventListener('click', async () => {
-        const title = document.querySelector('h1')?.textContent || document.title;
-        try {
-          await navigator.share({ title, url: window.location.href });
-        } catch {}
-      });
-    } else if (shareBtn) {
-      shareBtn.style.display = 'none';
+    // Load related articles when sidebar comes into view
+    const relatedContent = document.getElementById('related-content');
+    if (relatedContent) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            relatedContent.dispatchEvent(new CustomEvent('load-related'));
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { rootMargin: '200px', threshold: 0.01 });
+      observer.observe(relatedContent);
     }
 
     // Keyboard shortcuts
@@ -187,446 +351,9 @@ import ReadingTracker from './ReadingTracker'
         e.preventDefault();
         window.dispatchEvent(new CustomEvent('search:open'));
       }
-      if (e.key === 'f' && (e.metaKey || e.ctrlKey)) {
-        // Allow browser find
-      }
       if (e.key === 'Escape') {
-        tocPanel?.classList.remove('open');
-        tocToggle?.setAttribute('aria-expanded', 'false');
+        // Close any open modals
       }
     });
-  }
+  })();
 </script>
-
-<style is:global>
-  /* Smart Sidebar Container */
-  .smart-sidebar {
-    position: sticky;
-    top: 88px;
-    max-height: calc(100vh - 108px);
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-bg-card-border) transparent;
-  }
-
-  .smart-sidebar::-webkit-scrollbar { width: 6px; }
-  .smart-sidebar::-webkit-scrollbar-track { background: transparent; }
-  .smart-sidebar::-webkit-scrollbar-thumb {
-    background: var(--color-bg-card-border);
-    border-radius: 3px;
-  }
-
-  /* Sidebar Card */
-  .sidebar-card {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-bg-card-border);
-    border-radius: var(--radius-card);
-    padding: 1.25rem;
-    margin-bottom: 1rem;
-    transition: border-color var(--transition), box-shadow var(--transition);
-  }
-
-  .sidebar-card:hover {
-    border-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
-    box-shadow: var(--shadow-glow);
-  }
-
-  .sidebar-title {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--color-text-muted);
-    margin-bottom: 1rem;
-  }
-
-  .sidebar-title svg { flex-shrink: 0; }
-
-  /* Reading Progress Ring */
-  .reading-progress {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 1rem 0;
-  }
-
-  .progress-ring {
-    position: relative;
-    width: 64px;
-    height: 64px;
-    transform: rotate(-90deg);
-  }
-
-  .progress-ring-circle {
-    fill: none;
-    stroke: var(--color-bg-card-border);
-    stroke-width: 4;
-    transition: stroke-dashoffset 0.3s ease;
-  }
-
-  .progress-ring-circle.progress {
-    stroke: var(--color-accent);
-    stroke-linecap: round;
-    filter: drop-shadow(0 0 6px var(--color-accent-glow));
-  }
-
-  .progress-ring-text {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    pointer-events: none;
-  }
-
-  .progress-ring-value {
-    font-family: var(--font-mono);
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--color-text-primary);
-    line-height: 1;
-  }
-
-  .progress-ring-label {
-    font-size: 0.6rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--color-text-muted);
-    margin-top: 0.15rem;
-  }
-
-  /* Table of Contents */
-  .toc-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-  }
-
-  .toc-item { overflow: hidden; }
-
-  .toc-link {
-    display: block;
-    padding: 0.4rem 0.6rem;
-    border-radius: 8px;
-    font-size: 0.82rem;
-    line-height: 1.4;
-    color: var(--color-text-secondary);
-    text-decoration: none;
-    transition: all 0.2s;
-    border-left: 2px solid transparent;
-    margin-left: -0.6rem;
-    padding-left: 0.6rem;
-  }
-
-  .toc-link:hover {
-    color: var(--color-accent);
-    background: color-mix(in srgb, var(--color-accent) 8%, transparent);
-  }
-
-  .toc-link.active {
-    color: var(--color-accent);
-    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
-    border-left-color: var(--color-accent);
-    font-weight: 600;
-  }
-
-  .toc-link.toc-h3 {
-    padding-left: 1.5rem;
-    font-size: 0.78rem;
-    opacity: 0.8;
-  }
-
-  .toc-link.toc-h3.active {
-    opacity: 1;
-  }
-
-  /* Mobile TOC Panel */
-  .toc-toggle {
-    display: none;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-bg-card-border);
-    color: var(--color-text-secondary);
-    cursor: pointer;
-    transition: all var(--transition);
-  }
-
-  .toc-toggle:hover {
-    border-color: var(--color-accent);
-    color: var(--color-accent);
-  }
-
-  .toc-panel {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    max-height: 60vh;
-    background: var(--color-bg-primary);
-    border-top: 1px solid var(--color-bg-card-border);
-    border-radius: var(--radius-card-lg) var(--radius-card-lg) 0 0;
-    padding: 1rem;
-    box-shadow: 0 -10px 40px rgba(0,0,0,0.4);
-    transform: translateY(100%);
-    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-    z-index: 100;
-    overflow-y: auto;
-  }
-
-  .toc-panel.open {
-    transform: translateY(0);
-  }
-
-  .toc-panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--color-bg-card-border);
-  }
-
-  .toc-panel-title {
-    font-weight: 700;
-    font-size: 0.95rem;
-  }
-
-  .toc-close {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-bg-card-border);
-    color: var(--color-text-secondary);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all var(--transition);
-  }
-
-  .toc-close:hover {
-    border-color: var(--color-accent);
-    color: var(--color-accent);
-  }
-
-  /* Quick Actions */
-  .quick-actions {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-  }
-
-  .action-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.85rem 0.75rem;
-    border-radius: 12px;
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-bg-card-border);
-    color: var(--color-text-secondary);
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-decoration: none;
-  }
-
-  .action-btn:hover {
-    border-color: var(--color-accent);
-    color: var(--color-accent);
-    background: color-mix(in srgb, var(--color-accent) 8%, transparent);
-    transform: translateY(-2px);
-  }
-
-  .action-btn.active {
-    border-color: var(--color-accent);
-    color: var(--color-accent);
-    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
-  }
-
-  .action-btn svg { width: 20px; height: 20px; }
-
-  .action-btn.copied {
-    border-color: #22c55e;
-    color: #22c55e;
-  }
-
-  /* Font Size Controls */
-  .font-controls {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .font-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-bg-card-border);
-    color: var(--color-text-secondary);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all var(--transition);
-  }
-
-  .font-btn:hover {
-    border-color: var(--color-accent);
-    color: var(--color-accent);
-  }
-
-  .font-btn.active {
-    border-color: var(--color-accent);
-    color: var(--color-accent);
-    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
-  }
-
-  .font-btn svg { width: 16px; height: 16px; }
-
-  /* Reading Time */
-  .reading-time {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.85rem;
-    color: var(--color-text-secondary);
-    padding: 0.5rem 0;
-  }
-
-  .reading-time svg { color: var(--color-accent); flex-shrink: 0; }
-
-  /* Related Articles Placeholder */
-  .related-placeholder {
-    text-align: center;
-    padding: 2rem 1rem;
-    color: var(--color-text-muted);
-  }
-
-  .related-placeholder svg {
-    width: 48px;
-    height: 48px;
-    margin-bottom: 0.75rem;
-    opacity: 0.4;
-  }
-
-  .related-loading {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 1.5rem;
-    color: var(--color-text-muted);
-    font-size: 0.85rem;
-  }
-
-  .related-loading .spinner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--color-bg-card-border);
-    border-top-color: var(--color-accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* Back to Top */
-  .back-to-top {
-    position: fixed;
-    bottom: 1.5rem;
-    right: 1.5rem;
-    z-index: 90;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary));
-    color: var(--color-btn-text);
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transform: translateY(16px) scale(0.9);
-    pointer-events: none;
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--shadow-glow);
-  }
-
-  .back-to-top.visible {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    pointer-events: auto;
-  }
-
-  .back-to-top:hover {
-    transform: translateY(-4px) scale(1.05);
-  }
-
-  /* Sidebar Divider */
-  .sidebar-divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--color-bg-card-border), transparent);
-    margin: 0.5rem 0;
-  }
-
-  @media (max-width: 960px) {
-    .smart-sidebar {
-      position: static;
-      max-height: none;
-      overflow: visible;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 1rem;
-      padding-top: 1rem;
-    }
-
-    .toc-toggle {
-      display: flex;
-    }
-
-    .toc-panel {
-      display: block;
-    }
-
-    .sidebar-card:has(.toc-list) {
-      display: none;
-    }
-
-    .back-to-top {
-      bottom: 1rem;
-      right: 1rem;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .progress-ring-circle,
-    .toc-link,
-    .action-btn,
-    .back-to-top,
-    .toc-panel {
-      transition: none !important;
-      animation: none !important;
-    }
-  }
-</style>

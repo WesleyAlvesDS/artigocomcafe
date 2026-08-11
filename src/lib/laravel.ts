@@ -117,17 +117,31 @@ function mapRecipe(r: Recipe): Recipe {
   }
 }
 
-export async function getRecipes(page = 1, perPage = 9, category?: string, search?: string, tag?: string): Promise<RecipeListResponse> {
+export interface RecipeListResult {
+  recipes: Recipe[]
+  pagination: { total: number; totalPages: number; page: number }
+}
+
+export async function getRecipes(
+  page = 1,
+  perPage = 9,
+  filters: { category?: string; search?: string; tag?: string; difficulty?: string; timeMax?: string } = {}
+): Promise<RecipeListResult> {
   const params = new URLSearchParams({ page: String(page), per_page: String(perPage) })
-  if (category) params.set('category', category)
-  if (search) params.set('search', search)
-  if (tag) params.set('tag', tag)
+  if (filters.category) params.set('category', filters.category)
+  if (filters.search) params.set('search', filters.search)
+  if (filters.tag) params.set('tag', filters.tag)
+  if (filters.difficulty) params.set('difficulty', filters.difficulty)
+  if (filters.timeMax) params.set('time_max', filters.timeMax)
 
   const res = await fetch(`${API_BASE}/recipes?${params}`, { headers: { Accept: 'application/json' } })
-  if (!res.ok) return { data: [], total: 0, per_page: perPage, current_page: page, last_page: 0 }
+  if (!res.ok) return { recipes: [], pagination: { total: 0, totalPages: 0, page } }
 
   const json: RecipeListResponse = await res.json()
-  return { ...json, data: json.data.map(mapRecipe) }
+  return {
+    recipes: json.data.map(mapRecipe),
+    pagination: { total: json.total, totalPages: json.last_page, page: json.current_page },
+  }
 }
 
 export async function getAllRecipeSlugs(): Promise<string[]> {

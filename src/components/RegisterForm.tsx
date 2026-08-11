@@ -1,6 +1,15 @@
-import { useState, type FormEvent } from 'react'
-import { api, setToken } from '../lib/api'
+import { useState, useEffect, type FormEvent } from 'react'
+import { api, setToken, isAuthenticated } from '../lib/api'
 import { THEMES, applyThemeColors, type ThemeDefinition } from '../lib/themes'
+
+/** Destino pós-cadastro: Dashboard (painel do leitor) é a melhor experiência. */
+function getRedirectTarget(): string {
+  if (typeof window === 'undefined') return '/dashboard/'
+  const url = new URL(window.location.href)
+  const next = url.searchParams.get('next')
+  if (next && next.startsWith('/') && !next.startsWith('//')) return next
+  return '/dashboard/'
+}
 
 type Errors = Record<string, string>
 
@@ -89,6 +98,13 @@ function EyeIcon({ off = false }: { off?: boolean }) {
 
 export default function RegisterForm() {
   const [values, setValues] = useState<FormValues>(EMPTY_VALUES)
+
+  // Usuário já autenticado não precisa de cadastro — vai direto ao destino.
+  useEffect(() => {
+    if (isAuthenticated()) {
+      window.location.href = getRedirectTarget()
+    }
+  }, [])
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [errors, setErrors] = useState<Errors>({})
   const [generalError, setGeneralError] = useState('')
@@ -158,7 +174,7 @@ export default function RegisterForm() {
       })
       applyThemeColors(selectedTheme)
       setToken(data.token)
-      window.location.href = '/'
+      window.location.href = getRedirectTarget()
     } catch (err: any) {
       if (err.errors) {
         const mapped: Errors = {}

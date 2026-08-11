@@ -9,8 +9,14 @@
 import { chromium } from 'playwright';
 
 const BASE_URL = process.env.BASE_URL || 'https://artigocomcafe.com';
-const TEST_USER = process.env.TEST_USER || 'teste_skillmaster@artigocomcafe.com';
-const TEST_PASS = process.env.TEST_PASS || 'Teste@12345';
+const TEST_USER = process.env.TEST_USER;
+const TEST_PASS = process.env.TEST_PASS;
+
+// Credenciais nunca são versionadas: devem vir de env vars (TEST_USER, TEST_PASS).
+if (!TEST_USER || !TEST_PASS) {
+  console.error('❌ Credenciais ausentes. Defina TEST_USER e TEST_PASS antes de rodar a auditoria completa.');
+  process.exit(1);
+}
 
 const RESULTS = { passed: 0, failed: 0, warnings: 0, errors: [] };
 
@@ -229,6 +235,7 @@ async function runSuite(viewport, label) {
     console.log('\n🎨 HEADER, MENU E TEMA');
     const uiPage = await context.newPage();
     await uiPage.goto(BASE_URL + '/', { waitUntil: 'networkidle', timeout: 30000 });
+    await dismissCookies(uiPage);
 
     if (isMobile) {
       const hamburger = uiPage.locator('#hamburger');

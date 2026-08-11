@@ -54,6 +54,7 @@ function colorFromSlug(slug: string): string {
 function MapContent() {
   const [data, setData] = useState<KnowledgeMapData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
   const [scale, setScale] = useState(1)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
@@ -61,12 +62,16 @@ function MapContent() {
   const dragStart = useRef({ x: 0, y: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
+  const load = () => {
+    setLoading(true)
+    setError(false)
     api.get<KnowledgeMapData>('/user/knowledge-map')
       .then(d => setData(d))
-      .catch(() => setData(null))
+      .catch(() => setError(true))
       .finally(() => setLoading(false))
-  }, [])
+  }
+
+  useEffect(load, [])
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault()
@@ -106,14 +111,14 @@ function MapContent() {
     )
   }
 
-  if (!data) {
+  if (error || !data) {
     return (
       <div class="flex items-center justify-center min-h-[60vh]">
         <div class="text-center glass-card p-8 max-w-md">
           <div class="text-4xl mb-4">🗺️</div>
-          <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-2">Faça login para ver seu mapa</h2>
-          <p class="text-[var(--color-text-secondary)] mb-4">Seu Mapa do Conhecimento mostra sua evolução e os temas que você já explorou.</p>
-          <a href="/entrar" class="btn-primary">Entrar</a>
+          <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-2">Não foi possível carregar o mapa</h2>
+          <p class="text-[var(--color-text-secondary)] mb-4">Ocorreu um erro ao buscar os dados do seu Mapa do Conhecimento. Tente novamente em instantes.</p>
+          <button onClick={load} class="btn-primary">Tentar novamente</button>
         </div>
       </div>
     )

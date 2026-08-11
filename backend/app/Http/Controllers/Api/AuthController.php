@@ -117,10 +117,18 @@ class AuthController extends Controller
             ['token' => Hash::make($token), 'created_at' => now()]
         );
 
-        return response()->json([
+        $payload = [
             'message' => 'Se existir uma conta com este e-mail, enviaremos um link para redefinir sua senha.',
-            'reset_token' => $token,
-        ]);
+        ];
+
+        // O token de redefinição só é exposto em ambientes locais/de desenvolvimento
+        // (não há envio de e-mail configurado no projeto). Em produção, nunca
+        // devolver o token na resposta — apenas o envio por e-mail o entrega.
+        if (app()->environment(['local', 'testing'])) {
+            $payload['reset_token'] = $token;
+        }
+
+        return response()->json($payload);
     }
 
     public function resetPassword(Request $request): JsonResponse

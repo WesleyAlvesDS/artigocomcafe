@@ -17,6 +17,7 @@ manter estes documentos atualizados.
 | [dash.md](dash.md) | Plano do Dashboard/CMS + **estado real de implementação por fase** |
 | [planoapi.md](planoapi.md) | Plano de APIs externas + **status de integração de cada uma** |
 | [receitas.md](receitas.md) | Módulo de Receitas (gamificação, trilha Barista, deploy, auditoria) |
+| [plano-fluxo-login.md](plano-fluxo-login.md) | **Auditoria do fluxo de login** (nós/arestas) + melhorias implementadas |
 
 ## 🔌 Specs das APIs externas
 
@@ -136,9 +137,14 @@ node ../tests/playwright/dash-audit.mjs     # Dashboard do leitor (31/31 ✓)
 
 - ✅ **Resolvido:** deploy da página `/dashboard/` realizado (antes 404, agora 31/31 ✓).
 - 🔄 **Trocar senha FTP** no DirectAdmin (rotação) — credenciais antigas ficaram no histórico do git.
-- 🔄 **Credenciais padrão nos testes** (`dash-login.mjs`, `full-audit.mjs`,
-  `dash-audit.mjs`) — usar apenas env vars (`DASH_EMAIL`, `DASH_PASSWORD`,
-  `TEST_USER`, `TEST_PASS`) sem defaults, para não versionar credenciais.
+- ✅ **Resolvido: credenciais padrão nos testes** — `dash-login.mjs`, `full-audit.mjs` e
+  `prod-test.mjs` agora exigem env vars (`DASH_EMAIL`, `DASH_PASSWORD`, `TEST_USER`,
+  `TEST_PASS`) sem defaults. Nenhuma credencial versionada.
+- ✅ **Resolvido: fluxo de login auditado e melhorado** — ver [plano-fluxo-login.md](plano-fluxo-login.md):
+  redirecionamento pós-login para `/dashboard/`, usuário já logado em `/entrar`/`/cadastro`
+  é redirecionado, `reset_token` só em ambiente local, rotas `/user/posts` implementadas
+  (widget "Meus Artigos" do dashboard funcionando), token inválido limpo no `UserMenu`,
+  estado de erro no KnowledgeMap. Auditoria `dash-audit.mjs` agora 49/49 (100%).
 
 ### Segurança
 

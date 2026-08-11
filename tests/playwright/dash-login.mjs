@@ -7,9 +7,15 @@
 
 import { chromium } from 'playwright';
 
-const BASE_URL = 'https://dash.artigocomcafe.com';
-const EMAIL = process.env.DASH_EMAIL || 'admin@artigocomcafe.com';
-const PASSWORD = process.env.DASH_PASSWORD || 'dash-admin-2026!';
+const BASE_URL = process.env.DASH_URL || 'https://dash.artigocomcafe.com';
+const EMAIL = process.env.DASH_EMAIL;
+const PASSWORD = process.env.DASH_PASSWORD;
+
+// Credenciais nunca são versionadas: devem vir de env vars (DASH_EMAIL, DASH_PASSWORD).
+if (!EMAIL || !PASSWORD) {
+  console.error('❌ Credenciais ausentes. Defina DASH_EMAIL e DASH_PASSWORD antes de rodar.');
+  process.exit(1);
+}
 
 const RESULTS = {
   passed: 0,

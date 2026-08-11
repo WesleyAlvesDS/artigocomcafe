@@ -8,9 +8,15 @@
 import { chromium } from 'playwright';
 
 const BASE_URL = process.env.BASE_URL || 'https://artigocomcafe.com';
-const API_URL = 'https://back.artigocomcafe.com/api';
-const EMAIL = 'teste_skillmaster@artigocomcafe.com';
-const PASSWORD = 'Teste@12345';
+const API_URL = process.env.API_URL || 'https://back.artigocomcafe.com/api';
+const EMAIL = process.env.TEST_USER;
+const PASSWORD = process.env.TEST_PASS;
+
+// Credenciais nunca são versionadas: devem vir de env vars (TEST_USER, TEST_PASS).
+if (!EMAIL || !PASSWORD) {
+  console.error('❌ Credenciais ausentes. Defina TEST_USER e TEST_PASS antes de rodar o teste de produção.');
+  process.exit(1);
+}
 
 const RESULTS = { passed: 0, failed: 0, warnings: 0 };
 function report(name, ok, detail) {
@@ -76,8 +82,9 @@ async function run() {
 
   const bodyText = await page.locator('body').innerText();
 
-  // Check user header
-  const hasUserName = bodyText.includes('Teste Skillmaster') || bodyText.includes('teste_skillmaster');
+  // Check user header (deriva o identificador do usuário a partir do e-mail de teste)
+  const userNamePart = EMAIL.split('@')[0];
+  const hasUserName = bodyText.toLowerCase().includes(userNamePart.toLowerCase());
   report('Header mostra usuário logado', hasUserName);
 
   // Check evolution stats

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
 
 type ToastType = 'success' | 'error' | 'info' | 'grain' | 'achievement'
 
@@ -34,6 +34,16 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setTimeout(() => removeToast(id), toast.duration || 4000)
   }, [removeToast])
 
+  // Escuta toasts disparados fora do contexto (ex.: forms) via window event.
+  useEffect(() => {
+    const onShow = (e: Event) => {
+      const detail = (e as CustomEvent<Omit<Toast, 'id'>>).detail
+      if (detail?.title) addToast(detail)
+    }
+    window.addEventListener('app:show-toast', onShow)
+    return () => window.removeEventListener('app:show-toast', onShow)
+  }, [addToast])
+
   return (
     <ToastContext.Provider value={{ toasts, addToast, removeToast }}>
       {children}
@@ -49,6 +59,22 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
 export function useToast(): ToastContextValue {
   return useContext(ToastContext) ?? { toasts: [], addToast: () => {}, removeToast: () => {} }
+}
+
+/**
+ * Mostra um toast a partir de qualquer lugar da aplicação, sem precisar
+ * estar dentro de um ToastProvider. Se nenhum provider estiver montado,
+ * o evento é simplesmente ignorado.
+ */
+export function showToast(
+  title: string,
+  type: ToastType = 'info',
+  options?: { message?: string; duration?: number; icon?: string }
+): void {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(new CustomEvent('app:show-toast', {
+    detail: { title, type, ...options },
+  }))
 }
 
 const TYPE_STYLES: Record<ToastType, { bg: string; border: string; icon: string }> = {

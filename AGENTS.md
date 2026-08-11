@@ -43,7 +43,7 @@ works correctly in production builds.
 ```
 npm run build       # Build for production
 npm run dev         # Start dev server
-node tests/playwright/dash-audit.mjs  # Dashboard audit (mock auth, 39 tests)
+node tests/playwright/dash-audit.mjs  # Dashboard audit (mock auth, 49 tests)
 node tests/playwright/prod-test.mjs   # Production test (real creds, 17 tests)
 node tests/playwright/full-audit.mjs  # Full site audit
 ```

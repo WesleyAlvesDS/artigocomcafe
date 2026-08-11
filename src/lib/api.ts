@@ -16,6 +16,18 @@ function getToken(): string | null {
   return localStorage.getItem('auth_token')
 }
 
+let isRefreshing = false
+let refreshSubscribers: Array<(token: string | null) => void> = []
+
+function subscribeTokenRefresh(cb: (token: string | null) => void) {
+  refreshSubscribers.push(cb)
+}
+
+function onTokenRefreshed(token: string | null) {
+  refreshSubscribers.forEach(cb => cb(token))
+  refreshSubscribers = []
+}
+
 async function request<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -35,6 +47,71 @@ async function request<T>(
     ...options,
     headers,
   })
+
+  // Handle 401 - token expirado
+  if (response.status === 401) {
+    if (!isRefreshing) {
+      isRefreshing = true
+      try {
+        const refreshResp = await fetch(`${API_URL}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        })
+        if (refreshResp.ok) {
+          const data = await refreshResp.json()
+          if (data.token) {
+            localStorage.setItem('auth_token', data.token)
+            onTokenRefreshed(data.token)
+            // Retry original request with new token
+            headers['Authorization'] = `Bearer ${data.token}`
+            const retryResponse = await fetch(`${API_URL}${endpoint}`, {
+              ...options,
+              headers,
+            })
+            isRefreshing = false
+            if (!retryResponse.ok) {
+              const body = await retryResponse.json().catch(() => ({}))
+              throw new ApiError(
+                body.message || `API Error: ${retryResponse.status}`,
+                retryResponse.status,
+                body.errors
+              )
+            }
+            return retryResponse.json()
+          }
+        }
+        // Refresh failed - clear auth
+        localStorage.removeItem('auth_token')
+        onTokenRefreshed(null)
+        if (typeof window !== 'undefined') {
+          window.location.href = '/entrar/'
+        }
+      } catch {
+        localStorage.removeItem('auth_token')
+        onTokenRefreshed(null)
+        if (typeof window !== 'undefined') {
+          window.location.href = '/entrar/'
+        }
+      } finally {
+        isRefreshing = false
+      }
+    } else {
+      // Wait for refresh to complete
+      return new Promise((resolve, reject) => {
+        subscribeTokenRefresh((newToken) => {
+          if (newToken) {
+            headers['Authorization'] = `Bearer ${newToken}`
+            fetch(`${API_URL}${endpoint}`, { ...options, headers })
+              .then(r => r.json())
+              .then(resolve)
+              .catch(reject)
+          } else {
+            reject(new ApiError('Sessão expirada', 401))
+          }
+        })
+      })
+    }
+  }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}))

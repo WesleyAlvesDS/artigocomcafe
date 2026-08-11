@@ -1,18 +1,25 @@
 import { useState, useEffect, type FormEvent } from 'react'
-import { api, setToken } from '../lib/api'
-import { applyThemeColors, getStoredTheme } from '../lib/themes'
+import { api, setToken, isAuthenticated } from '../lib/api'
+import { applyThemeColors, getStoredTheme, resetThemeColors } from '../lib/themes'
+import { showToast } from '../components/Toast'
 
 interface LoginResponse {
   token: string
   user: { theme?: string }
 }
 
+/**
+ * Destino após o login:
+ * - respeita o parâmetro `?next=` (quando seguro) para voltar à página de origem;
+ * - caso contrário, leva o usuário direto para o Dashboard (painel do leitor),
+ *   que é a melhor experiência pós-login.
+ */
 function getRedirectTarget(): string {
-  if (typeof window === 'undefined') return '/'
+  if (typeof window === 'undefined') return '/dashboard/'
   const url = new URL(window.location.href)
   const next = url.searchParams.get('next')
   if (next && next.startsWith('/') && !next.startsWith('//')) return next
-  return '/'
+  return '/dashboard/'
 }
 
 export default function LoginForm() {
@@ -26,6 +33,27 @@ export default function LoginForm() {
     applyThemeColors(getStoredTheme())
   }, [])
 
+  // Usuário já autenticado não precisa ver a página de login — vai direto
+  // para o destino (dashboard ou `?next=`). A aresta /entrar → já logado →
+  // conteúdo não faz sentido, então fechamos esse ciclo aqui. A chamada a
+  // /auth/me valida o token: se estiver expirado, o token é limpo e o
+  // usuário continua na página de login (sem loop de redirecionamento).
+  useEffect(() => {
+    if (!isAuthenticated()) return
+    let cancelled = false
+    api.get('/auth/me')
+      .then(() => {
+        if (!cancelled) window.location.href = getRedirectTarget()
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setToken(null)
+          resetThemeColors()
+        }
+      })
+    return () => { cancelled = true }
+  }, [])
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError('')
@@ -34,12 +62,15 @@ export default function LoginForm() {
       const data = await api.postForm<LoginResponse>('/auth/login', { email, password })
       setToken(data.token)
       if (data.user?.theme) applyThemeColors(data.user.theme)
+      showToast('Bem-vindo de volta! ☕', 'success')
       window.location.href = getRedirectTarget()
     } catch (err: any) {
       if (err.errors?.email) {
         setError(Array.isArray(err.errors.email) ? err.errors.email[0] : String(err.errors.email))
+      } else if (err.status === 401) {
+        setError('Email ou senha incorretos')
       } else {
-        setError(err.message || 'Erro ao entrar')
+        setError(err.message || 'Erro ao entrar. Tente novamente.')
       }
     } finally {
       setLoading(false)
@@ -47,7 +78,7 @@ export default function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="contact-form">
+    <form onSubmit={handleSubmit} className="contact-form" noValidate>
       {error && (
         <div className="form-error" role="alert">{error}</div>
       )}

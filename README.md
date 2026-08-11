@@ -103,6 +103,7 @@ Endpoints principais em `backend/routes/api.php`:
 - `GET /api/integrations/exchange-rate` — câmbio
 - `GET /api/integrations/headlines` — manchetes
 - `POST /api/auth/*` — login, cadastro, recuperação de senha
+- `GET|POST /api/user/posts` e `PUT|DELETE /api/user/posts/{article}` — artigos do próprio usuário (painel do leitor)
 - Gamificação: `POST /api/articles/*/complete`, `POST /api/recipes/*/complete`,
   `GET /api/missions`, `POST /api/missions/{mission}/claim`…
 
@@ -113,7 +114,7 @@ node tests/playwright/full-audit.mjs        # Auditoria geral do site (100% atua
 node tests/playwright/receitas-audit.mjs    # Módulo de receitas
 node tests/playwright/site-audit.mjs        # Métricas e SEO
 node tests/playwright/a11y-audit.mjs        # Acessibilidade (0 violações)
-node tests/playwright/dash-login.mjs        # Login do dashboard
+node tests/playwright/dash-login.mjs        # Login do dashboard (exige DASH_EMAIL/DASH_PASSWORD)
 node tests/playwright/dash-crud.mjs         # CRUD do dashboard
 ```
 

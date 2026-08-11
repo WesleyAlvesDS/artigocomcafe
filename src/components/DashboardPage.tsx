@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react'
+﻿import { useState, useEffect, useRef, useCallback } from 'react'
 import type { ChangeEvent, KeyboardEvent, FormEvent } from 'react'
 import AuthPage from './AuthPage'
 import { useAuth } from '../lib/auth'
@@ -6,6 +6,9 @@ import { api } from '../lib/api'
 import { getCurrentVocabulary } from '../lib/themes'
 import { getLocationPref, saveLocationPref, type LocationPref } from '../lib/consent'
 import { saveDraft, readDraft, clearDraft, emitDraftChange, type PostFormData } from '../lib/draft'
+import PostManagementWidget from './PostManagementWidget'
+import DashboardMobileNav from './DashboardMobileNav'
+import { showToast } from './Toast'
 
 interface EvolutionData {
   total_grains: number
@@ -538,400 +541,6 @@ function HeadlinesWidget() {
   )
 }
 
-function PostManagementWidget() {
-  const [posts, setPosts] = useState<PostItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [showCreate, setShowCreate] = useState(false)
-  const [editingPost, setEditingPost] = useState<PostItem | null>(null)
-  const [formData, setFormData] = useState<PostFormData>(emptyFormData())
-  const [draft, setDraft] = useState<import('../lib/draft').DraftData | null>(null)
-  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
-  const [lastSaved, setLastSaved] = useState<Date | null>(null)
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const composing = showCreate || !!editingPost
-
-  const fetchPosts = async (p = 1) => {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await api.get<PostsResponse>(`/user/posts?page=${p}&per_page=10`)
-      setPosts(res.data.data)
-      setTotalPages(res.data.meta.last_page)
-      setPage(res.data.meta.current_page)
-    } catch (err: any) {
-      setError(err?.message || 'Erro ao carregar posts')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => { fetchPosts() }, [])
-
-  useEffect(() => {
-    const sync = () => setDraft(readDraft())
-    sync()
-    window.addEventListener('dash-draft-change', sync)
-    return () => window.removeEventListener('dash-draft-change', sync)
-  }, [])
-
-  useEffect(() => {
-    if (!composing) return
-    if (saveTimer.current) clearTimeout(saveTimer.current)
-    setSaveState('saving')
-    saveTimer.current = setTimeout(() => {
-      saveDraft({
-        mode: editingPost ? 'edit' : 'create',
-        postId: editingPost?.id,
-        data: formData,
-        saved_at: new Date().toISOString(),
-      })
-      setLastSaved(new Date())
-      setSaveState('saved')
-      emitDraftChange()
-    }, 400)
-    return () => {
-      if (saveTimer.current) clearTimeout(saveTimer.current)
-    }
-  }, [formData, composing, editingPost])
-
-  const resetComposer = () => {
-    clearDraft()
-    emitDraftChange()
-    setShowCreate(false)
-    setEditingPost(null)
-    setFormData(emptyFormData())
-    setSaveState('idle')
-    setLastSaved(null)
-  }
-
-  const handleCreate = async (e: FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    try {
-      await api.post('/user/posts', {
-        ...formData,
-        tags: formData.tags_input.split(',').map(t => t.trim()).filter(Boolean),
-      })
-      resetComposer()
-      fetchPosts(1)
-    } catch (err: any) {
-      setError(err?.message || 'Erro ao criar post')
-    }
-  }
-
-  const handleUpdate = async (e: FormEvent) => {
-    e.preventDefault()
-    if (!editingPost) return
-    setError(null)
-    try {
-      await api.put(`/user/posts/${editingPost.id}`, {
-        ...formData,
-        tags: formData.tags_input.split(',').map(t => t.trim()).filter(Boolean),
-      })
-      resetComposer()
-      fetchPosts(page)
-    } catch (err: any) {
-      setError(err?.message || 'Erro ao atualizar post')
-    }
-  }
-
-  const handleDelete = async (id: number) => {
-    if (!confirm('Tem certeza que deseja excluir este post?')) return
-    try {
-      await api.delete(`/user/posts/${id}`)
-      fetchPosts(page)
-    } catch (err: any) {
-      setError(err?.message || 'Erro ao excluir post')
-    }
-  }
-
-  const startEdit = (post: PostItem) => {
-    setEditingPost(post)
-    setFormData({
-      title: post.title,
-      excerpt: post.excerpt || '',
-      content: '',
-      status: post.status,
-      category: post.category,
-      tags_input: post.tags.map(t => t.name).join(', '),
-    })
-    setShowCreate(false)
-  }
-
-  const startCreate = () => {
-    setEditingPost(null)
-    setFormData(emptyFormData())
-    setShowCreate(true)
-  }
-
-  const restoreDraft = () => {
-    if (!draft) return
-    setFormData(draft.data)
-    const editPost = draft.mode === 'edit' && draft.postId ? posts.find(p => p.id === draft.postId) : undefined
-    if (editPost) {
-      setEditingPost(editPost)
-      setShowCreate(false)
-    } else {
-      setEditingPost(null)
-      setShowCreate(true)
-    }
-  }
-
-  const discardDraft = () => {
-    clearDraft()
-    emitDraftChange()
-  }
-
-  const fmtTime = (iso: string) =>
-    new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-
-  return (
-    <div class="glass-card p-6">
-      <div class="flex items-center justify-between mb-4">
-        <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
-          Meus Artigos
-        </span>
-        <span class="text-2xl" aria-hidden="true">📝</span>
-      </div>
-
-      {error && (
-        <div class="mb-4 p-3 text-sm text-red-400 bg-red-50 dark:bg-red-950/30 rounded-xl border border-red-500/30">
-          {error}
-        </div>
-      )}
-
-      {draft && !composing && (
-        <div class="mb-4 p-3 rounded-xl border border-amber-500/30 bg-amber-500/8 flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
-          <span class="flex-1 min-w-0">
-            <span class="font-medium text-[var(--color-text-primary)]">✍️ Rascunho não salvo</span>
-            <span class="text-[var(--color-text-muted)]">
-              {' "'}<span class="text-[var(--color-text-secondary)]">{draft.data.title || 'Sem título'}</span>{'" · '}
-              {draft.mode === 'edit' ? 'edição' : 'novo artigo'} · salvo às {fmtTime(draft.saved_at)}
-            </span>
-          </span>
-          <span class="flex gap-2 flex-shrink-0">
-            <button
-              type="button"
-              onClick={restoreDraft}
-              class="px-3 py-1.5 text-xs font-semibold text-[var(--color-btn-text)] bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-secondary)] rounded-lg hover:opacity-90 transition-opacity"
-            >
-              Restaurar
-            </button>
-            <button
-              type="button"
-              onClick={discardDraft}
-              class="px-3 py-1.5 text-xs font-medium text-[var(--color-text-muted)] border border-[var(--color-bg-card-border)] rounded-lg hover:text-red-400 transition-colors"
-            >
-              Descartar
-            </button>
-          </span>
-        </div>
-      )}
-
-      {composing ? (
-        <form onSubmit={editingPost ? handleUpdate : handleCreate} class="space-y-3">
-          <div>
-            <label class="form-label">Título</label>
-            <input
-              type="text"
-              required
-              value={formData.title || ''}
-              onChange={e => setFormData({ ...formData, title: e.target.value })}
-              class="form-input"
-              placeholder="Título do artigo"
-            />
-          </div>
-          <div>
-            <label class="form-label">Resumo</label>
-            <textarea
-              value={formData.excerpt || ''}
-              onChange={e => setFormData({ ...formData, excerpt: e.target.value })}
-              class="form-input form-textarea"
-              placeholder="Resumo do artigo (opcional)"
-              rows={3}
-            />
-          </div>
-          <div>
-            <label class="form-label">Conteúdo (Markdown)</label>
-            <textarea
-              value={formData.content || ''}
-              onChange={e => setFormData({ ...formData, content: e.target.value })}
-              class="form-input form-textarea font-mono text-sm"
-              placeholder="Escreva seu artigo em Markdown..."
-              rows={8}
-            />
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Status</label>
-              <select
-                value={formData.status || 'draft'}
-                onChange={e => setFormData({ ...formData, status: e.target.value as any })}
-                class="form-input form-select"
-              >
-                <option value="draft">Rascunho</option>
-                <option value="review">Em Revisão</option>
-                <option value="scheduled">Agendado</option>
-                <option value="published">Publicado</option>
-                <option value="archived">Arquivado</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Categoria</label>
-              <input
-                type="text"
-                value={formData.category?.name || ''}
-                onChange={e => setFormData({ ...formData, category: { name: e.target.value, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') } })}
-                class="form-input"
-                placeholder="Categoria"
-              />
-            </div>
-          </div>
-          <div>
-            <label class="form-label">Tags (separadas por vírgula)</label>
-            <input
-              type="text"
-              value={formData.tags_input || ''}
-              onChange={e => setFormData({ ...formData, tags_input: e.target.value })}
-              class="form-input"
-              placeholder="café, torrefação, método, etc."
-            />
-          </div>
-
-          <div class="flex items-center gap-2">
-            {(saveState === 'saving' || saveState === 'saved') && (
-              <p class="flex items-center gap-1.5 text-[11px] text-[var(--color-text-muted)] flex-1 min-w-0">
-                {saveState === 'saving' ? (
-                  <>
-                    <span class="w-3 h-3 rounded-full border-2 border-[var(--color-bg-card-border)] border-t-[var(--color-accent)] animate-spin" aria-hidden="true" />
-                    Salvando rascunho…
-                  </>
-                ) : (
-                  <>
-                    <span class="text-[var(--color-accent)]" aria-hidden="true">✓</span>
-                    Rascunho salvo automaticamente às {lastSaved?.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                  </>
-                )}
-              </p>
-            )}
-          </div>
-
-          <div class="flex gap-2">
-            <button type="submit" class="btn-primary form-submit flex-1">
-              {editingPost ? 'Salvar Alterações' : 'Publicar Rascunho'}
-            </button>
-            <button
-              type="button"
-              onClick={resetComposer}
-              class="px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] border border-[var(--color-bg-card-border)] rounded-xl hover:bg-[var(--color-bg-card-hover)] transition-colors"
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
-      ) : (
-        <>
-          {loading ? (
-            <div class="space-y-3">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} class="h-20 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
-              ))}
-            </div>
-          ) : posts.length === 0 ? (
-            <div class="text-center py-8">
-              <span class="text-3xl mb-3 block" aria-hidden="true">📄</span>
-              <p class="text-sm text-[var(--color-text-muted)] mb-4">Nenhum artigo ainda</p>
-              <button onClick={startCreate} class="btn-primary form-submit">
-                Criar Primeiro Artigo
-              </button>
-            </div>
-          ) : (
-            <>
-              <div class="divide-y divide-[var(--color-bg-card-border)]">
-                {posts.map(post => (
-                  <div key={post.id} class="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 flex-wrap mb-1">
-                        <span class="font-medium text-[var(--color-text-primary)] line-clamp-1">{post.title}</span>
-                        <span class="text-[10px] font-medium px-2 py-0.5 rounded-full"
-                          style={{ background: `${statusColors[post.status] || 'var(--color-text-muted)'}22`, color: statusColors[post.status] || 'var(--color-text-muted)' }}>
-                          {statusLabels[post.status] || post.status}
-                        </span>
-                        {post.featured_image && <span class="text-[10px] text-[var(--color-text-muted)]" aria-hidden="true">🖼️</span>}
-                      </div>
-                      <div class="flex items-center gap-3 text-[10px] text-[var(--color-text-muted-dark)]">
-                        <span>{new Date(post.date).toLocaleDateString('pt-BR')}</span>
-                        {post.category && <span>· {post.category.name}</span>}
-                        {post.reading_time && <span>⏱️ {post.reading_time} min</span>}
-                        {post.tags.length > 0 && <span>🏷️ {post.tags.slice(0, 3).map(t => t.name).join(', ')}{post.tags.length > 3 ? '…' : ''}</span>}
-                      </div>
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                      <a
-                        href={`/blog/${post.slug}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)] transition-colors"
-                        title="Ver no site"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                      </a>
-                      <button
-                        onClick={() => startEdit(post)}
-                        class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)] transition-colors"
-                        title="Editar"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                      </button>
-                      <button
-                        onClick={() => handleDelete(post.id)}
-                        class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                        title="Excluir"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {totalPages > 1 && (
-                <div class="flex items-center justify-center gap-2 mt-4">
-                  <button
-                    onClick={() => fetchPosts(page - 1)}
-                    disabled={page === 1}
-                    class="px-3 py-1.5 text-sm text-[var(--color-text-secondary)] border border-[var(--color-bg-card-border)] rounded-lg hover:bg-[var(--color-bg-card-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Anterior
-                  </button>
-                  <span class="text-sm text-[var(--color-text-muted)]">
-                    Página {page} de {totalPages}
-                  </span>
-                  <button
-                    onClick={() => fetchPosts(page + 1)}
-                    disabled={page === totalPages}
-                    class="px-3 py-1.5 text-sm text-[var(--color-text-secondary)] border border-[var(--color-bg-card-border)] rounded-lg hover:bg-[var(--color-bg-card-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Próxima
-                  </button>
-                </div>
-              )}
-
-              <button onClick={startCreate} class="w-full mt-4 btn-primary form-submit">
-                + Novo Artigo
-              </button>
-            </>
-          )}
-        </>
-      )}
-    </div>
-  )
-}
-
 function CreatorAssistantWidget() {
   const [query, setQuery] = useState('')
   const [reply, setReply] = useState<string | null>(null)
@@ -1195,16 +804,47 @@ function DashboardContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  // Keyboard shortcuts for power users
   useEffect(() => {
     const onKey = (e: globalThis.KeyboardEvent) => {
       const t = e.target as HTMLElement | null
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return
+      
+      // Number keys 1-4 for sections
       const idx = parseInt(e.key, 10)
-      if (idx >= 1 && idx <= SECTIONS.length) goTo(SECTIONS[idx - 1].id)
+      if (idx >= 1 && idx <= SECTIONS.length) {
+        e.preventDefault()
+        goTo(SECTIONS[idx - 1].id)
+        return
+      }
+      
+      // Additional shortcuts
+      if (e.metaKey || e.ctrlKey) {
+        switch (e.key.toLowerCase()) {
+          case 'n':
+            e.preventDefault()
+            if (active === 'posts') {
+              // Trigger new post creation - will be handled by PostManagementWidget
+              window.dispatchEvent(new CustomEvent('dash:new-post'))
+            }
+            break
+          case 'k':
+            e.preventDefault()
+            // Focus search if available
+            const searchInput = document.querySelector('input[type="search"]') as HTMLInputElement
+            searchInput?.focus()
+            break
+          case '/':
+            e.preventDefault()
+            const search = document.querySelector('input[type="search"]') as HTMLInputElement
+            search?.focus()
+            break
+        }
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [active])
 
   const fetchDashboard = () => {
     setLoading(true)
@@ -1356,12 +996,13 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* Mobile nav */}
-      <div class="lg:hidden sticky top-[68px] z-30 -mx-4 px-4 py-2 border-b border-[var(--color-bg-card-border)] bg-[color-mix(in srgb,var(--color-bg-primary) 84%,transparent)] backdrop-blur-xl">
-        <div class="flex gap-2 overflow-x-auto dash-nav-scroll">
-          {SECTIONS.map(sec => navItem(sec, true))}
-        </div>
-      </div>
+      {/* Mobile Navigation - Bottom Sheet */}
+      <DashboardMobileNav
+        sections={SECTIONS}
+        activeSection={active}
+        onSectionChange={goTo}
+        hasDraft={hasDraft}
+      />
 
       <div class="grid grid-cols-1 lg:grid-cols-[264px_1fr] gap-6 items-start">
         {/* Desktop sidebar */}

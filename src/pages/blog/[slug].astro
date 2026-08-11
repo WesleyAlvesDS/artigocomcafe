@@ -216,7 +216,6 @@ if (post) {
 
             <aside class="article-sidebar smart-sidebar">
               <SmartSidebar
-                client:load
                 articleTitle={post!.title}
                 articleUrl={`https://artigocomcafe.com/blog/${post!.slug}`}
                 tocHeadings={tocHeadings}
@@ -229,46 +228,16 @@ if (post) {
         </div>
       </div>
     </article>
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                  </a>
-                  <a
-                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://artigocomcafe.com/blog/${post!.slug}`)}`}
-                    target="_blank"
-                    rel="noopener"
-                    class="share-link"
-                    aria-label="Compartilhar no LinkedIn"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                  </a>
-                  <button
-                    class="share-link"
-                    id="copy-link"
-                    aria-label="Copiar link"
-                    data-url={`https://artigocomcafe.com/blog/${post!.slug}`}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </aside>
-          </div>
-        </div>
-      </div>
-    </article>
 
-    {/* Related Articles - Lazy Loaded */}
-    <section class="section" data-scroll-reveal="fade">
+{/* Related Articles - Lazy Loaded */}
+    <section class="section related-articles-section" id="related-articles-section">
       <div class="container">
         <div class="section-header" data-scroll-reveal="slide-up">
           <span class="section-label">Continue Lendo</span>
           <h2 class="section-title">Artigos Relacionados</h2>
         </div>
-        <div class="articles-grid" data-lazy-related>
-          <div class="related-skeleton">
+        <div class="articles-grid" data-stagger data-stagger-delay="80" data-stagger-start="100" id="related-articles-grid">
+          <div class="related-skeleton" aria-hidden="true">
             <div class="related-skeleton-item"></div>
             <div class="related-skeleton-item"></div>
             <div class="related-skeleton-item"></div>
@@ -279,7 +248,83 @@ if (post) {
     </section>
 
     <ScrollAnimations />
-    <LazyRelated client:load />
+    <LazyRelated />
+
+    <script is:inline define:vars={{ relatedData: related.slice(0, 4).map(r => ({
+      slug: r.slug,
+      title: r.title,
+      excerpt: r.excerpt,
+      featuredImage: r.featuredImage,
+      featuredImageAlt: r.featuredImageAlt,
+      date: r.date,
+      readingTime: r.readingTime,
+      categories: r.categories
+    })) }}>
+      // Lazy load related articles
+      (function() {
+        const grid = document.getElementById('related-articles-grid');
+        const section = document.getElementById('related-articles-section');
+        if (!grid || !section) return;
+
+        function renderRelated() {
+          if (grid.dataset.loaded === 'true') return;
+          grid.dataset.loaded = 'true';
+
+          // Remove skeleton
+          const skeleton = grid.querySelector('.related-skeleton');
+          if (skeleton) skeleton.remove();
+
+          // Render article cards
+          relatedData.forEach((post, i) => {
+            const card = document.createElement('a');
+            card.href = `/blog/${post.slug}/`;
+            card.className = 'article-card glass-card lazy-related-loaded';
+            card.style.setProperty('--stagger-delay', `${i * 80}ms`);
+            card.innerHTML = `
+              ${post.featuredImage ? `
+                <div class="article-image-wrapper">
+                  <img src="${post.featuredImage}" alt="${post.featuredImageAlt}" class="article-image" loading="lazy" decoding="async" />
+                  <div class="image-overlay"></div>
+                </div>
+              ` : ''}
+              <div class="article-body">
+                <div class="article-meta">
+                  ${post.categories.length > 0 ? `<span class="article-category">${post.categories[0].name}</span>` : ''}
+                  <span class="article-date">${new Date(post.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</span>
+                  <span class="article-reading">${post.readingTime} min de leitura</span>
+                </div>
+                <h2 class="article-title">${post.title}</h2>
+                <p class="article-excerpt">${post.excerpt}</p>
+                <span class="article-read-more">
+                  Ler artigo
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                  </svg>
+                </span>
+              </div>
+              <div class="card-glow"></div>
+            `;
+            grid.appendChild(card);
+          });
+
+          // Trigger reveal animation
+          requestAnimationFrame(() => {
+            section.classList.add('loaded');
+          });
+        }
+
+        // Listen for lazy load trigger
+        grid.addEventListener('lazy-related:load', renderRelated, { once: true });
+
+        // Also load when sidebar triggers it
+        document.addEventListener('load-related', () => {
+          if (grid.dataset.loaded !== 'true') {
+            renderRelated();
+          }
+        });
+      })();
+    </script>
 
     <ToastProvider>
       <ReadingTracker articleId={post!.id} articleTitle={post!.title} client:load />
@@ -779,5 +824,43 @@ if (post) {
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  /* Related Articles - Lazy Loaded Styles */
+  .related-articles-section {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+                transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .related-articles-section.loaded {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .articles-grid[data-stagger] > .lazy-related-loaded {
+    animation: fade-in-up 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .articles-grid[data-stagger] > .lazy-related-loaded:nth-child(1)  { animation-delay: 0ms; }
+  .articles-grid[data-stagger] > .lazy-related-loaded:nth-child(2)  { animation-delay: 80ms; }
+  .articles-grid[data-stagger] > .lazy-related-loaded:nth-child(3)  { animation-delay: 160ms; }
+  .articles-grid[data-stagger] > .lazy-related-loaded:nth-child(4)  { animation-delay: 240ms; }
+
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .related-articles-section {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+    .articles-grid[data-stagger] > .lazy-related-loaded {
+      animation: none;
+    }
   }
 </style>

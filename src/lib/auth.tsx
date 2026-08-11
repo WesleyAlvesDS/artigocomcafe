@@ -1,7 +1,7 @@
-import { useState, useEffect, createContext, useContext, type ReactNode } from 'react'
-import { api, setToken } from './api'
-import { applyThemeColors, resetThemeColors } from './themes'
-import { ToastProvider } from '../components/Toast'
+import { useState, useEffect, useCallback, createContext, useContext, type ReactNode } from 'react'
+import { api, setToken, isAuthenticated, ApiError } from './api'
+import { applyThemeColors, resetThemeColors, getStoredTheme } from './themes'
+import { showToast } from '../components/Toast'
 
 export interface User {
   id: number; name: string; username: string; email: string
@@ -16,34 +16,48 @@ interface AuthCtx {
   login: (email: string, password: string) => Promise<void>
   register: (name: string, username: string, email: string, password: string, theme?: string) => Promise<void>
   logout: () => Promise<void>
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthCtx>(null!)
+
+let refreshPromise: Promise<void> | null = null
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  const fetchUser = useCallback(async () => {
     const token = localStorage.getItem('auth_token')
-    if (token) {
-      api.get<{ user: User }>('/auth/me')
-        .then(d => {
-          setUser(d.user)
-          applyThemeColors(d.user.theme)
-        })
-        .catch(() => {
-          setToken(null)
-          resetThemeColors()
-        })
-        .finally(() => setLoading(false))
-    } else {
-      // Apply stored theme even when not logged in
-      const storedTheme = localStorage.getItem('user_theme')
+    if (!token) {
+      const storedTheme = getStoredTheme()
       if (storedTheme) applyThemeColors(storedTheme)
+      setLoading(false)
+      return
+    }
+
+    try {
+      const d = await api.get<{ user: User }>('/auth/me')
+      setUser(d.user)
+      applyThemeColors(d.user.theme)
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        setToken(null)
+        resetThemeColors()
+        setUser(null)
+      } else {
+        // Erro de rede - mantém token mas não define usuário
+        const storedTheme = getStoredTheme()
+        if (storedTheme) applyThemeColors(storedTheme)
+      }
+    } finally {
       setLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    fetchUser()
+  }, [fetchUser])
 
   const login = async (email: string, password: string) => {
     const d = await api.post<{ user: User; token: string }>('/auth/login', { email, password })
@@ -64,13 +78,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = async () => {
-    try { await api.post('/auth/logout') } catch {}
-    setToken(null)
-    setUser(null)
-    resetThemeColors()
+    try {
+      await api.post('/auth/logout')
+    } catch {
+      // Ignora erro de rede - limpa local mesmo assim
+    } finally {
+      setToken(null)
+      setUser(null)
+      resetThemeColors()
+    }
   }
 
-  return <AuthContext.Provider value={{ user, loading, login, register, logout }}><ToastProvider>{children}</ToastProvider></AuthContext.Provider>
+  const refreshUser = async () => {
+    if (refreshPromise) return refreshPromise
+    refreshPromise = (async () => {
+      try {
+        const d = await api.get<{ user: User }>('/auth/me')
+        setUser(d.user)
+        applyThemeColors(d.user.theme)
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 401) {
+          setToken(null)
+          resetThemeColors()
+          setUser(null)
+          showToast('Sessão expirada. Faça login novamente.', 'warning')
+        }
+      }
+    })()
+    try {
+      await refreshPromise
+    } finally {
+      refreshPromise = null
+    }
+  }
+
+  return <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser }}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

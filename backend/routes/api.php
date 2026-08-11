@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\RoasteryController;
 use App\Http\Controllers\Api\ThemeController;
 use App\Http\Controllers\Api\TrailController;
 use App\Http\Controllers\Api\UserDashboardController;
+use App\Http\Controllers\Api\UserPostController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/test', function () {
@@ -52,6 +53,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/auth/profile', [AuthController::class, 'updateProfile']);
 
     Route::get('/user/dashboard', [UserDashboardController::class, 'index']);
+
+    Route::get('/user/posts', [UserPostController::class, 'index']);
+    Route::post('/user/posts', [UserPostController::class, 'store']);
+    Route::put('/user/posts/{article}', [UserPostController::class, 'update']);
+    Route::delete('/user/posts/{article}', [UserPostController::class, 'destroy']);
 
     Route::get('/user/library', [CollectionController::class, 'myLibrary']);
     Route::get('/user/library/recipes', [CollectionController::class, 'myRecipeLibrary']);

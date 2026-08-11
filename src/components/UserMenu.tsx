@@ -13,7 +13,12 @@ export default function UserMenu() {
       setLoggedIn(true)
       api.get<{ user: { name: string } }>('/auth/me')
         .then(d => setName(d.user.name))
-        .catch(() => setLoggedIn(false))
+        .catch(() => {
+          // Token inválido/expirado: limpa e volta ao estado deslogado.
+          setToken(null)
+          resetThemeColors()
+          setLoggedIn(false)
+        })
     }
   }, [])
 
