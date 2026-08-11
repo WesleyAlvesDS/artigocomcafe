@@ -35,7 +35,12 @@ class ExchangeRateService extends ApiClient
         $rates = $data['rates'] ?? [];
 
         // Moedas de maior interesse para o público brasileiro
-        $interesting = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'ARS', 'CAD', 'AUD', 'CHF'];
+        // (mais ampla para alimentar o conversor interativo)
+        $interesting = [
+            'USD', 'EUR', 'GBP', 'JPY', 'CNY', 'ARS', 'CAD', 'AUD', 'CHF',
+            'MXN', 'CLP', 'COP', 'PEN', 'UYU', 'INR', 'KRW', 'HKD', 'SGD',
+            'AED', 'TRY', 'PLN', 'SEK', 'NOK', 'DKK', 'ZAR',
+        ];
 
         $items = collect($interesting)
             ->filter(fn (string $code) => isset($rates[$code]))

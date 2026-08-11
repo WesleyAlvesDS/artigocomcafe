@@ -4,6 +4,7 @@ import AuthPage from './AuthPage'
 import { useAuth } from '../lib/auth'
 import { api } from '../lib/api'
 import { getCurrentVocabulary } from '../lib/themes'
+import { getLocationPref, saveLocationPref, type LocationPref } from '../lib/consent'
 
 interface EvolutionData {
   total_grains: number
@@ -156,63 +157,33 @@ function WeatherWidget() {
   const [error, setError] = useState(false)
   const [city, setCity] = useState<string>('São Paulo')
 
-  const fetchWeather = (targetCity: string) => {
+  const fetchByQuery = (query: string) => {
     setLoading(true)
     setError(false)
-    setCity(targetCity)
-    const cached = sessionStorage.getItem('dash_weather')
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached) as WeatherData
-        if (parsed.temperature_c != null && Date.now() - (parsed.cached_at ? Date.parse(parsed.cached_at) : 0) < 3600000 && parsed.city === targetCity) {
-          setWeather(parsed)
-          setLoading(false)
-          return
-        }
-      } catch {}
-    }
-
-    api.get<{ data: WeatherData }>(`/integrations/weather?city=${encodeURIComponent(targetCity)}`)
+    api.get<{ data: WeatherData }>(`/integrations/weather?${query}`)
       .then(d => {
         setWeather(d.data)
-        try { sessionStorage.setItem('dash_weather', JSON.stringify({ ...d.data, cached_at: new Date().toISOString() })) } catch {}
+        setCity(d.data.city || 'Sua localização')
+        try { sessionStorage.setItem('dash_weather', JSON.stringify({ ...d.data, query, cached_at: new Date().toISOString() })) } catch {}
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false))
   }
 
-  const requestGeolocation = () => {
-    if (!navigator.geolocation) {
-      fetchWeather('São Paulo')
-      return
+  const queryFor = (pref: LocationPref | null) => {
+    if (pref?.granted && pref.lat != null && pref.lon != null) {
+      return `lat=${pref.lat}&lon=${pref.lon}`
     }
-    setLoading(true)
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords
-        api.get<{ data: WeatherData }>(`/integrations/weather?lat=${latitude}&lon=${longitude}`)
-          .then(d => {
-            setWeather(d.data)
-            setCity(d.data.city || 'Sua localização')
-            try { sessionStorage.setItem('dash_weather', JSON.stringify({ ...d.data, cached_at: new Date().toISOString() })) } catch {}
-          })
-          .catch(() => {
-            setError(true)
-            fetchWeather('São Paulo')
-          })
-          .finally(() => setLoading(false))
-      },
-      () => fetchWeather('São Paulo'),
-      { timeout: 10000 }
-    )
+    return `city=${encodeURIComponent(pref?.city || 'São Paulo')}`
   }
 
-  useEffect(() => {
+  const loadFromPref = (pref: LocationPref | null) => {
+    const query = queryFor(pref)
     const cached = sessionStorage.getItem('dash_weather')
     if (cached) {
       try {
-        const parsed = JSON.parse(cached) as WeatherData
-        if (parsed.temperature_c != null && Date.now() - (parsed.cached_at ? Date.parse(parsed.cached_at) : 0) < 3600000) {
+        const parsed = JSON.parse(cached) as WeatherData & { query?: string }
+        if (parsed.temperature_c != null && parsed.query === query && Date.now() - (parsed.cached_at ? Date.parse(parsed.cached_at) : 0) < 3600000) {
           setWeather(parsed)
           setCity(parsed.city || 'São Paulo')
           setLoading(false)
@@ -220,7 +191,38 @@ function WeatherWidget() {
         }
       } catch {}
     }
-    requestGeolocation()
+    fetchByQuery(query)
+  }
+
+  const requestGeolocation = () => {
+    if (!navigator.geolocation) {
+      saveLocationPref({ granted: false, city: 'São Paulo' })
+      loadFromPref(getLocationPref())
+      return
+    }
+    setLoading(true)
+    setError(false)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const pref: LocationPref = {
+          granted: true,
+          lat: pos.coords.latitude,
+          lon: pos.coords.longitude,
+          updated_at: new Date().toISOString(),
+        }
+        saveLocationPref(pref)
+        loadFromPref(pref)
+      },
+      () => {
+        saveLocationPref({ granted: false, city: 'São Paulo' })
+        loadFromPref(getLocationPref())
+      },
+      { timeout: 10000, maximumAge: 600000 }
+    )
+  }
+
+  useEffect(() => {
+    loadFromPref(getLocationPref())
   }, [])
 
   return (

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
 import { api } from '../lib/api'
+import { getLocationPref, saveLocationPref, type LocationPref } from '../lib/consent'
 
 interface Weather {
   city: string
@@ -18,6 +20,8 @@ interface Suggestion {
   text: string
   href: string
 }
+
+const QUICK_CITIES = ['São Paulo', 'Rio de Janeiro', 'Belo Horizonte', 'Curitiba', 'Recife', 'Salvador', 'Porto Alegre', 'Manaus']
 
 function suggestionFor(temp: number): Suggestion {
   if (temp >= 28) {
@@ -44,10 +48,21 @@ function suggestionFor(temp: number): Suggestion {
   }
 }
 
+function queryFor(pref: LocationPref | null): string {
+  if (pref?.granted && pref.lat != null && pref.lon != null) {
+    return `lat=${pref.lat}&lon=${pref.lon}`
+  }
+  const city = pref?.city || 'São Paulo'
+  return `city=${encodeURIComponent(city)}`
+}
+
 export default function ClimaDoCafe() {
   const [weather, setWeather] = useState<Weather | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [panelOpen, setPanelOpen] = useState(false)
+  const [locating, setLocating] = useState(false)
+  const [customCity, setCustomCity] = useState('')
 
   const loadWeather = (query: string) => {
     setLoading(true)
@@ -56,7 +71,7 @@ export default function ClimaDoCafe() {
       .then(d => {
         setWeather(d.data)
         try {
-          sessionStorage.setItem('clima_do_cafe', JSON.stringify({ ...d.data, cached_at: new Date().toISOString() }))
+          sessionStorage.setItem('clima_do_cafe', JSON.stringify({ ...d.data, query, cached_at: new Date().toISOString() }))
         } catch {
           /* storage indisponível */
         }
@@ -65,26 +80,54 @@ export default function ClimaDoCafe() {
       .finally(() => setLoading(false))
   }
 
-  const requestGeolocation = () => {
+  const useGeolocation = () => {
     if (!navigator.geolocation) {
-      loadWeather('city=Sao Paulo')
+      applyCity('São Paulo')
       return
     }
-    setLoading(true)
+    setLocating(true)
     navigator.geolocation.getCurrentPosition(
-      (pos) => loadWeather(`lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`),
-      () => loadWeather('city=Sao Paulo'),
+      (pos) => {
+        const pref: LocationPref = {
+          granted: true,
+          lat: pos.coords.latitude,
+          lon: pos.coords.longitude,
+          updated_at: new Date().toISOString(),
+        }
+        saveLocationPref(pref)
+        loadWeather(queryFor(pref))
+        setLocating(false)
+        setPanelOpen(false)
+      },
+      () => {
+        applyCity('São Paulo')
+        setLocating(false)
+      },
       { timeout: 8000, maximumAge: 600000 }
     )
   }
 
+  const applyCity = (city: string) => {
+    const pref: LocationPref = { granted: false, city }
+    saveLocationPref(pref)
+    loadWeather(queryFor(pref))
+    setPanelOpen(false)
+  }
+
+  const submitCustom = (e: FormEvent) => {
+    e.preventDefault()
+    const c = customCity.trim()
+    if (c) applyCity(c)
+  }
+
   useEffect(() => {
-    // Cache de sessão para não estourar o rate limit da integração
+    const pref = getLocationPref()
+    const query = queryFor(pref)
     const cached = sessionStorage.getItem('clima_do_cafe')
     if (cached) {
       try {
-        const parsed = JSON.parse(cached) as Weather & { cached_at?: string }
-        if (parsed.temperature_c != null && Date.now() - (parsed.cached_at ? Date.parse(parsed.cached_at) : 0) < 1800000) {
+        const parsed = JSON.parse(cached) as Weather & { cached_at?: string; query?: string }
+        if (parsed.temperature_c != null && parsed.query === query && Date.now() - (parsed.cached_at ? Date.parse(parsed.cached_at) : 0) < 1800000) {
           setWeather(parsed)
           setLoading(false)
           return
@@ -93,7 +136,7 @@ export default function ClimaDoCafe() {
         /* cache inválido, busca de novo */
       }
     }
-    requestGeolocation()
+    loadWeather(query)
   }, [])
 
   if (loading) {
@@ -127,7 +170,7 @@ export default function ClimaDoCafe() {
             </p>
           </div>
           <button
-            onClick={requestGeolocation}
+            onClick={() => { const pref = getLocationPref(); loadWeather(queryFor(pref)) }}
             disabled={loading}
             class="px-3 py-1.5 text-xs font-medium text-[var(--color-accent)] border border-[var(--color-accent)]/30 rounded-lg hover:bg-[var(--color-accent)]/10 transition-colors disabled:opacity-50"
           >
@@ -165,9 +208,23 @@ export default function ClimaDoCafe() {
               Clima do Café
             </span>
             <span class="text-[var(--color-text-muted)]">·</span>
-            <span class="text-[11px] text-[var(--color-text-muted)]">
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPanelOpen(o => !o) }}
+              class="inline-flex items-center gap-1 text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors"
+              aria-expanded={panelOpen}
+              aria-label="Trocar localização do clima"
+              title="Trocar localização"
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
               {weather.city}{weather.region ? `, ${weather.region}` : ''}
-            </span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" class={`transition-transform ${panelOpen ? 'rotate-180' : ''}`}>
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
           </div>
 
           <div class="flex items-center gap-3 mb-1">
@@ -193,6 +250,57 @@ export default function ClimaDoCafe() {
               </svg>
             </span>
           </div>
+
+          {panelOpen && (
+            <div
+              class="mt-3 pt-3 border-t border-[var(--color-bg-card-border)] text-left"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
+            >
+              <p class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-2">
+                Trocar localização
+              </p>
+              <button
+                type="button"
+                onClick={useGeolocation}
+                disabled={locating}
+                class="w-full mb-2 px-3 py-2 text-xs font-semibold text-[var(--color-accent)] bg-[var(--color-accent)]/8 border border-[var(--color-accent)]/25 rounded-lg hover:bg-[var(--color-accent)]/15 transition-colors disabled:opacity-60"
+              >
+                {locating ? 'Buscando localização…' : '📍 Usar minha localização'}
+              </button>
+              <div class="flex flex-wrap gap-1.5 mb-2">
+                {QUICK_CITIES.map(city => (
+                  <button
+                    key={city}
+                    type="button"
+                    onClick={() => applyCity(city)}
+                    class={`px-2.5 py-1 text-[11px] font-medium rounded-full border transition-colors ${
+                      weather.city === city
+                        ? 'bg-[var(--color-accent)]/12 border-[var(--color-accent)] text-[var(--color-accent)]'
+                        : 'bg-[var(--color-bg-card)] border-[var(--color-bg-card-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]'
+                    }`}
+                  >
+                    {city}
+                  </button>
+                ))}
+              </div>
+              <form onSubmit={submitCustom} class="flex gap-1.5">
+                <input
+                  type="text"
+                  value={customCity}
+                  onChange={e => setCustomCity(e.target.value)}
+                  placeholder="Outra cidade…"
+                  aria-label="Outra cidade"
+                  class="flex-1 min-w-0 px-3 py-1.5 text-xs bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] rounded-lg text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)]"
+                />
+                <button
+                  type="submit"
+                  class="px-3 py-1.5 text-xs font-semibold text-[var(--color-btn-text)] bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-secondary)] rounded-lg hover:opacity-90 transition-opacity"
+                >
+                  Ir
+                </button>
+              </form>
+            </div>
+          )}
         </div>
       </div>
     </a>
