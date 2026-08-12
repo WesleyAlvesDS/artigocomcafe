@@ -1,0 +1,89 @@
+---
+interface Props {
+  /**
+   * Habilita a renderização da unidade AdSense.
+   * Deixe `false` (padrão) até criar a unidade no painel do Google e
+   * preencher `dataAdSlot`/`dataAdClient` com os valores reais.
+   */
+  enabled?: boolean
+  /** Slot ID da unidade criada no painel do AdSense (data-ad-slot) */
+  dataAdSlot?: string
+  /** Publisher ID do AdSense (data-ad-client) — padrão: conta do site */
+  dataAdClient?: string
+  /** Formato: responsivo automático */
+  format?: 'auto' | 'rectangle' | 'horizontal'
+  /** Classes extras */
+  className?: string
+  /** Mostra rótulo "Espaço reservado" quando desabilitado (dev apenas) */
+  debug?: boolean
+}
+
+const {
+  enabled = false,
+  dataAdSlot = '',
+  dataAdClient = 'ca-pub-4516147510474933',
+  format = 'auto',
+  className = '',
+  debug = false,
+} = Astro.props
+
+// Slot reservado: enquanto não há unidade criada no painel do AdSense,
+// não renderiza nada (evita buracos no layout). Para ativar:
+//   <AdSenseSlot enabled dataAdSlot="SEU_SLOT_ID" />
+// O script do AdSense já está no <head> via Base.astro.
+const showDebug = debug && !enabled
+---
+
+{
+  enabled ? (
+    <div class={`ad-google-slot ${className}`}>
+      <span class="ad-google-slot-label">Publicidade</span>
+      <ins
+        class="adsbygoogle"
+        style="display:block"
+        data-ad-client={dataAdClient}
+        data-ad-slot={dataAdSlot}
+        data-ad-format={format}
+        data-full-width-responsive="true"
+      ></ins>
+      <script is:inline>
+        try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+      </script>
+    </div>
+  ) : showDebug ? (
+    <div class="ad-google-slot ad-google-slot--reserved" aria-hidden="true">
+      <span class="ad-google-slot-label">Espaço reservado · Google AdSense</span>
+    </div>
+  ) : (
+    <></>
+  )
+}
+
+<style>
+  .ad-google-slot {
+    width: 100%;
+    margin: 3rem auto;
+  }
+
+  .ad-google-slot-label {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Apenas para desenvolvimento (debug) — nunca em produção */
+  .ad-google-slot--reserved {
+    min-height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed color-mix(in srgb, var(--color-accent) 35%, transparent);
+    border-radius: var(--radius-card);
+    background: color-mix(in srgb, var(--color-accent) 5%, transparent);
+  }
+</style>

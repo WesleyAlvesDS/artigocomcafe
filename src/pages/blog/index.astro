@@ -5,6 +5,8 @@ import Pagination from '../../components/Pagination.astro'
 import SidebarWidgets from '../../components/SidebarWidgets.astro'
 import ScrollAnimations from '../../components/ScrollAnimations.astro'
 import AdSterraBanner from '../../components/AdSterraBanner.astro'
+import AdSterraNative from '../../components/AdSterraNative.astro'
+import AdSenseSlot from '../../components/AdSenseSlot.astro'
 import { getPosts, getCategories } from '../../lib/laravel'
 
 export async function getStaticPaths() {
@@ -101,8 +103,21 @@ const { posts, pagination } = await getPosts(currentPage, 9, categorySlug || und
           ) : posts.length > 0 ? (
             <>
               <div class="articles-grid" data-stagger data-stagger-delay="80" data-stagger-start="100">
-                {posts.map((post, i) => (
+                {posts.slice(0, 4).map((post, i) => (
                   <ArticleCard post={post} index={i} />
+                ))}
+              </div>
+              {posts.length > 4 && (
+                <>
+                  {/* In-feed: anúncio nativo no meio da grade (após 4 artigos) */}
+                  <AdSterraNative lazy className="blog-feed-ad" label="Publicidade" />
+                  {/* Slot reservado para o Google AdSense (desabilitado até criar a unidade) */}
+                  <AdSenseSlot />
+                </>
+              )}
+              <div class="articles-grid" data-stagger data-stagger-delay="80" data-stagger-start="100">
+                {posts.slice(4).map((post, i) => (
+                  <ArticleCard post={post} index={i + 4} />
                 ))}
               </div>
               {pagination.totalPages > 1 && (
@@ -140,6 +155,7 @@ const { posts, pagination } = await getPosts(currentPage, 9, categorySlug || und
           newsletter={true}
           clima={false}
           cambio={false}
+          nativeAd={false}
         />
       </div>
     </div>
@@ -304,6 +320,12 @@ const { posts, pagination } = await getPosts(currentPage, 9, categorySlug || und
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1.5rem;
+  }
+
+  /* In-feed: anúncio ocupa a largura total entre as duas metades da grade */
+  .blog-feed-ad {
+    max-width: 720px;
+    margin: 2.5rem auto;
   }
 
   .empty-state {

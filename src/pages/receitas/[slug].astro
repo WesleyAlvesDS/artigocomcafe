@@ -6,6 +6,7 @@ import { ToastProvider } from '../../components/Toast'
 import AdSterraNative from '../../components/AdSterraNative.astro'
 import AdSterraSmartLink from '../../components/AdSterraSmartLink.astro'
 import AdSterraBanner from '../../components/AdSterraBanner.astro'
+import AdSenseSlot from '../../components/AdSenseSlot.astro'
 import { formatDate } from '../../lib/utils'
 import { getRecipe, getAllRecipeSlugs } from '../../lib/laravel'
 import type { Recipe } from '../../lib/types'
@@ -275,6 +276,9 @@ const schemaRecipe = recipe ? {
                 </ul>
                 <p class="ingredients-progress" id="ingredients-progress">0/{recipe.ingredients.length} ingredientes</p>
               </section>
+
+              {/* Slot reservado para o Google AdSense (após ingredientes, desabilitado até criar a unidade) */}
+              <AdSenseSlot />
 
               <section class="recipe-steps" data-reveal>
                 <div class="section-head-row">

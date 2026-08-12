@@ -1,6 +1,8 @@
 ﻿---
 import Base from '../layouts/Base.astro'
 import NewsletterForm from '../components/NewsletterForm'
+import AdSterraBanner from '../components/AdSterraBanner.astro'
+import AdSenseSlot from '../components/AdSenseSlot.astro'
 ---
 
 <Base title="Newsletter — Artigo com Café" description="Inscreva-se na newsletter do Artigo com Café e receba os melhores conteúdos no seu email." canonical="/newsletter/">
@@ -51,6 +53,21 @@ import NewsletterForm from '../components/NewsletterForm'
           </div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container" style="max-width: 760px;">
+      {/* Anúncio abaixo da newsletter (respiro antes do footer) */}
+      <AdSterraBanner
+        key="a2885857c5978b578e5340115924dbb1"
+        width={728}
+        height={90}
+        label="Publicidade"
+        lazy
+      />
+      {/* Slot reservado para o Google AdSense (desabilitado até criar a unidade) */}
+      <AdSenseSlot />
     </div>
   </section>
 

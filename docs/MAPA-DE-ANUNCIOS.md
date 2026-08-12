@@ -192,3 +192,91 @@ qualquer página. Toda a monetização atual vem da **Adsterra**.
 > **Nota:** o AdSense também pode limitar a entrega se a página tiver excesso de
 > anúncios em relação ao conteúdo. Com 3–4 slots por página e lazy-load, o site
 > está em conformidade.
+
+---
+
+## 8. Nova distribuição (agosto/2026) — espaços vazios preenchidos + reservas AdSense
+
+> Objetivo: aproveitar espaços vazios em páginas que não monetizavam, sem exceder
+> a densidade recomendada, e **reservar pontos estratégicos para unidades do Google
+> AdSense** (componente `AdSenseSlot.astro`, desabilitado até criar as unidades).
+
+### Novos pontos Adsterra (páginas que estavam sem anúncios)
+
+| Página | Pontos adicionados | Formato |
+|---|---|---|
+| `sobre.astro` | Banner 728×90 no meio do conteúdo (após "O que você encontra aqui") + SmartLink card no sidebar | banner lazy + card |
+| `contato.astro` | Nativo após o grid de contato + SmartLink link | nativo lazy + link |
+| `newsletter.astro` | Banner 728×90 abaixo da seção principal | banner lazy |
+| `blog/index.astro` | **In-feed nativo** no meio da grade (após 4 artigos) | nativo lazy |
+| `receitas/index.astro` | **In-feed nativo** no meio da grade (após 6 receitas) | nativo lazy |
+
+### Slots reservados para o Google AdSense (`AdSenseSlot.astro`)
+
+O componente renderiza **nada** enquanto `enabled=false` (evita buracos no layout).
+Para ativar: `enabled dataAdSlot="SEU_SLOT_ID"` — o script do AdSense já está no `<head>`.
+
+| Página | Posição reservada | Prioridade |
+|---|---|---|
+| **Artigo** (`blog/[slug].astro`) | Inline após o anúncio nativo (fim do conteúdo) | ★★★ |
+| **Receita** (`receitas/[slug].astro`) | Após a lista de ingredientes | ★★★ |
+| **Home** (`index.astro`) | Na seção de anúncios (junto do nativo) | ★★ |
+| **Sobre** (`sobre.astro`) | Abaixo do banner do meio do conteúdo | ★★ |
+| **Contato** (`contato.astro`) | Após o nativo | ★ |
+| **Newsletter** (`newsletter.astro`) | Abaixo do banner | ★ |
+| **Blog listagem** (`blog/index.astro`) | Após o in-feed nativo | ★★ |
+| **Receitas listagem** (`receitas/index.astro`) | Após o in-feed nativo | ★★ |
+
+### Densidade revisada por página (agosto/2026)
+
+| Página | Slots Adsterra | Reservas AdSense | Total potencial |
+|---|---|---|---|
+| Home | 3 (leaderboard + nativo + smartlink) + footer | 1 | 4 + footer |
+| Blog listagem | 2 (leaderboard + in-feed) + sidebar (nativo+smartlink) + footer | 1 | 4 + sidebar + footer |
+| **Artigo** | **4 (nativo + smartlink + 320×50 + 160×300) + footer** | 1 | 5 + footer |
+| Receitas listagem | 2 (leaderboard + in-feed) + sidebar + footer | 1 | 4 + sidebar + footer |
+| Receita detalhe | 3 (smartlink + 468×60 + nativo sidebar) + footer | 1 | 4 + footer |
+| **Sobre** | 2 (banner + smartlink sidebar) + footer | 1 | 3 + footer |
+| **Contato** | 1 (nativo) + smartlink + footer | 1 | 2 + footer |
+| **Newsletter** | 1 (banner) + footer | 1 | 2 + footer |
+| Footer (todas) | 1 smartlink link | — | — |
+
+### Regras mantidas
+
+- **Lazy-load** em todos os novos slots (preserva LCP/INP).
+- **Distância mínima** 2.75–3rem mantida (anti-clique acidental).
+- **Ativar o AdSense gradualmente:** comece pelo artigo e pela receita (maior
+  intenção do usuário), depois home e listagens. Nunca ative os 8 de uma vez
+  para não exceder a densidade recomendada (≤30% no mobile).
+
+### ⚠️ Correção pós-review (agosto/2026) — 1 instância nativa por página
+
+O `AdSterraNative` usa um `container id` fixo (`container-b286da...`) que corresponde
+à unidade do dashboard Adsterra. `document.getElementById` retorna só o **primeiro**
+elemento com o id — então **2 instâncias na mesma página = HTML inválido e o 2º
+anúncio nunca preenche**. A zona até suporta até 3 widgets/página, mas com id duplicado
+não funciona.
+
+**Regra adotada: no máximo 1 `<AdSterraNative>` por página.**
+
+- `SidebarWidgets` ganhou a prop `nativeAd` (default `true`):
+  - `blog/index.astro` e `receitas/index.astro` usam `nativeAd={false}` — o nativo do
+    topo do sidebar foi removido porque essas páginas agora têm o **in-feed nativo**
+    no meio da grade (mais valioso: no fluxo de leitura).
+- `AdSterraNative` ganhou a prop `containerId` (default = unidade atual). Quando o
+  usuário criar uma **2ª unidade** no dashboard do Adsterra, basta passar o novo id
+  (ex.: `<AdSterraNative containerId="container-novoid" />`) para colocar 2 nativos
+  na mesma página sem conflito.
+
+**Contagem atual por página (1 nativo, no máximo):**
+
+| Página | Nativo | Outros |
+|---|---|---|
+| Home | 1 (abaixo dos widgets) | smartlink footer |
+| Artigo `blog/[slug]` | 1 (inline no conteúdo) | banner, smartlink |
+| Receita `receitas/[slug]` | 1 (sidebar) | banner, smartlink |
+| Blog listagem | 1 (in-feed após 4º) | banner 728×90, smartlink sidebar |
+| Receitas listagem | 1 (in-feed após 6ª) | banner 728×90, smartlink sidebar |
+| Sobre | 0 | banner meio, smartlink sidebar |
+| Contato | 1 (após o grid) | smartlink link |
+| Newsletter | 0 | banner 728×90 |

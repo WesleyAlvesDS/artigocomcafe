@@ -1,5 +1,8 @@
 ﻿---
 import Base from '../layouts/Base.astro'
+import AdSterraBanner from '../components/AdSterraBanner.astro'
+import AdSterraSmartLink from '../components/AdSterraSmartLink.astro'
+import AdSenseSlot from '../components/AdSenseSlot.astro'
 ---
 
 <Base title="Sobre — Artigo com Café" description="Conheça o projeto Artigo com Café, um espaço autoral sobre o universo do café." canonical="/sobre/" breadcrumbs={[
@@ -50,6 +53,27 @@ import Base from '../layouts/Base.astro'
             <li>Curiosidades, receitas e histórias de produtores</li>
             <li>Uma experiência de leitura gamificada, com trilhas e conquistas</li>
           </ul>
+
+          {/* Anúncio no meio do conteúdo (espaço vazio entre blocos) */}
+          <div class="about-ad">
+            <AdSterraBanner
+              key="a2885857c5978b578e5340115924dbb1"
+              width={728}
+              height={90}
+              label="Publicidade"
+              lazy
+            />
+            {/* Slot reservado para o Google AdSense (desabilitado até criar a unidade) */}
+            <AdSenseSlot />
+          </div>
+
+          <h2>Como você pode ajudar</h2>
+          <p>
+            Gostou do projeto? Existem várias formas de apoiar: compartilhando os artigos,
+            assinando a newsletter, enviando sugestões de temas e, claro, preparando uma
+            boa xícara enquanto lê. Cada leitura também rende grãos — nossa moeda de
+            gamificação — conforme você avança na jornada.
+          </p>
         </div>
 
         <aside class="about-sidebar" data-reveal="delay-2">
@@ -80,6 +104,10 @@ import Base from '../layouts/Base.astro'
               Inscrever-se
             </a>
           </div>
+          <AdSterraSmartLink
+            variant="card"
+            text="Descubra seleções e experiências para acompanhar seu café."
+          />
         </aside>
       </div>
     </div>
@@ -113,6 +141,10 @@ import Base from '../layouts/Base.astro'
 
   .sidebar-card {
     padding: 1.5rem;
+  }
+
+  .about-ad {
+    margin: 2.5rem 0;
   }
 
   .sidebar-avatar {

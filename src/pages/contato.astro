@@ -1,5 +1,8 @@
 ﻿---
 import Base from '../layouts/Base.astro'
+import AdSterraNative from '../components/AdSterraNative.astro'
+import AdSterraSmartLink from '../components/AdSterraSmartLink.astro'
+import AdSenseSlot from '../components/AdSenseSlot.astro'
 ---
 
 <Base title="Contato — Artigo com Café" description="Entre em contato com a equipe do Artigo com Café." canonical="/contato/">
@@ -97,6 +100,18 @@ import Base from '../layouts/Base.astro'
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Anúncio após o grid de contato (espaço de respiro antes do footer) */}
+      <div class="contact-ad">
+        <AdSterraNative lazy label="Publicidade" />
+        <AdSterraSmartLink
+          variant="link"
+          text="Continue explorando seleções e experiências para acompanhar seu café."
+          className="contact-ad-link"
+        />
+        {/* Slot reservado para o Google AdSense (desabilitado até criar a unidade) */}
+        <AdSenseSlot />
       </div>
     </div>
   </section>
@@ -238,6 +253,19 @@ import Base from '../layouts/Base.astro'
 
   .info-social-link:hover {
     text-decoration: underline;
+  }
+
+  .contact-ad {
+    margin-top: 3.5rem;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .contact-ad-link {
+    display: block;
+    text-align: center;
+    margin-top: 1rem;
   }
 
   @media (max-width: 768px) {

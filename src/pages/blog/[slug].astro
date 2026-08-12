@@ -11,6 +11,7 @@ import SmartSidebar from '../../components/SmartSidebar.astro'
 import AdSterraNative from '../../components/AdSterraNative.astro'
 import AdSterraSmartLink from '../../components/AdSterraSmartLink.astro'
 import AdSterraBanner from '../../components/AdSterraBanner.astro'
+import AdSenseSlot from '../../components/AdSenseSlot.astro'
 import { formatDate } from '../../lib/utils'
 import { getPost, getAllSlugs } from '../../lib/laravel'
 import type { BlogPost } from '../../lib/types'
@@ -187,6 +188,9 @@ if (post) {
               <div class="article-content prose" set:html={post!.content.replace(/<h1([^>]*)>/gi, '<h2$1>').replace(/<\/h1>/gi, '</h2>')} />
 
               <AdSterraNative className="ad-article-inline" lazy />
+
+              {/* Slot reservado para o Google AdSense inline (desabilitado até criar a unidade) */}
+              <AdSenseSlot />
 
               {/* Author box */}
               <div class="article-author" data-scroll-reveal="fade">

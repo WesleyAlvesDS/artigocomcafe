@@ -5,6 +5,8 @@ import Pagination from '../../components/Pagination.astro'
 import SidebarWidgets from '../../components/SidebarWidgets.astro'
 import ScrollAnimations from '../../components/ScrollAnimations.astro'
 import AdSterraBanner from '../../components/AdSterraBanner.astro'
+import AdSterraNative from '../../components/AdSterraNative.astro'
+import AdSenseSlot from '../../components/AdSenseSlot.astro'
 import { getRecipes, getRecipeCategories } from '../../lib/laravel'
 
 export async function getStaticPaths() {
@@ -148,8 +150,21 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
           ) : recipes.length > 0 ? (
             <>
               <div class="recipes-grid" data-stagger data-stagger-delay="80" data-stagger-start="100">
-                {recipes.map((recipe, i) => (
+                {recipes.slice(0, 6).map((recipe, i) => (
                   <RecipeCard recipe={recipe} index={i} />
+                ))}
+              </div>
+              {recipes.length > 6 && (
+                <>
+                  {/* In-feed: anúncio nativo no meio da grade (após 6 receitas) */}
+                  <AdSterraNative lazy className="recipes-feed-ad" label="Publicidade" />
+                  {/* Slot reservado para o Google AdSense (desabilitado até criar a unidade) */}
+                  <AdSenseSlot />
+                </>
+              )}
+              <div class="recipes-grid" data-stagger data-stagger-delay="80" data-stagger-start="100">
+                {recipes.slice(6).map((recipe, i) => (
+                  <RecipeCard recipe={recipe} index={i + 6} />
                 ))}
               </div>
               {pagination.totalPages > 1 && (
@@ -190,6 +205,7 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
           newsletter={true}
           clima={true}
           cambio={true}
+          nativeAd={false}
         />
       </div>
     </div>
@@ -417,6 +433,12 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1.5rem;
+  }
+
+  /* In-feed: anúncio ocupa a largura total entre as duas metades da grade */
+  .recipes-feed-ad {
+    max-width: 720px;
+    margin: 2.5rem auto;
   }
   
   .empty-state {

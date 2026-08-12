@@ -8,6 +8,7 @@ import ClimaDoCafe from '../components/ClimaDoCafe'
 import ExchangeRateWidget from '../components/ExchangeRateWidget'
 import ScrollAnimations from '../components/ScrollAnimations.astro'
 import CategoryBar from '../components/CategoryBar.astro'
+import AdSenseSlot from '../components/AdSenseSlot.astro'
 import AdSterraNative from '../components/AdSterraNative.astro'
 import AdSterraSmartLink from '../components/AdSterraSmartLink.astro'
 import AdSterraBanner from '../components/AdSterraBanner.astro'
@@ -132,6 +133,8 @@ const categories = await getCategories()
         text="Descubra indicações selecionadas para acompanhar seu café."
         className="home-ad-smartlink"
       />
+      {/* Slot reservado para o Google AdSense (desabilitado até criar a unidade) */}
+      <AdSenseSlot />
       <p class="home-ad-disclosure">
         Este site é mantido com o apoio de anúncios e parcerias. Saiba mais sobre
         <a href="/cookies/">como utilizamos cookies de publicidade</a>.

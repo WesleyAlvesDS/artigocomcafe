@@ -8,22 +8,36 @@ interface Props {
   label?: string
   /** Carrega o script só quando o slot se aproxima da viewport (preserva LCP) */
   lazy?: boolean
+  /**
+   * Id do container. Deve ser ÚNICO por página: só use mais de uma instância
+   * por página se cada uma apontar para uma unidade (placement) diferente do
+   * dashboard Adsterra — id duplicado faz o getElementById preencher só o 1º.
+   * Para uma 2ª unidade, passe também `src` (o invoke.js é por unidade).
+   */
+  containerId?: string
+  /** URL do invoke.js da unidade. Padrão = unidade atual (nativo in-feed). */
+  src?: string
 }
+
+/** Chave da unidade nativa atual (usada no id do container e no src) */
+const zoneKey = 'b286da2e2fe2bfd4ecebf03e8a877de9'
 
 const {
   className = '',
   showLabel = true,
   label = 'Publicidade',
-  lazy = false
+  lazy = false,
+  containerId = `container-${zoneKey}`,
+  src = `https://pl30726903.effectivecpmnetwork.com/${zoneKey}/invoke.js`
 } = Astro.props
 
-const nativeSrc = 'https://pl30726903.effectivecpmnetwork.com/b286da2e2fe2bfd4ecebf03e8a877de9/invoke.js'
+const nativeSrc = src
 ---
 
 <div class={`adsterra-native ${className}`}>
   {showLabel && <span class="adsterra-native-label">{label}</span>}
   <div class="adsterra-native-slot">
-    <div id="container-b286da2e2fe2bfd4ecebf03e8a877de9" class="adsterra-native-container"></div>
+    <div id={containerId} class="adsterra-native-container"></div>
     {lazy ? (
       <script is:inline define:vars={{ nativeSrc }}>
         (function () {

@@ -87,10 +87,11 @@
   --color-bg-card-hover: rgba(184, 134, 85, 0.12);
   --color-bg-card-border: rgba(74, 48, 34, 0.12);
 
+  /* WCAG AA 4.5:1 sobre #FDFCF8 — text-muted #6f5c49 ≈ 6.2:1 */
   --color-text-primary: #4A3022;
-  --color-text-secondary: #6b5747;
-  --color-text-muted: #8a7462;
-  --color-text-muted-dark: #5f5547;
+  --color-text-secondary: #5a4433;
+  --color-text-muted: #6f5c49;
+  --color-text-muted-dark: #54432f;
 
   --color-glass-bg: rgba(255, 255, 255, 0.8);
   --color-glass-border: rgba(184, 134, 85, 0.18);

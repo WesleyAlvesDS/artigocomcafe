@@ -18,6 +18,12 @@ interface Props {
   clima?: boolean
   /** Mostra o widget de Câmbio ao Vivo */
   cambio?: boolean
+  /**
+   * Mostra o anúncio nativo no topo do sidebar. Desative (false) em páginas que
+   * já têm outro AdSterraNative no conteúdo (ex.: in-feed nas listagens) — o id
+   * do container é fixo por unidade e duplicar quebra o segundo anúncio.
+   */
+  nativeAd?: boolean
 }
 
 const {
@@ -26,13 +32,16 @@ const {
   newsletter = true,
   clima = false,
   cambio = false,
+  nativeAd = true,
 } = Astro.props
 ---
 
 <aside class="sidebar-widgets" aria-label="Widgets e conteúdo em destaque">
-  <div class="widget widget-ad" data-scroll-reveal="fade" data-scroll-delay="0">
-    <AdSterraNative lazy />
-  </div>
+  {nativeAd && (
+    <div class="widget widget-ad" data-scroll-reveal="fade" data-scroll-delay="0">
+      <AdSterraNative lazy />
+    </div>
+  )}
 
   {cafeDoDia && (
     <div class="widget" data-scroll-reveal="fade" data-scroll-delay="0">
