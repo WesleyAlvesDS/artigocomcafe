@@ -49,6 +49,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(Collection::class)->orderBy('order');
     }
 
+    public function userBooks()
+    {
+        return $this->hasMany(UserBook::class);
+    }
+
     public function readingProgress()
     {
         return $this->hasMany(ReadingProgress::class);

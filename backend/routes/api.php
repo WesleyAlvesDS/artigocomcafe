@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\PushSubscriptionController;
 use App\Http\Controllers\Api\RoasteryController;
 use App\Http\Controllers\Api\ThemeController;
 use App\Http\Controllers\Api\TrailController;
+use App\Http\Controllers\Api\UserBookController;
 use App\Http\Controllers\Api\UserDashboardController;
 use App\Http\Controllers\Api\UserPostController;
 use Illuminate\Support\Facades\Route;
@@ -71,6 +72,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/user/collections/{collection}', [CollectionController::class, 'destroy']);
     Route::post('/user/collections/{collection}/articles', [CollectionController::class, 'addArticle']);
     Route::delete('/user/collections/{collection}/articles/{article}', [CollectionController::class, 'removeArticle']);
+
+    // Prateleiras de livros (OpenLibrary)
+    Route::get('/user/books', [UserBookController::class, 'index']);
+    Route::post('/user/books', [UserBookController::class, 'store']);
+    Route::put('/user/books/{book}', [UserBookController::class, 'update']);
+    Route::delete('/user/books/{book}', [UserBookController::class, 'destroy']);
 
     Route::get('/user/progress', [ReadingProgressController::class, 'progress']);
     Route::post('/articles/{article}/progress', [ReadingProgressController::class, 'update']);

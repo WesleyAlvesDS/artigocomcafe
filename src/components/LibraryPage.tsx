@@ -1,7 +1,19 @@
 import AuthPage from './AuthPage'
 import { api } from '../lib/api'
 import { useAuth } from '../lib/auth'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { showToast } from './Toast'
+
+type ShelfKey = 'quero_ler' | 'lidos' | 'favoritos'
+
+const SHELVES: { id: ShelfKey; label: string; icon: string; color: string }[] = [
+  { id: 'quero_ler', label: 'Quero ler', icon: '🔖', color: '#f59e0b' },
+  { id: 'lidos', label: 'Lidos', icon: '✅', color: '#22c55e' },
+  { id: 'favoritos', label: 'Favoritos', icon: '❤️', color: '#ef4444' },
+]
+
+const SHELF_LABEL = (id: ShelfKey): string =>
+  SHELVES.find(s => s.id === id)?.label || id
 
 interface Collection {
   id: number
@@ -27,6 +39,15 @@ interface OpenLibraryBook {
   isbn?: string[]
 }
 
+interface SavedBook extends OpenLibraryBook {
+  id: number
+  ol_key: string
+  shelf: ShelfKey
+  user_rating: number | null
+  user_review: string | null
+  finished_at: string | null
+}
+
 interface ExploreData {
   books: OpenLibraryBook[]
   themes: string[]
@@ -40,10 +61,27 @@ interface SearchData {
   books: OpenLibraryBook[]
 }
 
-const bookCover = (b: OpenLibraryBook): string | null =>
+interface ShelfCounts {
+  quero_ler: number
+  lidos: number
+  favoritos: number
+}
+
+/** Normaliza a chave da OpenLibrary ("/works/OL123W" -> "OL123W") */
+const normKey = (b: { key?: string | null }): string => {
+  const raw = (b.key || '').replace(/^\//, '')
+  const seg = raw.split('/').pop() || raw
+  return seg
+}
+
+const bookCover = (b: { covers?: { S?: string; M?: string; L?: string } | null }): string | null =>
   b.covers?.M || b.covers?.L || b.covers?.S || null
 
-function BookCard({ book, onOpen }: { book: OpenLibraryBook; onOpen: (b: OpenLibraryBook) => void }) {
+function BookCard({ book, onOpen, savedShelf }: {
+  book: OpenLibraryBook
+  onOpen: (b: OpenLibraryBook) => void
+  savedShelf?: ShelfKey | null
+}) {
   const cover = bookCover(book)
   const [imgOk, setImgOk] = useState(true)
   return (
@@ -68,6 +106,11 @@ function BookCard({ book, onOpen }: { book: OpenLibraryBook; onOpen: (b: OpenLib
           </div>
         )}
         <div class="book-cover-shine" aria-hidden="true" />
+        {savedShelf && (
+          <span class="shelf-badge" style={{ background: SHELVES.find(s => s.id === savedShelf)?.color }}>
+            {SHELVES.find(s => s.id === savedShelf)?.icon} {SHELF_LABEL(savedShelf)}
+          </span>
+        )}
       </div>
       <div class="book-info">
         <h3 class="book-title">{book.title}</h3>
@@ -84,7 +127,13 @@ function BookCard({ book, onOpen }: { book: OpenLibraryBook; onOpen: (b: OpenLib
   )
 }
 
-function BookModal({ book, onClose }: { book: OpenLibraryBook; onClose: () => void }) {
+function BookModal({ book, onClose, savedShelf, onShelfChange, savingShelf }: {
+  book: OpenLibraryBook
+  onClose: () => void
+  savedShelf?: ShelfKey | null
+  onShelfChange?: (shelf: ShelfKey | null) => void
+  savingShelf?: boolean
+}) {
   const cover = bookCover(book)
   const [details, setDetails] = useState<{ description?: string | null; subjects?: string[] } | null>(null)
   const [loadingDetails, setLoadingDetails] = useState(false)
@@ -153,6 +202,37 @@ function BookModal({ book, onClose }: { book: OpenLibraryBook; onClose: () => vo
               {book.isbn && book.isbn.length > 0 && <span>ISBN {book.isbn[0]}</span>}
             </div>
 
+            {onShelfChange && (
+              <div class="shelf-picker">
+                <span class="shelf-picker-label">Minha prateleira</span>
+                <div class="shelf-buttons">
+                  {SHELVES.map(s => (
+                    <button
+                      type="button"
+                      key={s.id}
+                      disabled={savingShelf}
+                      onClick={() => onShelfChange(s.id)}
+                      class={`shelf-btn ${savedShelf === s.id ? 'active' : ''}`}
+                      style={savedShelf === s.id ? { background: s.color, borderColor: s.color, color: '#fff' } : undefined}
+                      aria-pressed={savedShelf === s.id}
+                    >
+                      {s.icon} {s.label}
+                    </button>
+                  ))}
+                  {savedShelf && (
+                    <button
+                      type="button"
+                      disabled={savingShelf}
+                      onClick={() => onShelfChange(null)}
+                      class="shelf-btn shelf-btn-remove"
+                    >
+                      🗑️ Remover
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
             {key && (
               <a
                 class="modal-link"
@@ -184,8 +264,13 @@ function LibraryContent() {
   const [searchError, setSearchError] = useState('')
   const [totalFound, setTotalFound] = useState(0)
   const [selectedBook, setSelectedBook] = useState<OpenLibraryBook | null>(null)
-  const [activeTab, setActiveTab] = useState<'explore' | 'search' | 'saved'>('explore')
+  const [activeTab, setActiveTab] = useState<'explore' | 'search' | 'shelves' | 'saved'>('explore')
   const debounceRef = useRef<number | null>(null)
+
+  // Prateleiras de livros
+  const [savedBooks, setSavedBooks] = useState<SavedBook[]>([])
+  const [shelfTab, setShelfTab] = useState<ShelfKey>('quero_ler')
+  const [savingShelf, setSavingShelf] = useState(false)
 
   useEffect(() => { loadCollections() }, [user])
 
@@ -203,6 +288,76 @@ function LibraryContent() {
 
   const remove = async (id: number) => {
     try { await api.delete(`/user/collections/${id}`); loadCollections() } catch {}
+  }
+
+  // Prateleiras
+  const loadSavedBooks = useCallback(async () => {
+    try {
+      const d = await api.get<{ books: SavedBook[]; counts: ShelfCounts }>('/user/books')
+      setSavedBooks(d.books || [])
+    } catch {}
+  }, [])
+
+  useEffect(() => { loadSavedBooks() }, [loadSavedBooks])
+
+  const savedByKey = useMemo(() => {
+    const map: Record<string, ShelfKey> = {}
+    for (const b of savedBooks) map[b.ol_key] = b.shelf
+    return map
+  }, [savedBooks])
+
+  const shelfCounts = useMemo<ShelfCounts>(() => ({
+    quero_ler: savedBooks.filter(b => b.shelf === 'quero_ler').length,
+    lidos: savedBooks.filter(b => b.shelf === 'lidos').length,
+    favoritos: savedBooks.filter(b => b.shelf === 'favoritos').length,
+  }), [savedBooks])
+
+  const shelfBooks = useMemo(
+    () => savedBooks.filter(b => b.shelf === shelfTab),
+    [savedBooks, shelfTab]
+  )
+
+  const handleShelfChange = async (book: OpenLibraryBook, shelf: ShelfKey | null) => {
+    setSavingShelf(true)
+    try {
+      const key = normKey(book)
+      const existing = savedBooks.find(b => b.ol_key === key)
+      if (shelf === null) {
+        if (existing) {
+          await api.delete(`/user/books/${existing.id}`)
+          showToast('Livro removido da biblioteca.', 'info')
+        }
+      } else if (existing?.shelf === shelf) {
+        // Já está nesta prateleira — nada a fazer.
+        return
+      } else {
+        const payload = {
+          ol_key: key,
+          title: book.title,
+          subtitle: book.subtitle ?? null,
+          authors: book.authors || [],
+          first_publish_year: book.first_publish_year ?? null,
+          cover_id: book.cover_id ?? null,
+          covers: book.covers ?? null,
+          isbn: book.isbn ?? [],
+          rating_avg: book.rating_avg ?? null,
+          rating_count: book.rating_count ?? null,
+          shelf,
+        }
+        if (existing) {
+          await api.put(`/user/books/${existing.id}`, { shelf })
+          showToast(`Movido para "${SHELF_LABEL(shelf)}".`, 'success')
+        } else {
+          await api.post('/user/books', payload)
+          showToast(`Salvo em "${SHELF_LABEL(shelf)}".`, 'success')
+        }
+      }
+      await loadSavedBooks()
+    } catch {
+      showToast('Não foi possível salvar o livro. Tente novamente.', 'error')
+    } finally {
+      setSavingShelf(false)
+    }
   }
 
   // Curadoria inicial
@@ -243,6 +398,8 @@ function LibraryContent() {
 
   const showSearchResults = query.trim().length >= 2
 
+  const totalSaved = savedBooks.length
+
   return (
     <div class="library-page space-y-8">
       {/* Hero */}
@@ -250,11 +407,11 @@ function LibraryContent() {
         <span class="hero-kicker">📚 Biblioteca Digital</span>
         <h1 class="hero-title">Sua Biblioteca</h1>
         <p class="hero-subtitle">
-          Descubra livros sobre café, conhecimento e literatura — organize sua coleção e acompanhe sua jornada de leitura.
+          Descubra livros sobre café, conhecimento e literatura — salve nas prateleiras e acompanhe sua jornada de leitura.
         </p>
         <div class="hero-stats">
+          <span><strong>{totalSaved}</strong> {totalSaved === 1 ? 'livro salvo' : 'livros salvos'}</span>
           <span><strong>{collections.length}</strong> coleções</span>
-          <span><strong>{exploreBooks.length}</strong> livros em destaque</span>
           <span><strong>∞</strong> títulos via OpenLibrary</span>
         </div>
       </div>
@@ -274,6 +431,13 @@ function LibraryContent() {
           class={`lib-tab ${activeTab === 'search' ? 'active' : ''}`}
         >
           🔍 Buscar livros
+        </button>
+        <button
+          type="button" role="tab" aria-selected={activeTab === 'shelves'}
+          onClick={() => setActiveTab('shelves')}
+          class={`lib-tab ${activeTab === 'shelves' ? 'active' : ''}`}
+        >
+          📚 Minhas prateleiras
         </button>
         <button
           type="button" role="tab" aria-selected={activeTab === 'saved'}
@@ -313,7 +477,7 @@ function LibraryContent() {
           {showSearchResults && !searching && searchResults.length > 0 && (
             <div class="books-grid">
               {searchResults.map(b => (
-                <BookCard key={b.key || b.title} book={b} onOpen={setSelectedBook} />
+                <BookCard key={b.key || b.title} book={b} savedShelf={savedByKey[normKey(b)]} onOpen={setSelectedBook} />
               ))}
             </div>
           )}
@@ -342,13 +506,73 @@ function LibraryContent() {
           ) : exploreBooks.length > 0 ? (
             <div class="books-grid">
               {exploreBooks.map(b => (
-                <BookCard key={b.key || b.title} book={b} onOpen={setSelectedBook} />
+                <BookCard key={b.key || b.title} book={b} savedShelf={savedByKey[normKey(b)]} onOpen={setSelectedBook} />
               ))}
             </div>
           ) : (
             <div class="empty-panel">
               <span class="empty-emoji" aria-hidden="true">📚</span>
               <p>Curadoria indisponível no momento.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Shelves panel */}
+      {activeTab === 'shelves' && (
+        <div class="shelves-panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Minhas Prateleiras</h2>
+            <p class="panel-desc">Organize seus livros: o que quer ler, o que já leu e seus favoritos.</p>
+          </div>
+
+          <div class="shelf-subtabs" role="tablist" aria-label="Prateleiras">
+            {SHELVES.map(s => (
+              <button
+                type="button"
+                role="tab"
+                key={s.id}
+                aria-selected={shelfTab === s.id}
+                onClick={() => setShelfTab(s.id)}
+                class={`shelf-subtab ${shelfTab === s.id ? 'active' : ''}`}
+              >
+                <span class="shelf-subtab-icon">{s.icon}</span>
+                {s.label}
+                <span class="shelf-subtab-count" style={{ background: shelfTab === s.id ? s.color : undefined, color: shelfTab === s.id ? '#fff' : undefined }}>
+                  {shelfCounts[s.id]}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {shelfBooks.length === 0 ? (
+            <div class="empty-panel">
+              <span class="empty-emoji" aria-hidden="true">{SHELVES.find(s => s.id === shelfTab)?.icon}</span>
+              <p>Nenhum livro em "{SHELF_LABEL(shelfTab)}".</p>
+              <p class="empty-hint">Busque um livro, abra os detalhes e escolha uma prateleira para salvá-lo.</p>
+            </div>
+          ) : (
+            <div class="books-grid">
+              {shelfBooks.map(b => (
+                <BookCard
+                  key={b.ol_key}
+                  book={{
+                    key: b.ol_key,
+                    title: b.title,
+                    subtitle: b.subtitle,
+                    authors: b.authors || [],
+                    first_publish_year: b.first_publish_year,
+                    subjects: [],
+                    cover_id: b.cover_id,
+                    covers: b.covers,
+                    rating_avg: b.rating_avg,
+                    rating_count: b.rating_count,
+                    isbn: b.isbn || [],
+                  }}
+                  savedShelf={b.shelf}
+                  onOpen={setSelectedBook}
+                />
+              ))}
             </div>
           )}
         </div>
@@ -411,7 +635,13 @@ function LibraryContent() {
       )}
 
       {selectedBook && (
-        <BookModal book={selectedBook} onClose={() => setSelectedBook(null)} />
+        <BookModal
+          book={selectedBook}
+          onClose={() => setSelectedBook(null)}
+          savedShelf={savedByKey[normKey(selectedBook)]}
+          onShelfChange={(shelf) => handleShelfChange(selectedBook, shelf)}
+          savingShelf={savingShelf}
+        />
       )}
     </div>
   )
@@ -483,7 +713,7 @@ function PublicLibrary() {
           {searching && <span class="search-spinner" aria-hidden="true" />}
         </div>
         <p class="hero-login-hint">
-          <a href="/entrar">Entre na sua conta</a> para criar coleções e salvar livros favoritos.
+          <a href="/entrar">Entre na sua conta</a> para criar coleções e salvar livros nas suas prateleiras.
         </p>
       </div>
 
