@@ -10,6 +10,8 @@ interface Props {
   label?: string
   /** Classes extras aplicadas ao wrapper */
   className?: string
+  /** Carrega o script só quando o slot se aproxima da viewport (preserva LCP) */
+  lazy?: boolean
 }
 
 const {
@@ -17,18 +19,55 @@ const {
   width,
   height,
   label = 'Publicidade',
-  className = ''
+  className = '',
+  lazy = false
 } = Astro.props
 
-const atOptionsScript = `atOptions = { 'key': '${key}', 'format': 'iframe', 'height': ${height}, 'width': ${width}, 'params': {} };`
+const atOptionsCode = `atOptions = { 'key': '${key}', 'format': 'iframe', 'height': ${height}, 'width': ${width}, 'params': {} };`
 const bannerSrc = `https://www.highperformanceformat.com/${key}/invoke.js`
 ---
 
 <div class={`adsterra-banner ${className}`}>
   {label && <span class="adsterra-banner-label">{label}</span>}
   <div class="adsterra-banner-slot" style={`min-height: ${height}px;`}>
-    <script is:inline set:html={atOptionsScript}></script>
-    <script is:inline data-cfasync="false" src={bannerSrc}></script>
+    {lazy ? (
+      <script is:inline define:vars={{ atOptionsCode, bannerSrc }}>
+        (function () {
+          var slot = document.currentScript && document.currentScript.parentElement;
+          if (!slot) return;
+          var loaded = false;
+          function load() {
+            if (loaded) return;
+            loaded = true;
+            var opts = document.createElement('script');
+            opts.text = atOptionsCode;
+            slot.appendChild(opts);
+            var s = document.createElement('script');
+            s.async = true;
+            s.setAttribute('data-cfasync', 'false');
+            s.src = bannerSrc;
+            slot.appendChild(s);
+            if (obs) obs.disconnect();
+          }
+          var obs = null;
+          if ('IntersectionObserver' in window) {
+            obs = new IntersectionObserver(function (entries) {
+              entries.forEach(function (e) { if (e.isIntersecting) load(); });
+            }, { rootMargin: '350px 0px' });
+            obs.observe(slot);
+          } else {
+            load();
+          }
+          // Fallback de segurança: nunca deixar o slot vazio para sempre
+          setTimeout(load, 9000);
+        })();
+      </script>
+    ) : (
+      <>
+        <script is:inline set:html={atOptionsCode}></script>
+        <script is:inline data-cfasync="false" src={bannerSrc}></script>
+      </>
+    )}
   </div>
 </div>
 
@@ -36,7 +75,7 @@ const bannerSrc = `https://www.highperformanceformat.com/${key}/invoke.js`
   .adsterra-banner {
     width: 100%;
     max-width: 100%;
-    margin: 2rem auto;
+    margin: 2.75rem auto;
   }
 
   .adsterra-banner-label {

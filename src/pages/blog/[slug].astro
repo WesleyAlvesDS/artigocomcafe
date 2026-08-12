@@ -186,7 +186,7 @@ if (post) {
             <div class="article-main">
               <div class="article-content prose" set:html={post!.content.replace(/<h1([^>]*)>/gi, '<h2$1>').replace(/<\/h1>/gi, '</h2>')} />
 
-              <AdSterraNative className="ad-article-inline" />
+              <AdSterraNative className="ad-article-inline" lazy />
 
               {/* Author box */}
               <div class="article-author" data-scroll-reveal="fade">
@@ -207,7 +207,7 @@ if (post) {
                 className="ad-article-smartlink"
               />
 
-              <AdSterraBanner key="36c0e766cf3f9f800adf45b24d6e2815" width={320} height={50} className="ad-article-mobile" />
+              <AdSterraBanner key="36c0e766cf3f9f800adf45b24d6e2815" width={320} height={50} className="ad-article-mobile" lazy />
 
               {/* Prev / Next navigation */}
               <nav class="article-nav" aria-label="Navegação entre artigos">
@@ -235,7 +235,7 @@ if (post) {
                 tags={post!.tags}
                 readingTime={post!.readingTime}
               />
-              <AdSterraBanner key="b479d95fee71af96353fa4bbcc5b72b5" width={160} height={300} className="ad-article-skyscraper" />
+              <AdSterraBanner key="b479d95fee71af96353fa4bbcc5b72b5" width={160} height={300} className="ad-article-skyscraper" lazy />
             </aside>
           </div>
         </div>
@@ -792,6 +792,19 @@ if (post) {
     .article-nav-card.next {
       text-align: left;
     }
+  }
+
+  /* Respiro entre anúncios e conteúdo (política de distância mínima) */
+  .ad-article-smartlink {
+    margin: 3rem 0;
+  }
+
+  .ad-article-mobile {
+    margin: 2rem 0 3rem;
+  }
+
+  .ad-article-inline {
+    margin-top: 2.5rem;
   }
 
   /* Related Articles - Lazy Loaded Styles */

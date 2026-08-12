@@ -333,11 +333,11 @@ const schemaRecipe = recipe ? {
                 className="ad-recipe-smartlink"
               />
 
-              <AdSterraBanner key="5e4796fac36254508762271cad34a145" width={468} height={60} className="ad-recipe-banner" />
+              <AdSterraBanner key="5e4796fac36254508762271cad34a145" width={468} height={60} className="ad-recipe-banner" lazy />
             </div>
 
             <aside class="recipe-sidebar">
-              <AdSterraNative className="ad-recipe-sidebar" />
+              <AdSterraNative className="ad-recipe-sidebar" lazy />
               <div class="sidebar-card glass-card" data-reveal>
                 <h3 class="sidebar-title">Dica do barista</h3>
                 <p class="sidebar-text">
@@ -1741,6 +1741,15 @@ const schemaRecipe = recipe ? {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1.5rem;
+  }
+
+  /* Respiro entre anúncios e conteúdo (política de distância mínima) */
+  .ad-recipe-smartlink {
+    margin: 3rem 0;
+  }
+
+  .ad-recipe-banner {
+    margin: 2rem 0 3rem;
   }
 
   @media (max-width: 960px) {

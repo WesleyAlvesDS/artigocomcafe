@@ -6,20 +6,55 @@ interface Props {
   showLabel?: boolean
   /** Texto do rótulo */
   label?: string
+  /** Carrega o script só quando o slot se aproxima da viewport (preserva LCP) */
+  lazy?: boolean
 }
 
 const {
   className = '',
   showLabel = true,
-  label = 'Publicidade'
+  label = 'Publicidade',
+  lazy = false
 } = Astro.props
+
+const nativeSrc = 'https://pl30726903.effectivecpmnetwork.com/b286da2e2fe2bfd4ecebf03e8a877de9/invoke.js'
 ---
 
 <div class={`adsterra-native ${className}`}>
   {showLabel && <span class="adsterra-native-label">{label}</span>}
   <div class="adsterra-native-slot">
-    <script is:inline async="async" data-cfasync="false" src="https://pl30726903.effectivecpmnetwork.com/b286da2e2fe2bfd4ecebf03e8a877de9/invoke.js"></script>
     <div id="container-b286da2e2fe2bfd4ecebf03e8a877de9" class="adsterra-native-container"></div>
+    {lazy ? (
+      <script is:inline define:vars={{ nativeSrc }}>
+        (function () {
+          var slot = document.currentScript && document.currentScript.parentElement;
+          if (!slot) return;
+          var loaded = false;
+          function load() {
+            if (loaded) return;
+            loaded = true;
+            var s = document.createElement('script');
+            s.async = true;
+            s.setAttribute('data-cfasync', 'false');
+            s.src = nativeSrc;
+            slot.insertBefore(s, slot.firstChild);
+            if (obs) obs.disconnect();
+          }
+          var obs = null;
+          if ('IntersectionObserver' in window) {
+            obs = new IntersectionObserver(function (entries) {
+              entries.forEach(function (e) { if (e.isIntersecting) load(); });
+            }, { rootMargin: '350px 0px' });
+            obs.observe(slot);
+          } else {
+            load();
+          }
+          setTimeout(load, 9000);
+        })();
+      </script>
+    ) : (
+      <script is:inline async="async" data-cfasync="false" src={nativeSrc}></script>
+    )}
   </div>
 </div>
 
@@ -27,7 +62,7 @@ const {
   .adsterra-native {
     width: 100%;
     max-width: 100%;
-    margin: 2.5rem auto;
+    margin: 3rem auto;
   }
 
   .adsterra-native-label {

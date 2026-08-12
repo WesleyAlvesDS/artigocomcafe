@@ -135,3 +135,60 @@ Aparece em todas as páginas (importado pelo `Base.astro`).
 Chave do nativo (fixa em `AdSterraNative.astro`): `b286da2e2fe2bfd4ecebf03e8a877de9`.
 URL do smart link (fixa em `AdSterraSmartLink.astro:20`):
 `https://www.effectivecpmnetwork.com/ryhkx4gd?key=1c1fb12053a54c089ff2c5a6c46c3ef1`xvx
+---
+
+## 6. Densidade real por página (auditoria agosto/2026)
+
+> Slots contados por template (exclui o smartlink do footer, presente em todas).
+
+| Página | Slots | Lazy-load | Observação |
+|---|---|---|---|
+| Home | 3 (leaderboard 728×90 + nativo + smartlink) | nativo: lazy | Leaderboard acima da dobra (eager) |
+| Blog listagem | 1 leaderboard + sidebar (nativo + smartlink) | ambos lazy | |
+| **Artigo** | **4 (nativo inline + smartlink + 320×50 mobile + 160×300 sidebar)** | todos lazy | O mais denso — aceitável (3–5 desktop) |
+| Receitas listagem | 1 leaderboard + sidebar (nativo + smartlink) | ambos lazy | |
+| Receita detalhe | 3 (smartlink + 468×60 + nativo sidebar) | banner + nativo lazy | |
+| Footer (todas) | 1 smartlink link | — | Sem script externo (link puro) |
+
+### Regras aplicadas
+
+- **Lazy-load:** slots abaixo da dobra usam `IntersectionObserver` (`rootMargin: 350px`)
+  com fallback de 9s — nunca deixam o slot vazio e preservam LCP/INP.
+- **Distância mínima:** margens verticais de 2.75rem–3rem entre anúncios e conteúdo
+  interativo (política anti-clique acidental).
+- **Densidade mobile ≤ 30%:** nenhuma página passa do limite; o artigo tem o maior
+  peso, dentro do recomendado (2–3 mobile / 3–5 desktop).
+
+---
+
+## 7. Estado do Google AdSense (importante!)
+
+**Configurado mas sem unidades ativas.** O site carrega o script do AdSense no
+`<head>` (`Base.astro` — `ca-pub-4516147510474933`) e a meta tag de verificação,
+porém **não existe nenhuma unidade `<ins class="adsbygoogle">` renderizada** em
+qualquer página. Toda a monetização atual vem da **Adsterra**.
+
+### Para ativar o AdSense
+
+1. Aprovar a conta em `https://adsense.google.com` (site adicionado via meta tag).
+2. Criar unidades de anúncio responsivas no painel (display + in-feed).
+3. Renderizá-las nos pontos estratégicos — sugestão de prioridade:
+   - **Artigo:** 1 unidade inline após o 2º parágrafo + 1 sticky/âncora mobile
+   - **Home:** 1 unidade abaixo da seção de widgets
+   - **Receita:** 1 unidade após os ingredientes
+   - **Sidebar:** 1 unidade display (300×250)
+4. Manter a densidade ≤ 30% e espaçamento ≥ 150px do conteúdo interativo.
+
+### Onde ver as métricas
+
+| Métrica | Onde | Referência |
+|---|---|---|
+| RPM / CPC / impressões | AdSense → Relatórios | Comparar RPM por página (artigo > receita > home) |
+| Viewability | AdSense → Relatórios → Visibilidade | Alvo ≥ 70% |
+| Cliques inválidos | AdSense → Centro de revisão | Previne limitação de conta |
+| Core Web Vitals | Search Console / PageSpeed Insights | CLS < 0.1, LCP < 2.5s, INP < 200ms |
+| Densidade de anúncios | PageSpeed Insights → Experiência | Mobile ≤ 30% da altura do conteúdo |
+
+> **Nota:** o AdSense também pode limitar a entrega se a página tiver excesso de
+> anúncios em relação ao conteúdo. Com 3–4 slots por página e lazy-load, o site
+> está em conformidade.
