@@ -1,0 +1,123 @@
+---
+interface Props {
+  /** Texto âncora do link */
+  text?: string
+  /** Texto do rótulo "Patrocinado" */
+  label?: string
+  /** Variante visual: 'card' | 'link' | 'chip' */
+  variant?: 'card' | 'link' | 'chip'
+  /** Classes extras */
+  className?: string
+}
+
+const {
+  text = 'Explore seleções, produtos e experiências selecionadas para acompanhar seu café.',
+  label = 'Patrocinado',
+  variant = 'card',
+  className = ''
+} = Astro.props
+
+const href = 'https://www.effectivecpmnetwork.com/ryhkx4gd?key=1c1fb12053a54c089ff2c5a6c46c3ef1'
+---
+
+<a
+  href={href}
+  target="_blank"
+  rel="nofollow sponsored noopener"
+  class={`adsterra-smartlink adsterra-smartlink--${variant} ${className}`}
+>
+  {variant !== 'link' && <span class="adsterra-smartlink-label">{label}</span>}
+  <span class="adsterra-smartlink-text">{text}</span>
+  <svg class="adsterra-smartlink-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <line x1="5" y1="12" x2="19" y2="12" />
+    <polyline points="12 5 19 12 12 19" />
+  </svg>
+</a>
+
+<style>
+  .adsterra-smartlink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    font-family: var(--font-sans);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .adsterra-smartlink-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.18rem 0.5rem;
+    border-radius: 100px;
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    color: var(--color-accent);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);
+    white-space: nowrap;
+  }
+
+  .adsterra-smartlink-text {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .adsterra-smartlink-arrow {
+    flex-shrink: 0;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .adsterra-smartlink:hover .adsterra-smartlink-arrow {
+    transform: translateX(4px);
+  }
+
+  .adsterra-smartlink--card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 1.25rem;
+    border-radius: var(--radius-card);
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    box-shadow: var(--shadow-card);
+    color: var(--color-text-primary);
+  }
+
+  .adsterra-smartlink--card:hover {
+    border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .adsterra-smartlink--card .adsterra-smartlink-text {
+    font-weight: 600;
+  }
+
+  .adsterra-smartlink--link {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+
+  .adsterra-smartlink--link:hover {
+    color: var(--color-accent);
+  }
+
+  .adsterra-smartlink--chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 1rem;
+    border-radius: 100px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+  }
+
+  .adsterra-smartlink--chip:hover {
+    color: var(--color-accent);
+    border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+  }
+</style>

@@ -2,13 +2,21 @@
 # =====================================================================
 # Deploy via FTPS (curl --ssl-reqd) — fallback quando o SSH está instável
 # Uso: bash deploy-ftps.sh front | bash deploy-ftps.sh back | bash deploy-ftps.sh all
+# Credenciais: carregadas de scripts/secrets.sh (gitignored)
 # =====================================================================
 set -euo pipefail
 cd "$(dirname "$0")"
 
-HOST="186.209.113.157"
-USER="arti3263"
-PASS="CmQ#yD7R.u993t"
+if [[ -f "scripts/secrets.sh" ]]; then
+  source scripts/secrets.sh
+else
+  echo "[!] scripts/secrets.sh nao encontrado — crie-o com FTP_HOST/FTP_USER/FTP_PASS" >&2
+  exit 1
+fi
+
+HOST="${FTP_HOST:-186.209.113.157}"
+USER="${FTP_USER:-arti3263}"
+PASS="${FTP_PASS:-}"
 FRONT_REMOTE="/domains/artigocomcafe.com/public_html"
 BACK_REMOTE="/domains/back.artigocomcafe.com/public_html"
 MODE="${1:-all}"

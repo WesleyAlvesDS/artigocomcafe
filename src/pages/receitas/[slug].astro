@@ -3,6 +3,9 @@ import Base from '../../layouts/Base.astro'
 import RecipeCard from '../../components/RecipeCard.astro'
 import ReadingTracker from '../../components/ReadingTracker'
 import { ToastProvider } from '../../components/Toast'
+import AdSterraNative from '../../components/AdSterraNative.astro'
+import AdSterraSmartLink from '../../components/AdSterraSmartLink.astro'
+import AdSterraBanner from '../../components/AdSterraBanner.astro'
 import { formatDate } from '../../lib/utils'
 import { getRecipe, getAllRecipeSlugs } from '../../lib/laravel'
 import type { Recipe } from '../../lib/types'
@@ -310,9 +313,18 @@ const schemaRecipe = recipe ? {
                 </div>
                 <a href="/sobre" class="author-link">Conheça o projeto →</a>
               </div>
+
+              <AdSterraSmartLink
+                variant="card"
+                text="Gostou desta receita? Descubra seleções e experiências recomendadas para acompanhar sua próxima xícara."
+                className="ad-recipe-smartlink"
+              />
+
+              <AdSterraBanner key="5e4796fac36254508762271cad34a145" width={468} height={60} className="ad-recipe-banner" />
             </div>
 
             <aside class="recipe-sidebar">
+              <AdSterraNative className="ad-recipe-sidebar" />
               <div class="sidebar-card glass-card" data-reveal>
                 <h3 class="sidebar-title">Dica do barista</h3>
                 <p class="sidebar-text">

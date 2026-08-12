@@ -1,5 +1,6 @@
 ---
 import NewsletterForm from './NewsletterForm'
+import AdSterraSmartLink from './AdSterraSmartLink.astro'
 ---
 
 <footer class="footer">
@@ -61,6 +62,11 @@ import NewsletterForm from './NewsletterForm'
 
     <div class="footer-bottom">
       <p>&copy; {new Date().getFullYear()} Artigo com Café. Todos os direitos reservados.</p>
+      <AdSterraSmartLink
+        variant="link"
+        text="Conheça nossas indicações de produtos e experiências"
+        label="Parceria"
+      />
     </div>
   </div>
 </footer>
@@ -166,6 +172,15 @@ import NewsletterForm from './NewsletterForm'
     text-align: center;
     color: var(--color-text-muted);
     font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .footer-bottom .adsterra-smartlink {
+    font-size: 0.78rem;
   }
 
   @media (max-width: 768px) {

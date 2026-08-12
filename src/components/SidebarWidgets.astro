@@ -4,6 +4,8 @@ import ReceitaDoDia from './ReceitaDoDia'
 import NewsletterForm from './NewsletterForm'
 import ClimaDoCafe from './ClimaDoCafe'
 import ExchangeRateWidget from './ExchangeRateWidget'
+import AdSterraNative from './AdSterraNative.astro'
+import AdSterraSmartLink from './AdSterraSmartLink.astro'
 
 interface Props {
   /** Mostra o widget de Café do Dia (artigo em destaque) */
@@ -28,6 +30,10 @@ const {
 ---
 
 <aside class="sidebar-widgets" aria-label="Widgets e conteúdo em destaque">
+  <div class="widget widget-ad" data-scroll-reveal="fade" data-scroll-delay="0">
+    <AdSterraNative />
+  </div>
+
   {cafeDoDia && (
     <div class="widget" data-scroll-reveal="fade" data-scroll-delay="0">
       <CafeDoDia client:visible />
@@ -62,6 +68,13 @@ const {
       <ExchangeRateWidget client:visible compact={false} maxRates={5} />
     </div>
   )}
+
+  <div class="widget widget-sponsor" data-scroll-reveal="fade" data-scroll-delay="300">
+    <AdSterraSmartLink
+      variant="card"
+      text="Pausa para o café? Explore seleções e experiências escolhidas para o seu momento."
+    />
+  </div>
 </aside>
 
 <style>

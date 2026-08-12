@@ -10,8 +10,13 @@
 import { chromium } from 'playwright';
 
 const BASE_URL = 'https://dash.artigocomcafe.com';
-const EMAIL = process.env.DASH_EMAIL || 'admin@artigocomcafe.com';
-const PASSWORD = process.env.DASH_PASSWORD || 'dash-admin-2026!';
+const EMAIL = process.env.DASH_EMAIL;
+const PASSWORD = process.env.DASH_PASSWORD;
+
+if (!EMAIL || !PASSWORD) {
+  console.error('Exija DASH_EMAIL e DASH_PASSWORD no ambiente (sem defaults no codigo).');
+  process.exit(1);
+}
 
 const RESULTS = { passed: 0, failed: 0, warnings: 0, errors: [] };
 

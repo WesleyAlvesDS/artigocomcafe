@@ -1,0 +1,70 @@
+---
+interface Props {
+  /** Classes extras aplicadas ao wrapper externo */
+  className?: string
+  /** Exibe o rótulo de publicidade */
+  showLabel?: boolean
+  /** Texto do rótulo */
+  label?: string
+}
+
+const {
+  className = '',
+  showLabel = true,
+  label = 'Publicidade'
+} = Astro.props
+---
+
+<div class={`adsterra-native ${className}`}>
+  {showLabel && <span class="adsterra-native-label">{label}</span>}
+  <div class="adsterra-native-slot">
+    <script is:inline async="async" data-cfasync="false" src="https://pl30726903.effectivecpmnetwork.com/b286da2e2fe2bfd4ecebf03e8a877de9/invoke.js"></script>
+    <div id="container-b286da2e2fe2bfd4ecebf03e8a877de9" class="adsterra-native-container"></div>
+  </div>
+</div>
+
+<style>
+  .adsterra-native {
+    width: 100%;
+    max-width: 100%;
+    margin: 2.5rem auto;
+  }
+
+  .adsterra-native-label {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .adsterra-native-slot {
+    min-height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+
+  .adsterra-native-container {
+    width: 100%;
+    min-height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (max-width: 480px) {
+    .adsterra-native-slot,
+    .adsterra-native-container {
+      min-height: 0;
+    }
+  }
+</style>

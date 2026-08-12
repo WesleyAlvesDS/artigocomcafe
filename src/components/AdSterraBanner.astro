@@ -1,0 +1,61 @@
+---
+interface Props {
+  /** Chave (key) do banner */
+  key: string
+  /** Largura do banner em pixels */
+  width: number
+  /** Altura do banner em pixels */
+  height: number
+  /** Texto do rótulo de publicidade (vazio oculta) */
+  label?: string
+  /** Classes extras aplicadas ao wrapper */
+  className?: string
+}
+
+const {
+  key,
+  width,
+  height,
+  label = 'Publicidade',
+  className = ''
+} = Astro.props
+
+const atOptionsScript = `atOptions = { 'key': '${key}', 'format': 'iframe', 'height': ${height}, 'width': ${width}, 'params': {} };`
+const bannerSrc = `https://www.highperformanceformat.com/${key}/invoke.js`
+---
+
+<div class={`adsterra-banner ${className}`}>
+  {label && <span class="adsterra-banner-label">{label}</span>}
+  <div class="adsterra-banner-slot" style={`min-height: ${height}px;`}>
+    <script is:inline set:html={atOptionsScript}></script>
+    <script is:inline data-cfasync="false" src={bannerSrc}></script>
+  </div>
+</div>
+
+<style>
+  .adsterra-banner {
+    width: 100%;
+    max-width: 100%;
+    margin: 2rem auto;
+  }
+
+  .adsterra-banner-label {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .adsterra-banner-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+</style>

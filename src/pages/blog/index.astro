@@ -4,6 +4,7 @@ import ArticleCard from '../../components/ArticleCard.astro'
 import Pagination from '../../components/Pagination.astro'
 import SidebarWidgets from '../../components/SidebarWidgets.astro'
 import ScrollAnimations from '../../components/ScrollAnimations.astro'
+import AdSterraBanner from '../../components/AdSterraBanner.astro'
 import { getPosts, getCategories } from '../../lib/laravel'
 
 export async function getStaticPaths() {
@@ -141,6 +142,12 @@ const { posts, pagination } = await getPosts(currentPage, 9, categorySlug || und
           cambio={false}
         />
       </div>
+    </div>
+  </section>
+
+  <section class="section blog-leaderboard" data-scroll-reveal="fade">
+    <div class="container" style="max-width: 760px;">
+      <AdSterraBanner key="a2885857c5978b578e5340115924dbb1" width={728} height={90} />
     </div>
   </section>
 
@@ -283,7 +290,7 @@ const { posts, pagination } = await getPosts(currentPage, 9, categorySlug || und
 
   @media (max-width: 1100px) {
     .blog-layout {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       gap: 2.5rem;
     }
 

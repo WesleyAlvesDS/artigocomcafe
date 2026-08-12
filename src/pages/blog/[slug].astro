@@ -8,6 +8,9 @@ import ArticleToc from '../../components/ArticleToc'
 import { ToastProvider } from '../../components/Toast'
 import ScrollAnimations from '../../components/ScrollAnimations.astro'
 import SmartSidebar from '../../components/SmartSidebar.astro'
+import AdSterraNative from '../../components/AdSterraNative.astro'
+import AdSterraSmartLink from '../../components/AdSterraSmartLink.astro'
+import AdSterraBanner from '../../components/AdSterraBanner.astro'
 import { formatDate } from '../../lib/utils'
 import { getPost, getAllSlugs } from '../../lib/laravel'
 import type { BlogPost } from '../../lib/types'
@@ -183,6 +186,8 @@ if (post) {
             <div class="article-main">
               <div class="article-content prose" set:html={post!.content.replace(/<h1([^>]*)>/gi, '<h2$1>').replace(/<\/h1>/gi, '</h2>')} />
 
+              <AdSterraNative className="ad-article-inline" />
+
               {/* Author box */}
               <div class="article-author" data-scroll-reveal="fade">
                 <div class="author-avatar">&#9749;</div>
@@ -195,6 +200,14 @@ if (post) {
                 </div>
                 <a href="/sobre" class="author-link">Conheça o projeto →</a>
               </div>
+
+              <AdSterraSmartLink
+                variant="card"
+                text="Já leu o artigo por inteiro? Confira seleções e experiências recomendadas para acompanhar sua próxima xícara."
+                className="ad-article-smartlink"
+              />
+
+              <AdSterraBanner key="36c0e766cf3f9f800adf45b24d6e2815" width={320} height={50} className="ad-article-mobile" />
 
               {/* Prev / Next navigation */}
               <nav class="article-nav" aria-label="Navegação entre artigos">
@@ -222,6 +235,7 @@ if (post) {
                 tags={post!.tags}
                 readingTime={post!.readingTime}
               />
+              <AdSterraBanner key="b479d95fee71af96353fa4bbcc5b72b5" width={160} height={300} className="ad-article-skyscraper" />
             </aside>
           </div>
         </div>
@@ -819,44 +833,6 @@ if (post) {
     .ecpm-ad-wrapper {
       margin: 3rem auto 2rem;
     }
-  }
-
-  /* Effective CPM Network ad wrapper — visually separated from content
-     to comply with AdSense multi-network policies */
-  .ecpm-ad-wrapper {
-    margin: 4rem auto 3rem;
-    padding: 1.25rem;
-    max-width: 720px;
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-bg-card-border);
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow-card);
-  }
-
-  .ecpm-ad-wrapper::before {
-    content: "";
-    display: block;
-    height: 1px;
-    background: linear-gradient(90, transparent, var(--color-bg-card-border), transparent);
-    margin: 1rem 0;
-  }
-
-  .ecpm-ad-label {
-    display: block;
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--color-text-muted);
-    text-align: center;
-    margin-bottom: 0.5rem;
-  }
-
-  #container-b286da2e2fe2bfd4ecebf03e8a877de9 {
-    min-height: 250px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
   /* Related Articles - Lazy Loaded Styles */

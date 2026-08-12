@@ -4,6 +4,7 @@ import RecipeCard from '../../components/RecipeCard.astro'
 import Pagination from '../../components/Pagination.astro'
 import SidebarWidgets from '../../components/SidebarWidgets.astro'
 import ScrollAnimations from '../../components/ScrollAnimations.astro'
+import AdSterraBanner from '../../components/AdSterraBanner.astro'
 import { getRecipes, getRecipeCategories } from '../../lib/laravel'
 
 export async function getStaticPaths() {
@@ -83,13 +84,13 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
           </div>
           
           <div class="quick-filters" data-stagger data-stagger-delay="60" data-stagger-start="200">
-            <select name="dificuldade" class="filter-select" onchange="this.form.submit()">
+            <select name="dificuldade" class="filter-select" aria-label="Filtrar por dificuldade" onchange="this.form.submit()">
               <option value="">Todas as dificuldades</option>
               <option value="facil" selected={difficulty === 'facil'}>Fácil</option>
               <option value="media" selected={difficulty === 'media'}>Média</option>
               <option value="dificil" selected={difficulty === 'dificil'}>Difícil</option>
             </select>
-            <select name="tempo_max" class="filter-select" onchange="this.form.submit()">
+            <select name="tempo_max" class="filter-select" aria-label="Filtrar por tempo máximo" onchange="this.form.submit()">
               <option value="">Qualquer tempo</option>
               <option value="15" selected={timeMax === '15'}>Até 15 min</option>
               <option value="30" selected={timeMax === '30'}>Até 30 min</option>
@@ -191,6 +192,12 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
           cambio={true}
         />
       </div>
+    </div>
+  </section>
+
+  <section class="section recipes-leaderboard" data-scroll-reveal="fade">
+    <div class="container" style="max-width: 760px;">
+      <AdSterraBanner key="a2885857c5978b578e5340115924dbb1" width={728} height={90} />
     </div>
   </section>
 
@@ -396,7 +403,7 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
 
   @media (max-width: 1100px) {
     .recipes-layout {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       gap: 2.5rem;
     }
 

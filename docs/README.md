@@ -136,10 +136,19 @@ node ../tests/playwright/dash-audit.mjs     # Dashboard do leitor (31/31 ✓)
 ### Pendências
 
 - ✅ **Resolvido:** deploy da página `/dashboard/` realizado (antes 404, agora 31/31 ✓).
+- ✅ **Resolvido:** credenciais FTP/DB removidas dos scripts de deploy (`deploy-ftps.sh`,
+  `deploy-ftps-par.sh`, `backend/deploy_backend.sh`) → movidas para `scripts/secrets.sh`
+  (gitignored, fonte única). Restam no histórico do git → **trocar a senha no DirectAdmin**.
 - 🔄 **Trocar senha FTP** no DirectAdmin (rotação) — credenciais antigas ficaram no histórico do git.
-- ✅ **Resolvido: credenciais padrão nos testes** — `dash-login.mjs`, `full-audit.mjs` e
-  `prod-test.mjs` agora exigem env vars (`DASH_EMAIL`, `DASH_PASSWORD`, `TEST_USER`,
-  `TEST_PASS`) sem defaults. Nenhuma credencial versionada.
+- ✅ **Resolvido: defaults de credenciais removidos de TODOS os testes** —
+  `dash-crud.mjs` e `dash-central-editorial.mjs` agora exigem `DASH_EMAIL`/`DASH_PASSWORD`
+  (sem defaults). Nenhuma credencial versionada.
+- ✅ **Resolvido: AdSense no `<head>`** — script `adsbygoogle.js` adicionado ao `Base.astro`
+  (todas as páginas) junto da meta tag `google-adsense-account`.
+- ✅ **Resolvido: overflow no mobile** — `grid-template-columns: 1fr` → `minmax(0,1fr)`
+  nas listagens de blog/receitas (coluna vazava ~45px do container no mobile).
+- ✅ **Resolvido: a11y crítico** — `<select>` de filtros de receitas sem nome acessível
+  ganharam `aria-label` (0 violações em receitas).
 - ✅ **Resolvido: fluxo de login auditado e melhorado** — ver [plano-fluxo-login.md](plano-fluxo-login.md):
   redirecionamento pós-login para `/dashboard/`, usuário já logado em `/entrar`/`/cadastro`
   é redirecionado, `reset_token` só em ambiente local, rotas `/user/posts` implementadas
@@ -149,8 +158,10 @@ node ../tests/playwright/dash-audit.mjs     # Dashboard do leitor (31/31 ✓)
 ### Segurança
 
 - 🔴 **Resolvido:** credenciais FTP que estavam em texto puro no git foram
-  movidas para `.env.server` (gitignored). **Trocar a senha no DirectAdmin**
-  (rotação) — ver [ops/acessarserver.md](ops/acessarserver.md).
+  movidas para `.env.server` e `scripts/secrets.sh` (gitignored). **Trocar a senha
+  no DirectAdmin** (rotação) — ver [ops/acessarserver.md](ops/acessarserver.md).
+- 🔴 **Resolvido:** `scripts/secrets.sh` adicionado ao `.gitignore`; os 3 scripts de
+  deploy que tinham a senha em texto puro agora carregam de lá (fonte única).
 
 ---
 

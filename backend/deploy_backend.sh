@@ -1,9 +1,20 @@
 #!/bin/bash
 # Deploy Laravel backend to back.artigocomcafe.com
+# Credenciais: carregadas de scripts/secrets.sh (gitignored)
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [[ -f "$SCRIPT_DIR/../scripts/secrets.sh" ]]; then
+  source "$SCRIPT_DIR/../scripts/secrets.sh"
+fi
 
 SERVER="arti3263@br64-da.valueserver.net.br"
 PORT="1157"
 REMOTE_PATH="/home/arti3263/domains/back.artigocomcafe.com/public_html"
+
+if [[ -z "${DB_PASSWORD:-}" ]]; then
+  echo "[!] DB_PASSWORD nao definida (scripts/secrets.sh ausente)" >&2
+  exit 1
+fi
 
 echo "--- Creating deployment package ---"
 rm -rf deploy_package vendor node_modules storage/framework/cache/data/*
@@ -24,8 +35,9 @@ rsync -av --exclude='vendor' \
           ./ deploy_package/
 
 echo "--- Creating .env for production ---"
-cat > deploy_package/.env << 'ENVEOF'
-APP_NAME="Artigo com Cafe API"
+export APP_NAME="Artigo com Cafe API"
+cat > deploy_package/.env << ENVEOF
+APP_NAME="${APP_NAME}"
 APP_ENV=production
 APP_KEY=
 APP_DEBUG=false
@@ -43,7 +55,7 @@ DB_HOST=localhost
 DB_PORT=3306
 DB_DATABASE=arti3263_artigocafe
 DB_USERNAME=arti3263_artigocafe
-DB_PASSWORD=CmQ#yD7R.u993t
+DB_PASSWORD=${DB_PASSWORD}
 
 SESSION_DRIVER=file
 SESSION_LIFETIME=120

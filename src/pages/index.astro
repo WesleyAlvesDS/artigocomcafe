@@ -7,6 +7,9 @@ import ReceitaDoDia from '../components/ReceitaDoDia'
 import ClimaDoCafe from '../components/ClimaDoCafe'
 import ExchangeRateWidget from '../components/ExchangeRateWidget'
 import ScrollAnimations from '../components/ScrollAnimations.astro'
+import AdSterraNative from '../components/AdSterraNative.astro'
+import AdSterraSmartLink from '../components/AdSterraSmartLink.astro'
+import AdSterraBanner from '../components/AdSterraBanner.astro'
 import { getPosts, getCategories } from '../lib/laravel'
 
 const { posts } = await getPosts(1, 6)
@@ -15,6 +18,12 @@ const categories = await getCategories()
 
 <Base title="Artigo com Café — Blog de Cafeteria Digital" description="Blog autoral sobre o universo do café: cultura, tecnologia e conhecimento. Conteúdo aprofundado para quem ama aprender." canonical="/" breadcrumbs={[{ name: 'Início', slug: '/' }]} image="/og-default.png.ts">
   <Hero />
+
+  <section class="section home-leaderboard" data-scroll-reveal="fade">
+    <div class="container" style="max-width: 760px;">
+      <AdSterraBanner key="a2885857c5978b578e5340115924dbb1" width={728} height={90} />
+    </div>
+  </section>
 
   <section class="section" data-scroll-reveal="fade" style="padding-top: 1rem; padding-bottom: 0;">
     <div class="container" style="max-width: 720px;">
@@ -88,6 +97,21 @@ const categories = await getCategories()
     </div>
   </section>
 
+  <section class="section home-ad-section" data-scroll-reveal="fade">
+    <div class="container" style="max-width: 720px;">
+      <AdSterraNative />
+      <AdSterraSmartLink
+        variant="link"
+        text="Descubra indicações selecionadas para acompanhar seu café."
+        className="home-ad-smartlink"
+      />
+      <p class="home-ad-disclosure">
+        Este site é mantido com o apoio de anúncios e parcerias. Saiba mais sobre
+        <a href="/cookies/">como utilizamos cookies de publicidade</a>.
+      </p>
+    </div>
+  </section>
+
   <section class="section features-section" data-scroll-reveal="fade">
     <div class="container">
       <div class="features-grid" data-stagger data-stagger-delay="100" data-stagger-start="150">
@@ -157,6 +181,28 @@ const categories = await getCategories()
 </Base>
 
 <style>
+  .home-leaderboard {
+    padding-top: 0.5rem;
+    padding-bottom: 1rem;
+  }
+
+  .home-ad-disclosure {
+    margin-top: 1.25rem;
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+  }
+
+  .home-ad-disclosure a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .home-ad-disclosure a:hover {
+    text-decoration: underline;
+  }
+
   .categories-section {
     padding: 2rem 0;
   }
