@@ -768,38 +768,6 @@ if (post) {
     overflow: hidden;
   }
 
-  .back-to-top {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    z-index: 90;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary));
-    color: var(--color-btn-text);
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transform: translateY(16px);
-    pointer-events: none;
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--shadow-glow);
-  }
-
-  .back-to-top.visible {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-  }
-
-  .back-to-top:hover {
-    transform: translateY(-3px);
-  }
-
   @media (max-width: 960px) {
     .article-layout {
       grid-template-columns: 1fr;
@@ -823,15 +791,6 @@ if (post) {
 
     .article-nav-card.next {
       text-align: left;
-    }
-
-    .back-to-top {
-      bottom: 1.25rem;
-      right: 1.25rem;
-    }
-
-    .ecpm-ad-wrapper {
-      margin: 3rem auto 2rem;
     }
   }
 

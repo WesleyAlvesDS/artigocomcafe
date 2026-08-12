@@ -1354,17 +1354,18 @@ const schemaRecipe = recipe ? {
     position: relative;
   }
 
-  /* Linha conectora vertical da timeline */
+  /* Linha conectora vertical da timeline — alinhada ao centro do número (1.25rem de padding + 17px de metade do número) */
   .steps-list::before {
     content: '';
     position: absolute;
-    left: 26px;
+    left: calc(1.25rem + 17px);
     top: 18px;
     bottom: 18px;
     width: 2px;
     background: linear-gradient(180deg, var(--color-bg-card-border), color-mix(in srgb, var(--color-accent) 35%, transparent));
     border-radius: 2px;
     opacity: 0.8;
+    transform: translateX(-1px);
   }
 
   .step-item {

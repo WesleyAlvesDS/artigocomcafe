@@ -552,6 +552,8 @@ const organizationJsonLd = {
         function initSpotlight(root) {
           var cards = root.querySelectorAll('.spotlight-card')
           cards.forEach(function (card) {
+            if (card.dataset.mxSpotlight === '1') return
+            card.dataset.mxSpotlight = '1'
             card.addEventListener('pointermove', function (e) {
               var rect = card.getBoundingClientRect()
               var x = ((e.clientX - rect.left) / rect.width) * 100
@@ -566,6 +568,8 @@ const organizationJsonLd = {
         function initTilt(root) {
           var cards = root.querySelectorAll('.tilt-card')
           cards.forEach(function (card) {
+            if (card.dataset.mxTilt === '1') return
+            card.dataset.mxTilt = '1'
             card.addEventListener('pointermove', function (e) {
               if (ticking) return
               ticking = true
@@ -589,6 +593,8 @@ const organizationJsonLd = {
         function initMagnetic(root) {
           var els = root.querySelectorAll('.magnetic')
           els.forEach(function (el) {
+            if (el.dataset.mxMagnetic === '1') return
+            el.dataset.mxMagnetic = '1'
             el.addEventListener('pointermove', function (e) {
               var rect = el.getBoundingClientRect()
               var dx = e.clientX - (rect.left + rect.width / 2)
@@ -620,13 +626,13 @@ const organizationJsonLd = {
     <script is:inline>
       // ── Navegação inteligente: botão voltar-ao-topo com anel de progresso ──
       (function () {
-        var btn = document.getElementById('back-to-top')
-        if (!btn) return
-        var ring = btn.querySelector('.btt-ring-fg')
         var CIRC = 2 * Math.PI * 20
         var ticking = false
 
         function update() {
+          var btn = document.getElementById('back-to-top')
+          if (!btn) return
+          var ring = btn.querySelector('.btt-ring-fg')
           var doc = document.documentElement
           var max = doc.scrollHeight - window.innerHeight
           var pct = max > 0 ? Math.min(1, Math.max(0, window.pageYOffset / max)) : 0
@@ -638,10 +644,15 @@ const organizationJsonLd = {
         function request() { if (!ticking) { requestAnimationFrame(update); ticking = true } }
         window.addEventListener('scroll', request, { passive: true })
         window.addEventListener('resize', request, { passive: true })
-        btn.addEventListener('click', function () {
-          var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-          window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' })
+
+        // Delegação de clique: sobrevive à navegação SPA (botão recriado no swap)
+        document.addEventListener('click', function (e) {
+          if (e.target && e.target.closest && e.target.closest('#back-to-top')) {
+            var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+            window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' })
+          }
         })
+
         update()
       })()
     </script>
@@ -653,7 +664,10 @@ const organizationJsonLd = {
         var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
         function makeLightbox() {
-          if (lightbox) return
+          // Em navegação SPA o overlay anterior pode ter sido removido do DOM;
+          // recria se a referência estiver desconectada.
+          if (lightbox && lightbox.isConnected) return
+          if (lightbox) lightbox.remove()
           lightbox = document.createElement('div')
           lightbox.className = 'img-lightbox'
           lightbox.setAttribute('role', 'dialog')

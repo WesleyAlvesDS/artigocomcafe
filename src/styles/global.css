@@ -1076,11 +1076,6 @@ a, button { -webkit-tap-highlight-color: transparent; }
               box-shadow 0.3s ease;
 }
 
-.tilt-card .tilt-layer {
-  transform: translateZ(18px);
-  transform-style: preserve-3d;
-}
-
 /* Botões magnéticos — aproximam-se do cursor */
 .magnetic {
   transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
