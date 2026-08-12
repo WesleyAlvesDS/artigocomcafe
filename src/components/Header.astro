@@ -1,9 +1,17 @@
 ---
 import ThemeToggle from './ThemeToggle'
 import UserMenu from './UserMenu'
+import { getRecipeCategories } from '../lib/laravel'
+
+type RecipeCat = { slug: string; name: string; icon: string | null; color: string | null; recipes_count: number }
+// Cache no escopo do módulo: evita 1 request por página no build SSG (432+ páginas)
+if (!globalThis.__recipeCats) {
+  globalThis.__recipeCats = getRecipeCategories().catch(() => [])
+}
+const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(0, 8)
 ---
 
-<header class="header" transition:name="site-header" transition:persist="site-header" transition:animate="none">
+<header class="header" transition:name="site-header" transition:animate="none">
   <div class="header-inner container">
     <a href="/" class="header-logo" aria-label="Artigo com Café - Home" transition:name="site-logo" transition:persist="site-logo">
       <span class="header-logo-icon" aria-hidden="true">&#9749;</span>
@@ -15,7 +23,41 @@ import UserMenu from './UserMenu'
     <nav class="header-nav" aria-label="Navegação principal" transition:name="site-nav" transition:persist="site-nav">
       <a href="/" class="nav-link" data-page="home">Início</a>
       <a href="/blog" class="nav-link" data-page="blog">Blog</a>
-      <a href="/receitas" class="nav-link" data-page="receitas">Receitas</a>
+      <div class="nav-dropdown" data-dropdown="receitas">
+        <a href="/receitas" class="nav-link" data-page="receitas" aria-haspopup="true" aria-expanded="false">
+          Receitas
+          <svg class="nav-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
+        </a>
+        <div class="dropdown-panel glass-card" role="menu">
+          <div class="dropdown-head">
+            <span class="dropdown-title">Explore receitas</span>
+            <a href="/receitas" class="dropdown-all">Ver todas →</a>
+          </div>
+          <div class="dropdown-grid">
+            {recipeCategories.length > 0 ? recipeCategories.map(cat => (
+              <a href={`/receitas?categoria=${cat.slug}`} class="dropdown-item" role="menuitem" style={cat.color ? `--cat-color:${cat.color}` : ''}>
+                <span class="dropdown-item-icon" aria-hidden="true">{cat.icon || '🍽️'}</span>
+                <span class="dropdown-item-text">
+                  <span class="dropdown-item-name">{cat.name}</span>
+                  <span class="dropdown-item-count">{cat.recipes_count} receitas</span>
+                </span>
+              </a>
+            )) : (
+              <a href="/receitas" class="dropdown-item" role="menuitem">
+                <span class="dropdown-item-icon" aria-hidden="true">🍽️</span>
+                <span class="dropdown-item-text">
+                  <span class="dropdown-item-name">Todas as receitas</span>
+                  <span class="dropdown-item-count">Explore o acervo completo</span>
+                </span>
+              </a>
+            )}
+          </div>
+          <div class="dropdown-foot">
+            <a href="/receitas" class="dropdown-foot-link">🕐 Receita do Dia</a>
+            <a href="/receitas" class="dropdown-foot-link">🍳 Receitas para o café</a>
+          </div>
+        </div>
+      </div>
       <a href="/mapa" class="nav-link" data-page="mapa">Mapa</a>
       <a href="/jornada" class="nav-link" data-page="jornada">Jornada</a>
       <a href="/sobre" class="nav-link" data-page="sobre">Sobre</a>
@@ -215,6 +257,174 @@ import UserMenu from './UserMenu'
     transform: translateX(-50%) scaleX(1);
   }
 
+  /* ── Dropdown de Receitas ─────────────────────────── */
+  .nav-dropdown {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .nav-caret {
+    margin-left: 0.25rem;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .nav-dropdown:hover .nav-caret,
+  .nav-dropdown.open .nav-caret {
+    transform: rotate(180deg);
+  }
+
+  .dropdown-panel {
+    position: absolute;
+    top: calc(100% + 0.75rem);
+    left: 50%;
+    transform: translateX(-50%) translateY(10px) scale(0.97);
+    width: 340px;
+    padding: 1rem;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    z-index: 200;
+    transition:
+      opacity 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+      transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+      visibility 0.28s;
+    transform-origin: top center;
+  }
+
+  .dropdown-panel::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 16px;
+    height: 16px;
+    background: var(--color-bg-card);
+    border-left: 1px solid var(--color-glass-border);
+    border-top: 1px solid var(--color-glass-border);
+    border-radius: 3px;
+  }
+
+  .nav-dropdown:hover .dropdown-panel,
+  .nav-dropdown.open .dropdown-panel,
+  .nav-dropdown:focus-within .dropdown-panel {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+
+  .dropdown-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-bottom: 0.65rem;
+    margin-bottom: 0.65rem;
+    border-bottom: 1px solid var(--color-bg-card-border);
+  }
+
+  .dropdown-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-muted);
+  }
+
+  .dropdown-all {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: opacity 0.25s;
+  }
+
+  .dropdown-all:hover {
+    opacity: 0.8;
+  }
+
+  .dropdown-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem;
+    max-height: 260px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.65rem;
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--color-text-secondary);
+    transition: background 0.2s, transform 0.2s, color 0.2s;
+  }
+
+  .dropdown-item:hover {
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    color: var(--color-accent);
+    transform: translateX(2px);
+  }
+
+  .dropdown-item-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--cat-color, var(--color-accent)) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--cat-color, var(--color-accent)) 22%, transparent);
+    font-size: 1rem;
+  }
+
+  .dropdown-item-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .dropdown-item-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .dropdown-item-count {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+  }
+
+  .dropdown-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding-top: 0.65rem;
+    margin-top: 0.65rem;
+    border-top: 1px solid var(--color-bg-card-border);
+  }
+
+  .dropdown-foot-link {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .dropdown-foot-link:hover {
+    color: var(--color-accent);
+  }
+
   .nav-cta {
     margin-left: 0.5rem;
   }
@@ -390,6 +600,7 @@ import UserMenu from './UserMenu'
     .header-inner { gap: 0.5rem; }
     .nav-link { padding: 0.5rem 0.65rem; font-size: 0.82rem; }
     .header-actions .nav-cta { display: none; }
+    .dropdown-panel { width: 300px; }
   }
 
   @media (max-width: 768px) {
@@ -557,4 +768,36 @@ import UserMenu from './UserMenu'
       openSearch()
     }
   })
+
+  // Dropdown de receitas: fechar ao clicar fora / navegar
+  const dropdown = document.querySelector('[data-dropdown="receitas"]')
+  const dropdownLink = dropdown?.querySelector('.nav-link')
+
+  function closeDropdown() {
+    dropdown?.classList.remove('open')
+    dropdownLink?.setAttribute('aria-expanded', 'false')
+  }
+
+  dropdown?.addEventListener('mouseenter', () => {
+    dropdown.classList.add('open')
+    dropdownLink?.setAttribute('aria-expanded', 'true')
+  })
+  dropdown?.addEventListener('mouseleave', closeDropdown)
+
+  dropdownLink?.addEventListener('click', (e) => {
+    const isOpen = dropdown.classList.contains('open')
+    if (!isOpen) {
+      e.preventDefault()
+      dropdown.classList.add('open')
+      dropdownLink.setAttribute('aria-expanded', 'true')
+    }
+  })
+
+  document.addEventListener('click', (e) => {
+    if (dropdown && e.target instanceof Node && !dropdown.contains(e.target)) {
+      closeDropdown()
+    }
+  })
+
+  document.addEventListener('astro:before-swap', closeDropdown)
 </script>

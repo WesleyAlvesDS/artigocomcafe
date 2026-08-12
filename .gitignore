@@ -9,3 +9,4 @@ dist/
 tests/playwright/screenshots/*.png
 dash-check*.html
 designe/
+dist-audit/

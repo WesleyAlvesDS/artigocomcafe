@@ -50,6 +50,12 @@ node tests/playwright/full-audit.mjs  # Full site audit
 
 ### Deployment (ValueHost DirectAdmin)
 
+> **⚠️ Importante (Windows):** o `deploy.ps1` usa `tar.exe`/`scp`/`ssh` do Windows.
+> Se executado a partir do Git Bash, o `tar` do Git (usr/bin) intercepta e o deploy falha
+> com `Cannot connect to C: resolve failed`. Execute via um wrapper que limpa o PATH:
+> `powershell.exe -ExecutionPolicy Bypass -File deploy-wrapper.ps1` (o wrapper já está no repo e
+> monta `System32 + OpenSSH + nodejs` sem o Git). O npm precisa estar em `C:\Program Files\nodejs`.
+
 Frontend (Astro static):
 ```
 npm run build

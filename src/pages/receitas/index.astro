@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro'
 import RecipeCard from '../../components/RecipeCard.astro'
 import Pagination from '../../components/Pagination.astro'
-import ExchangeRateWidget from '../../components/ExchangeRateWidget'
+import SidebarWidgets from '../../components/SidebarWidgets.astro'
 import ScrollAnimations from '../../components/ScrollAnimations.astro'
 import { getRecipes, getRecipeCategories } from '../../lib/laravel'
 
@@ -126,51 +126,71 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
     </div>
   </section>
 
-  <section class="section" data-scroll-reveal="fade" style="padding-top: 0.5rem; padding-bottom: 0;">
+  <section class="section recipes-listing-section">
     <div class="container">
-      <ExchangeRateWidget client:visible compact={true} maxRates={5} />
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="container">
-      {recipes.length > 0 ? (
-        <>
-          <div class="recipes-grid" data-stagger data-stagger-delay="80" data-stagger-start="100">
-            {recipes.map((recipe, i) => (
-              <RecipeCard recipe={recipe} index={i} />
-            ))}
-          </div>
-          {pagination.totalPages > 1 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={pagination.totalPages}
-              basePath="/receitas"
-              queryParams={{
-                ...(categorySlug ? { categoria: categorySlug } : {}),
-                ...(search ? { busca: search } : {}),
-                ...(tagSlug ? { tag: tagSlug } : {}),
-                ...(difficulty ? { dificuldade: difficulty } : {}),
-                ...(timeMax ? { tempo_max: timeMax } : {}),
-              }}
-            />
+      <div class="recipes-layout">
+        <div class="recipes-main">
+          {recipes.length === 0 && pagination.totalPages > 0 && currentPage > pagination.totalPages ? (
+            <div class="empty-state page-out-of-range" data-scroll-reveal="scale">
+              <div class="empty-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16v16H4z" />
+                  <path d="M9 9h6v6H9z" />
+                </svg>
+              </div>
+              <h2 class="empty-title">Esta página ainda não existe</h2>
+              <p class="empty-desc">
+                Há {pagination.totalPages} {pagination.totalPages === 1 ? 'página' : 'páginas'} de receitas no momento — você está na página {currentPage}.
+              </p>
+              <a href="/receitas" class="btn-primary">← Voltar para a primeira página</a>
+            </div>
+          ) : recipes.length > 0 ? (
+            <>
+              <div class="recipes-grid" data-stagger data-stagger-delay="80" data-stagger-start="100">
+                {recipes.map((recipe, i) => (
+                  <RecipeCard recipe={recipe} index={i} />
+                ))}
+              </div>
+              {pagination.totalPages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={pagination.totalPages}
+                  basePath="/receitas"
+                  queryParams={{
+                    ...(categorySlug ? { categoria: categorySlug } : {}),
+                    ...(search ? { busca: search } : {}),
+                    ...(tagSlug ? { tag: tagSlug } : {}),
+                    ...(difficulty ? { dificuldade: difficulty } : {}),
+                    ...(timeMax ? { tempo_max: timeMax } : {}),
+                  }}
+                />
+              )}
+            </>
+          ) : (
+            <div class="empty-state" data-scroll-reveal="scale">
+              <div class="empty-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+                  <path d="M12 6v6l4 2" />
+                </svg>
+              </div>
+              <h2 class="empty-title">Nenhuma receita encontrada</h2>
+              <p class="empty-desc">
+                {search ? `Nenhum resultado para "${search}".` : 'Nenhuma receita publicada com estes filtros.'}
+              </p>
+              <a href="/receitas" class="btn-primary">Ver todas as receitas</a>
+            </div>
           )}
-        </>
-      ) : (
-        <div class="empty-state" data-scroll-reveal="scale">
-          <div class="empty-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
-              <path d="M12 6v6l4 2" />
-            </svg>
-          </div>
-          <h2 class="empty-title">Nenhuma receita encontrada</h2>
-          <p class="empty-desc">
-            {search ? `Nenhum resultado para "${search}".` : 'Nenhuma receita publicada com estes filtros.'}
-          </p>
-          <a href="/receitas" class="btn-primary">Ver todas as receitas</a>
         </div>
-      )}
+
+        <SidebarWidgets
+          cafeDoDia={false}
+          receitaDoDia={true}
+          newsletter={true}
+          clima={true}
+          cambio={true}
+        />
+      </div>
     </div>
   </section>
 
@@ -359,6 +379,33 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
     opacity: 0.8;
   }
   
+  .recipes-listing-section {
+    padding-top: 0.5rem;
+  }
+
+  .recipes-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  .recipes-main {
+    min-width: 0;
+  }
+
+  @media (max-width: 1100px) {
+    .recipes-layout {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+
+    .sidebar-widgets {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+  }
+
   .recipes-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));

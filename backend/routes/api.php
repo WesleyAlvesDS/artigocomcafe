@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\CollectionController;
 use App\Http\Controllers\Api\GrainController;
 use App\Http\Controllers\Api\KnowledgeMapController;
 use App\Http\Controllers\Api\MissionController;
+use App\Http\Controllers\Api\OpenLibraryController;
 use App\Http\Controllers\Api\ReadingProgressController;
 use App\Http\Controllers\Api\RecommendationController;
 use App\Http\Controllers\Api\RecipeController;
@@ -118,6 +119,11 @@ Route::prefix('integrations')->middleware('throttle:30,1')->group(function () {
     Route::get('/headlines', [IntegrationController::class, 'headlines']);
     Route::get('/weather', [IntegrationController::class, 'weather']);
     Route::get('/exchange', [IntegrationController::class, 'exchange']);
+
+    // Biblioteca — OpenLibrary (livre de chave, com cache e rate limit)
+    Route::get('/library/explore', [OpenLibraryController::class, 'explore']);
+    Route::get('/library/search', [OpenLibraryController::class, 'search']);
+    Route::get('/library/books/{key}', [OpenLibraryController::class, 'show']);
 });
 
 // Assistente do Criador — AI (Groq + Gemini)

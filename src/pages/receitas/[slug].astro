@@ -110,6 +110,17 @@ const schemaRecipe = recipe ? {
             </div>
             <h1 class="recipe-title">{recipe.title}</h1>
             <p class="recipe-excerpt-header">{recipe.excerpt}</p>
+            <div class="recipe-toolbar">
+              <button class="recipe-print-btn" id="recipe-print-btn" type="button" aria-label="Imprimir receita">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 6 2 18 2 18 9" />
+                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                  <rect x="6" y="14" width="12" height="8" />
+                </svg>
+                Imprimir
+              </button>
+              <span class="recipe-prep-progress" id="recipe-prep-progress">0% preparado</span>
+            </div>
             <div class="recipe-stats-row">
               {recipe.prep_time_minutes != null && (
                 <span class="recipe-stat">⏱ Preparo: {recipe.prep_time_minutes} min</span>
@@ -173,15 +184,38 @@ const schemaRecipe = recipe ? {
               </section>
 
               <section class="recipe-steps" data-reveal>
-                <h2>Modo de Preparo</h2>
+                <div class="section-head-row">
+                  <h2>Modo de Preparo</h2>
+                  <span class="steps-count">{(recipe.steps || []).length} {(recipe.steps || []).length === 1 ? 'passo' : 'passos'}</span>
+                </div>
                 <ol class="steps-list">
                   {(recipe.steps || []).map((s, i) => (
                     <li class="step-item" data-step={i}>
                       <span class="step-number">{i + 1}</span>
-                      <p class="step-text">{s.description || String(s)}</p>
+                      <div class="step-content">
+                        <p class="step-text">{s.description || String(s)}</p>
+                        <span class="step-time" data-step-time={i} aria-hidden="true"></span>
+                      </div>
+                      <label class="step-done" aria-label={`Marcar passo ${i + 1} como concluído`}>
+                        <input type="checkbox" class="step-check" data-step-check={i} />
+                        <span class="step-done-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                        </span>
+                      </label>
                     </li>
                   ))}
                 </ol>
+              </section>
+
+              <section class="recipe-chef-tips" data-reveal>
+                <div class="tips-head">
+                  <span class="tips-icon" aria-hidden="true">👨‍🍳</span>
+                  <div>
+                    <h2>Dicas do Chef</h2>
+                    <p>Truques profissionais para um resultado impecável</p>
+                  </div>
+                </div>
+                <div class="tips-grid" id="chef-tips"></div>
               </section>
 
               <ToastProvider>
@@ -257,35 +291,164 @@ const schemaRecipe = recipe ? {
       </section>
     )}
 
-    <script>
-      // Ingredient checklist progress
-      const ingredientsList = document.getElementById('ingredients-list')
-      const progressEl = document.getElementById('ingredients-progress')
-      if (ingredientsList && progressEl) {
-        const checkboxes = ingredientsList.querySelectorAll('.ingredient-check')
-        const total = checkboxes.length
-        const update = () => {
-          const checked = [...checkboxes].filter(c => c.checked).length
-          progressEl.textContent = `${checked}/${total} ingredientes`
-          ingredientsList.classList.toggle('all-ready', checked === total && total > 0)
-        }
-        checkboxes.forEach(cb => cb.addEventListener('change', update))
-        update()
-      }
-
-      const copyBtn = document.getElementById('copy-link')
-      if (copyBtn) {
-        copyBtn.addEventListener('click', async () => {
-          const url = copyBtn.getAttribute('data-url')
-          if (url) {
-            try {
-              await navigator.clipboard.writeText(url)
-              copyBtn.style.color = 'var(--color-accent)'
-              setTimeout(() => { copyBtn.style.color = '' }, 2000)
-            } catch {}
+    <script is:inline define:vars={{
+      recipePrep: recipe.prep_time_minutes || 0,
+      recipeCook: recipe.cook_time_minutes || 0,
+      recipeDifficulty: recipe.difficulty,
+      recipeCategoryName: recipe.category?.name || '',
+      recipeIngredientNames: (recipe.ingredients || []).map(i => i.name),
+      recipeStepCount: (recipe.steps || []).length
+    }}>
+      (function() {
+        // 1. Ingredient checklist progress
+        const ingredientsList = document.getElementById('ingredients-list')
+        const progressEl = document.getElementById('ingredients-progress')
+        if (ingredientsList && progressEl) {
+          const checkboxes = ingredientsList.querySelectorAll('.ingredient-check')
+          const total = checkboxes.length
+          const update = () => {
+            const checked = [...checkboxes].filter(c => c.checked).length
+            progressEl.textContent = `${checked}/${total} ingredientes`
+            ingredientsList.classList.toggle('all-ready', checked === total && total > 0)
+            updatePrepProgress()
           }
+          checkboxes.forEach(cb => cb.addEventListener('change', update))
+        }
+
+        const copyBtn = document.getElementById('copy-link')
+        if (copyBtn) {
+          copyBtn.addEventListener('click', async () => {
+            const url = copyBtn.getAttribute('data-url')
+            if (url) {
+              try {
+                await navigator.clipboard.writeText(url)
+                copyBtn.style.color = 'var(--color-accent)'
+                setTimeout(() => { copyBtn.style.color = '' }, 2000)
+              } catch {}
+            }
+          })
+        }
+
+        // 2. Estimated time per step (proportional to total time)
+        const stepTimes = document.querySelectorAll('[data-step-time]')
+        const stepChecks = document.querySelectorAll('[data-step-check]')
+        const totalTime = (recipePrep || 0) + (recipeCook || 0)
+        const nSteps = recipeStepCount
+        if (stepTimes.length > 0 && totalTime > 0 && nSteps > 0) {
+          // Distribui o tempo total entre os passos, com peso um pouco maior
+          // para o meio do preparo (etapas principais).
+          const weights = []
+          for (let i = 0; i < nSteps; i++) {
+            const center = Math.abs(i - (nSteps - 1) / 2) / Math.max(1, (nSteps - 1) / 2)
+            weights.push(1 + (1 - center) * 0.6)
+          }
+          const totalW = weights.reduce((a, b) => a + b, 0)
+          let acc = 0
+          stepTimes.forEach((el, i) => {
+            const mins = Math.max(1, Math.round((totalTime * weights[i] / totalW) / 5) * 5)
+            acc += mins
+            el.textContent = `≈ ${mins} min`
+          })
+        }
+
+        // 3. Chef tips (dynamic, based on recipe data)
+        const tipsBox = document.getElementById('chef-tips')
+        if (tipsBox) {
+          const tips = []
+          const hasOven = recipeCook > 0
+          const cats = recipeCategoryName.toLowerCase()
+
+          if (hasOven) {
+            tips.push({
+              icon: '🔥',
+              title: 'Temperatura do forno',
+              text: 'Preaqueça o forno sempre 10–15 min antes e evite abrir a porta durante o cozimento — a variação de temperatura compromete a textura final.'
+            })
+          }
+          tips.push({
+            icon: '🌡️',
+            title: 'Ingredientes em ponto',
+            text: 'Retire ovos, manteiga e laticínios da geladeira 30 min antes: ingredientes em temperatura ambiente incorporam melhor e garantem emulsão estável.'
+          })
+          if (recipeDifficulty === 'facil') {
+            tips.push({
+              icon: '✅',
+              title: 'Mise en place',
+              text: 'Separe e pese todos os ingredientes antes de começar. O preparo flui sem pausas e o risco de esquecer algo cai pela metade.'
+            })
+          } else if (recipeDifficulty === 'dificil') {
+            tips.push({
+              icon: '🎯',
+              title: 'Passos críticos',
+              text: 'Nas receitas mais complexas, execute cada etapa com atenção total — separe o dobro do tempo estimado para as etapas de emulsão e montagem.'
+            })
+          }
+          if (cats.includes('café') || cats.includes('coffee')) {
+            tips.push({
+              icon: '☕',
+              title: 'Toque de café',
+              text: 'Use café recém-moído e ajuste a moagem ao método: extrações curtas pedem moagem fina, preparos longos pedem moagem mais grossa.'
+            })
+          }
+          if (cats.includes('sobremesa') || cats.includes('doce') || cats.includes('dessert')) {
+            tips.push({
+              icon: '🍫',
+              title: 'Finalização doce',
+              text: 'Deixe a sobremesa descansar antes de servir: o repouso estabiliza texturas e intensifica os sabores.'
+            })
+          }
+          // Fallback universal
+          tips.push({
+            icon: '👨‍🍳',
+            title: 'Prova final',
+            text: 'Ajuste sal, acidez e doçura ao final — cada paladar é único, e pequenos ajustes transformam um bom prato em memorável.'
+          })
+
+          tips.slice(0, 4).forEach(tip => {
+            const card = document.createElement('div')
+            card.className = 'tip-card'
+            card.style.setProperty('--tip-delay', '0ms')
+            card.innerHTML = `
+              <span class="tip-icon" aria-hidden="true">${tip.icon}</span>
+              <div class="tip-body">
+                <strong class="tip-title">${tip.title}</strong>
+                <p class="tip-text">${tip.text}</p>
+              </div>
+            `
+            tipsBox.appendChild(card)
+          })
+        }
+
+        // 4. Overall prep progress (ingredients + steps)
+        const prepBar = document.getElementById('recipe-prep-progress')
+        function updatePrepProgress() {
+          if (!prepBar) return
+          let done = 0
+          let total = 0
+          const ingBoxes = ingredientsList ? ingredientsList.querySelectorAll('.ingredient-check') : []
+          total += ingBoxes.length
+          done += [...ingBoxes].filter(c => c.checked).length
+          stepChecks.forEach(cb => { total++; if (cb.checked) done++ })
+          if (total === 0) return
+          const pct = Math.round((done / total) * 100)
+          prepBar.textContent = `${pct}% preparado`
+          prepBar.classList.toggle('complete', pct === 100)
+        }
+        stepChecks.forEach(cb => {
+          cb.addEventListener('change', () => {
+            const item = cb.closest('.step-item')
+            if (item) item.classList.toggle('done', cb.checked)
+            updatePrepProgress()
+          })
         })
-      }
+        updatePrepProgress()
+
+        // 5. Print button
+        const printBtn = document.getElementById('recipe-print-btn')
+        if (printBtn) {
+          printBtn.addEventListener('click', () => window.print())
+        }
+      })();
     </script>
   </Base>
 )}
@@ -403,6 +566,54 @@ const schemaRecipe = recipe ? {
     border-radius: 100px;
     background: var(--color-bg-card);
     border: 1px solid var(--color-bg-card-border);
+  }
+
+  .recipe-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+
+  .recipe-print-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 1rem;
+    border-radius: 100px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    color: var(--color-text-secondary);
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .recipe-print-btn:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .recipe-prep-progress {
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
+    color: var(--color-text-muted);
+    padding: 0.45rem 0.9rem;
+    border-radius: 100px;
+    background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 18%, transparent);
+    transition: all 0.3s;
+  }
+
+  .recipe-prep-progress.complete {
+    color: var(--color-accent);
+    font-weight: 700;
   }
 
   .recipe-tags {
@@ -545,13 +756,31 @@ const schemaRecipe = recipe ? {
     font-weight: 600;
   }
 
+  .section-head-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .steps-count {
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+    color: var(--color-text-muted);
+    padding: 0.3rem 0.75rem;
+    border-radius: 100px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+  }
+
   .steps-list {
     list-style: none;
     padding: 0;
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.75rem;
     counter-reset: step;
   }
 
@@ -559,31 +788,219 @@ const schemaRecipe = recipe ? {
     display: flex;
     gap: 1rem;
     align-items: flex-start;
-    padding: 1rem 1.25rem;
+    padding: 1.1rem 1.25rem;
     border-radius: 14px;
     background: var(--color-bg-card);
     border: 1px solid var(--color-bg-card-border);
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .step-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--color-accent), var(--color-accent-secondary));
+    opacity: 0;
+    transition: opacity 0.35s;
+  }
+
+  .step-item:hover {
+    border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+    transform: translateX(3px);
+    box-shadow: var(--shadow-card);
+  }
+
+  .step-item:hover::before {
+    opacity: 1;
+  }
+
+  .step-item.done {
+    border-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+    background: color-mix(in srgb, var(--color-accent) 5%, var(--color-bg-card));
+  }
+
+  .step-item.done .step-text {
+    opacity: 0.55;
+    text-decoration: line-through;
   }
 
   .step-number {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     flex-shrink: 0;
     border-radius: 10px;
     background: linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary));
     color: var(--color-btn-text);
     font-weight: 700;
     font-size: 0.9rem;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--color-accent) 30%, transparent);
+  }
+
+  .step-content {
+    flex: 1;
+    min-width: 0;
   }
 
   .step-text {
     font-size: 0.95rem;
     line-height: 1.7;
     color: var(--color-text-secondary);
-    margin: 0.2rem 0 0;
+    margin: 0;
+    transition: opacity 0.3s;
+  }
+
+  .step-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.5rem;
+    font-size: 0.72rem;
+    font-family: var(--font-mono);
+    color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 18%, transparent);
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+  }
+
+  .step-done {
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+    cursor: pointer;
+  }
+
+  .step-done input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .step-done-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+    border: 1.5px solid var(--color-bg-card-border);
+    color: transparent;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .step-done:hover .step-done-icon {
+    border-color: var(--color-accent);
+    color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+  }
+
+  .step-done input:checked + .step-done-icon {
+    background: linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary));
+    border-color: transparent;
+    color: var(--color-btn-text);
+    box-shadow: 0 2px 10px color-mix(in srgb, var(--color-accent) 35%, transparent);
+  }
+
+  /* ── Dicas do Chef ─────────────────────────── */
+  .recipe-chef-tips {
+    margin-top: 1rem;
+    padding: 1.5rem;
+    border-radius: var(--radius-card-lg);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 7%, var(--color-bg-card)), var(--color-bg-card));
+    border: 1px solid color-mix(in srgb, var(--color-accent) 18%, transparent);
+  }
+
+  .tips-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .tips-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary));
+    font-size: 1.3rem;
+    box-shadow: 0 6px 18px color-mix(in srgb, var(--color-accent) 30%, transparent);
+  }
+
+  .tips-head h2 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin: 0 0 0.15rem;
+  }
+
+  .tips-head p {
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+
+  .tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .tip-card {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: 12px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    animation: tip-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: var(--tip-delay);
+  }
+
+  @keyframes tip-in {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .tip-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 20%, transparent);
+    font-size: 1rem;
+  }
+
+  .tip-body {
+    min-width: 0;
+  }
+
+  .tip-title {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 0.2rem;
+  }
+
+  .tip-text {
+    font-size: 0.8rem;
+    line-height: 1.55;
+    color: var(--color-text-secondary);
+    margin: 0;
   }
 
   .recipe-author {
@@ -738,6 +1155,67 @@ const schemaRecipe = recipe ? {
       position: static;
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+  }
+
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+
+    .recipe-page,
+    .recipe-page *,
+    .recipe-cover,
+    .recipe-cover * {
+      visibility: visible;
+    }
+
+    .recipe-page {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      padding: 0;
+    }
+
+    .recipe-sidebar,
+    .recipe-toolbar,
+    .recipe-author,
+    .recipe-tags,
+    .recipe-chef-tips,
+    .header,
+    .footer,
+    .ai-launcher,
+    .ai-floating-widget,
+    .cookie-consent,
+    .scroll-progress,
+    .app-aurora,
+    .app-grid-overlay {
+      display: none !important;
+    }
+
+    .recipe-header-section {
+      padding: 1rem 0;
+      background: none !important;
+      border: none !important;
+    }
+
+    .recipe-layout {
+      display: block !important;
+    }
+
+    .step-item {
+      break-inside: avoid;
+      border-color: #ddd;
+    }
+
+    .step-done,
+    .ingredient-check {
+      display: none !important;
+    }
+
+    .step-text {
+      opacity: 1 !important;
+      text-decoration: none !important;
     }
   }
 </style>

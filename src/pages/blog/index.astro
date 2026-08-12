@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro'
 import ArticleCard from '../../components/ArticleCard.astro'
 import Pagination from '../../components/Pagination.astro'
-import ExchangeRateWidget from '../../components/ExchangeRateWidget'
+import SidebarWidgets from '../../components/SidebarWidgets.astro'
 import ScrollAnimations from '../../components/ScrollAnimations.astro'
 import { getPosts, getCategories } from '../../lib/laravel'
 
@@ -79,48 +79,68 @@ const { posts, pagination } = await getPosts(currentPage, 9, categorySlug || und
     </div>
   </section>
 
-  <section class="section" data-scroll-reveal="fade" style="padding-top: 0.5rem; padding-bottom: 0;">
+  <section class="section blog-listing-section">
     <div class="container">
-      <ExchangeRateWidget client:visible compact={true} maxRates={5} />
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="container">
-      {posts.length > 0 ? (
-        <>
-          <div class="articles-grid" data-stagger data-stagger-delay="80" data-stagger-start="100">
-            {posts.map((post, i) => (
-              <ArticleCard post={post} index={i} />
-            ))}
-          </div>
-          {pagination.totalPages > 1 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={pagination.totalPages}
-              basePath="/blog"
-              queryParams={{
-                ...(categorySlug ? { categoria: categorySlug } : {}),
-                ...(search ? { busca: search } : {}),
-              }}
-            />
+      <div class="blog-layout">
+        <div class="blog-main">
+          {posts.length === 0 && pagination.totalPages > 0 && currentPage > pagination.totalPages ? (
+            <div class="empty-state page-out-of-range" data-scroll-reveal="scale">
+              <div class="empty-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16v16H4z" />
+                  <path d="M9 9h6v6H9z" />
+                </svg>
+              </div>
+              <h2 class="empty-title">Esta página ainda não existe</h2>
+              <p class="empty-desc">
+                O blog tem {pagination.totalPages} {pagination.totalPages === 1 ? 'página' : 'páginas'} de conteúdo no momento — você está na página {currentPage}.
+              </p>
+              <a href="/blog" class="btn-primary">← Voltar para a primeira página</a>
+            </div>
+          ) : posts.length > 0 ? (
+            <>
+              <div class="articles-grid" data-stagger data-stagger-delay="80" data-stagger-start="100">
+                {posts.map((post, i) => (
+                  <ArticleCard post={post} index={i} />
+                ))}
+              </div>
+              {pagination.totalPages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={pagination.totalPages}
+                  basePath="/blog"
+                  queryParams={{
+                    ...(categorySlug ? { categoria: categorySlug } : {}),
+                    ...(search ? { busca: search } : {}),
+                  }}
+                />
+              )}
+            </>
+          ) : (
+            <div class="empty-state" data-scroll-reveal="scale">
+              <div class="empty-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </div>
+              <h2 class="empty-title">Nenhum artigo encontrado</h2>
+              <p class="empty-desc">
+                {search ? `Nenhum resultado para "${search}".` : 'Nenhum artigo publicado nesta categoria ainda.'}
+              </p>
+              <a href="/blog" class="btn-primary">Ver todos os artigos</a>
+            </div>
           )}
-        </>
-      ) : (
-        <div class="empty-state" data-scroll-reveal="scale">
-          <div class="empty-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-          </div>
-          <h2 class="empty-title">Nenhum artigo encontrado</h2>
-          <p class="empty-desc">
-            {search ? `Nenhum resultado para "${search}".` : 'Nenhum artigo publicado nesta categoria ainda.'}
-          </p>
-          <a href="/blog" class="btn-primary">Ver todos os artigos</a>
         </div>
-      )}
+
+        <SidebarWidgets
+          cafeDoDia={true}
+          receitaDoDia={true}
+          newsletter={true}
+          clima={false}
+          cambio={false}
+        />
+      </div>
     </div>
   </section>
 
@@ -244,6 +264,33 @@ const { posts, pagination } = await getPosts(currentPage, 9, categorySlug || und
 
   .tag-filter-chip:hover {
     background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+  }
+
+  .blog-listing-section {
+    padding-top: 0.5rem;
+  }
+
+  .blog-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  .blog-main {
+    min-width: 0;
+  }
+
+  @media (max-width: 1100px) {
+    .blog-layout {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+
+    .sidebar-widgets {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
   }
 
   .articles-grid {

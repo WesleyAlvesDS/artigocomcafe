@@ -8,7 +8,6 @@ import ArticleToc from '../../components/ArticleToc'
 import { ToastProvider } from '../../components/Toast'
 import ScrollAnimations from '../../components/ScrollAnimations.astro'
 import SmartSidebar from '../../components/SmartSidebar.astro'
-import LazyRelated from '../../components/LazyRelated.astro'
 import { formatDate } from '../../lib/utils'
 import { getPost, getAllSlugs } from '../../lib/laravel'
 import type { BlogPost } from '../../lib/types'
@@ -248,7 +247,6 @@ if (post) {
     </section>
 
     <ScrollAnimations />
-    <LazyRelated />
 
     <script is:inline define:vars={{ relatedData: related.slice(0, 4).map(r => ({
       slug: r.slug,
@@ -260,7 +258,8 @@ if (post) {
       readingTime: r.readingTime,
       categories: r.categories
     })) }}>
-      // Lazy load related articles
+      // Sistema inteligente de artigos relacionados:
+      // só carrega quando o leitor realmente rolar até o fim do artigo.
       (function() {
         const grid = document.getElementById('related-articles-grid');
         const section = document.getElementById('related-articles-section');
@@ -270,11 +269,15 @@ if (post) {
           if (grid.dataset.loaded === 'true') return;
           grid.dataset.loaded = 'true';
 
-          // Remove skeleton
           const skeleton = grid.querySelector('.related-skeleton');
           if (skeleton) skeleton.remove();
 
-          // Render article cards
+          if (!relatedData.length) {
+            section.classList.add('loaded');
+            section.style.display = 'none';
+            return;
+          }
+
           relatedData.forEach((post, i) => {
             const card = document.createElement('a');
             card.href = `/blog/${post.slug}/`;
@@ -308,21 +311,47 @@ if (post) {
             grid.appendChild(card);
           });
 
-          // Trigger reveal animation
           requestAnimationFrame(() => {
             section.classList.add('loaded');
           });
         }
 
-        // Listen for lazy load trigger
-        grid.addEventListener('lazy-related:load', renderRelated, { once: true });
+        // Gatilho 1: o leitor rolou até o fim do artigo (seção entra na viewport)
+        const sectionObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              renderRelated();
+              sectionObserver.disconnect();
+            }
+          });
+        }, { rootMargin: '0px 0px -15% 0px', threshold: 0.05 });
+        sectionObserver.observe(section);
 
-        // Also load when sidebar triggers it
-        document.addEventListener('load-related', () => {
-          if (grid.dataset.loaded !== 'true') {
+        // Gatilho 2: progresso de leitura >= 65% (sistema antecipado e inteligente)
+        function checkProgress() {
+          const article = document.querySelector('.article-content');
+          if (!article) return;
+          const rect = article.getBoundingClientRect();
+          const total = rect.height - window.innerHeight;
+          const progress = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 1;
+          if (progress >= 0.65) {
             renderRelated();
+            document.removeEventListener('scroll', checkProgress);
+            window.removeEventListener('resize', checkProgress);
           }
+        }
+        document.addEventListener('scroll', checkProgress, { passive: true });
+        window.addEventListener('resize', checkProgress, { passive: true });
+
+        // Gatilho 3: fallback manual disparado pela sidebar
+        document.addEventListener('load-related', () => {
+          if (grid.dataset.loaded !== 'true') renderRelated();
         });
+
+        // Fallback final: mesmo sem scroll, após 45s o conteúdo aparece
+        setTimeout(() => {
+          if (grid.dataset.loaded !== 'true') renderRelated();
+        }, 45000);
       })();
     </script>
 
@@ -465,6 +494,9 @@ if (post) {
 
   .cover-frame {
     position: relative;
+    aspect-ratio: 21 / 9;
+    max-height: 560px;
+    width: 100%;
     border-radius: var(--radius-card-lg);
     overflow: hidden;
     box-shadow: var(--shadow-card), 0 0 0 1px rgba(255,255,255,0.02);
@@ -474,8 +506,9 @@ if (post) {
 
   .cover-image {
     width: 100%;
-    height: clamp(280px, 45vw, 520px);
+    height: 100%;
     object-fit: cover;
+    object-position: center;
     display: block;
     transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), filter 0.6s ease;
     will-change: transform, filter;

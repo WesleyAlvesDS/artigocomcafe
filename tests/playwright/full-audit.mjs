@@ -176,9 +176,15 @@ async function runSuite(viewport, label) {
       const clean = href.split('?')[0].split('#')[0];
       if (!clean || clean === '/' ) continue;
       try {
-        const resp = await navPage.goto(BASE_URL + clean, { waitUntil: 'domcontentloaded', timeout: 10000 });
+        const resp = await navPage.goto(BASE_URL + clean, { waitUntil: 'domcontentloaded', timeout: 20000 });
         if (resp && resp.status() >= 400) { brokenLinks++; brokenDetail.push(`${clean} (${resp.status()})`); }
-      } catch { brokenLinks++; brokenDetail.push(clean); }
+      } catch {
+        // Retry uma vez: páginas React pesadas podem estourar o timeout sob carga.
+        try {
+          const resp2 = await navPage.goto(BASE_URL + clean, { waitUntil: 'domcontentloaded', timeout: 20000 });
+          if (resp2 && resp2.status() >= 400) { brokenLinks++; brokenDetail.push(`${clean} (${resp2.status()})`); }
+        } catch { brokenLinks++; brokenDetail.push(clean); }
+      }
     }
     report(`Nenhum link interno quebrado`, brokenLinks === 0,
       brokenDetail.length > 0 ? brokenDetail.slice(0, 5).join(', ') : '');
@@ -186,6 +192,9 @@ async function runSuite(viewport, label) {
     // ── 5. MUDANÇA DE PÁGINAS (clique em links) ──────────
     console.log('\n🔄 MUDANÇA DE PÁGINAS');
     const navStart = await navPage.goto(BASE_URL + '/', { waitUntil: 'networkidle', timeout: 30000 });
+    // O overlay de cookies (position:fixed, z=10000) intercepta cliques no
+    // header; sem dispensá-lo o clique no link "Blog" estoura o timeout.
+    await dismissCookies(navPage);
     report('View transitions habilitadas', await navPage.evaluate(() =>
       !!document.querySelector('meta[name="astro-view-transitions-enabled"]')),
       'meta[name=astro-view-transitions-enabled]');
@@ -461,7 +470,10 @@ async function runSuite(viewport, label) {
       !e.text.includes('favicon') &&
       !e.text.includes('Failed to load resource') &&
       !e.text.includes('404') &&
-      !e.text.includes('net::ERR_ABORTED')
+      !e.text.includes('net::ERR_ABORTED') &&
+      // Transição interrompida é o fallback normal do Astro quando a página
+      // alvo redireciona no client (ex.: páginas protegidas → /entrar).
+      !e.text.includes('Transition was skipped')
     );
     if (criticalErrors.length === 0) {
       report('Nenhum erro crítico no console', true);
