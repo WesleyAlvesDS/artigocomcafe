@@ -1,0 +1,136 @@
+---
+// Barra de categorias do modelo editorial (modelonovo.md)
+// Cada categoria: ícone + nome, com hover e link para o blog filtrado.
+const CATEGORIES = [
+  { name: 'Tecnologia', slug: 'tecnologia', icon: '💻', tint: '#3b82f6' },
+  { name: 'Finanças', slug: 'financas', icon: '📈', tint: '#10b981' },
+  { name: 'Educação', slug: 'educacao', icon: '🎓', tint: '#8b5cf6' },
+  { name: 'Desenvolvimento Pessoal', slug: 'desenvolvimento-pessoal', icon: '🌱', tint: '#f59e0b' },
+  { name: 'Games', slug: 'games', icon: '🎮', tint: '#ef4444' },
+  { name: 'Curiosidades', slug: 'curiosidades', icon: '✨', tint: '#ec4899' },
+]
+---
+
+<div class="category-bar" data-scroll-reveal="slide-up" data-scroll-delay="150" role="navigation" aria-label="Categorias de artigos">
+  <div class="category-bar-inner">
+    {CATEGORIES.map((cat) => (
+      <a
+        href={`/blog?categoria=${cat.slug}`}
+        class="category-item"
+        style={`--cat-tint: ${cat.tint}`}
+      >
+        <span class="category-icon" aria-hidden="true">{cat.icon}</span>
+        <span class="category-name">{cat.name}</span>
+        <span class="category-arrow" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        </span>
+      </a>
+    ))}
+  </div>
+</div>
+
+<style>
+  .category-bar {
+    position: relative;
+    z-index: 5;
+    margin-bottom: 2rem;
+  }
+
+  .category-bar-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.9rem 1.1rem;
+    background: color-mix(in srgb, var(--color-bg-card) 60%, transparent);
+    border: 1px solid var(--color-bg-card-border);
+    border-radius: var(--radius-card-lg);
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    overflow-x: auto;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .category-bar-inner::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .category-bar-inner::-webkit-scrollbar-thumb {
+    background: var(--color-bg-card-border);
+    border-radius: 4px;
+  }
+
+  .category-item {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-shrink: 0;
+    padding: 0.55rem 1.1rem;
+    border-radius: 100px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-size: 0.86rem;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .category-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 0.95rem;
+    background: color-mix(in srgb, var(--cat-tint) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--cat-tint) 20%, transparent);
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.3s;
+  }
+
+  .category-arrow {
+    display: inline-flex;
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 0.3s, transform 0.3s;
+    color: var(--cat-tint);
+  }
+
+  .category-item:hover {
+    background: color-mix(in srgb, var(--cat-tint) 9%, transparent);
+    border-color: color-mix(in srgb, var(--cat-tint) 28%, transparent);
+    color: var(--cat-tint);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px color-mix(in srgb, var(--cat-tint) 18%, transparent);
+  }
+
+  .category-item:hover .category-icon {
+    transform: scale(1.12) rotate(-6deg);
+    background: color-mix(in srgb, var(--cat-tint) 20%, transparent);
+  }
+
+  .category-item:hover .category-arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Mobile: scroll horizontal suave */
+  @media (max-width: 768px) {
+    .category-bar { margin-top: -1rem; }
+    .category-item { padding: 0.5rem 0.9rem; font-size: 0.8rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .category-item,
+    .category-icon,
+    .category-arrow {
+      transition: none !important;
+      transform: none !important;
+    }
+  }
+</style>

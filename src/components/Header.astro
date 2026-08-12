@@ -14,10 +14,17 @@ const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(
 <header class="header" transition:name="site-header" transition:animate="none">
   <div class="header-inner container">
     <a href="/" class="header-logo" aria-label="Artigo com Café - Home" transition:name="site-logo" transition:persist="site-logo">
-      <span class="header-logo-icon" aria-hidden="true">&#9749;</span>
-      <span class="header-logo-text">
-        Artigo com <span class="gradient-text">Café</span>
-      </span>
+      <img
+        class="header-logo-img"
+        src="/images/artigologo.svg"
+        alt="Artigo com Café"
+        width="431"
+        height="578"
+        loading="eager"
+        fetchpriority="high"
+        transition:name="site-logo-img"
+        transition:persist="site-logo-img"
+      />
     </a>
 
     <nav class="header-nav" aria-label="Navegação principal" transition:name="site-nav" transition:persist="site-nav">
@@ -124,9 +131,7 @@ const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(
     background: var(--color-glass-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--color-glass-border);
-    border-radius: var(--radius-card);
-    margin: 1rem;
+    border-bottom: 1px solid var(--color-glass-border);
     transition: background var(--transition), border-color var(--transition), box-shadow var(--transition), transform var(--transition);
     will-change: transform, box-shadow, background;
     contain: layout style paint;
@@ -145,47 +150,37 @@ const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(
     grid-template-columns: auto 1fr auto;
     align-items: center;
     gap: 1rem;
-    height: 68px;
-    padding: 0 1.25rem;
+    height: 74px;
+    padding: 0 1.5rem;
   }
 
   .header-logo {
     display: flex;
     align-items: center;
-    gap: 0.55rem;
     text-decoration: none;
-    color: var(--color-text-primary);
-    font-weight: 800;
-    font-size: 1.15rem;
-    letter-spacing: -0.01em;
     transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    line-height: 0;
   }
 
   .header-logo:hover {
     transform: translateY(-1px);
   }
 
-  .header-logo-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.15rem;
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, var(--gradient-from), var(--gradient-to));
-    color: var(--color-btn-text);
-    box-shadow: 0 0 18px color-mix(in srgb, var(--color-accent) 40%, transparent);
-    transition: transform var(--transition), box-shadow var(--transition);
+  .header-logo-img {
+    height: 60px;
+    width: auto;
+    object-fit: contain;
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.35s;
   }
 
-  .header-logo:hover .header-logo-icon {
-    transform: rotate(-8deg) scale(1.06);
-    box-shadow: 0 0 28px color-mix(in srgb, var(--color-accent) 55%, transparent);
+  .header-logo:hover .header-logo-img {
+    transform: scale(1.04);
   }
 
-  .header-logo-text {
-    font-family: var(--font-serif);
+  /* Tema claro: o logo (desenhado p/ fundo escuro) ganha leve queda de opacidade
+     para suavizar no fundo claro — mantém legibilidade premium */
+  .light .header-logo-img {
+    filter: drop-shadow(0 2px 6px rgba(74, 48, 34, 0.12));
   }
 
   .header-nav {
@@ -203,53 +198,32 @@ const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(
 
   .nav-link {
     position: relative;
-    padding: 0.5rem 0.9rem;
+    padding: 0.5rem 0.95rem;
     color: var(--color-text-secondary);
     text-decoration: none;
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     font-weight: 500;
-    transition: color var(--transition), background var(--transition);
+    transition: color var(--transition);
     border-radius: var(--radius-button);
     white-space: nowrap;
-    overflow: hidden;
-  }
-
-  .nav-link::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-bg-card-border);
-    opacity: 0;
-    transform: scale(0.92);
-    transition: opacity var(--transition), transform var(--transition);
-    z-index: -1;
   }
 
   .nav-link::after {
     content: '';
     position: absolute;
-    bottom: 4px;
+    bottom: 2px;
     left: 50%;
     transform: translateX(-50%) scaleX(0);
-    width: calc(100% - 1.8rem);
+    width: calc(100% - 1.9rem);
     height: 2px;
     border-radius: 2px;
-    background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
-    box-shadow: 0 0 10px color-mix(in srgb, var(--color-accent) 70%, transparent);
-    transition: transform var(--transition) cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--color-accent);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .nav-link:hover,
   .nav-link.active {
     color: var(--color-accent);
-  }
-
-  .nav-link:hover::before,
-  .nav-link.active::before {
-    opacity: 1;
-    transform: scale(1);
   }
 
   .nav-link:hover::after,
@@ -607,7 +581,7 @@ const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(
     .header-nav { display: none; }
     .hamburger { display: flex; }
     .header-inner { grid-template-columns: auto 1fr auto; }
-    .header { margin: 0.5rem; border-radius: var(--radius-card); }
+    .header-logo-img { height: 48px; }
   }
 
   @media (min-width: 769px) {
@@ -623,7 +597,7 @@ const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(
     .mobile-menu,
     .mobile-menu > *,
     .mobile-link,
-    .header-logo-icon,
+    .header-logo-img,
     .nav-icon-btn {
       transition: none !important;
       animation: none !important;

@@ -4,6 +4,8 @@
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --font-serif: 'Cormorant Garamond', serif;
+  --font-display: 'Montserrat', 'Inter', system-ui, sans-serif;
+  --font-body: 'Lora', 'Inter', Georgia, serif;
 
   --color-accent: #d4a373;
   --color-accent-dark: #b9855c;
@@ -65,36 +67,49 @@
   --radius-button: 10px;
 }
 
-.light {
-  --color-bg-primary: #faf6f0;
-  --color-bg-secondary: #f1e9de;
-  --color-bg-card: rgba(90, 60, 30, 0.05);
-  --color-bg-card-hover: rgba(90, 60, 30, 0.09);
-  --color-bg-card-border: rgba(90, 60, 30, 0.12);
+/* ── Paleta editorial café (modelonovo.md) ──────────────────
+   Disponível como variáveis de marca; o tema claro (`.light`)
+   usa exatamente essas cores para o visual premium editorial. */
+:root {
+  --coffee-bg: #FDFCF8;
+  --coffee-surface: #FAF6F0;
+  --coffee-text: #4A3022;
+  --coffee-dark: #3B251A;
+  --coffee-primary: #B88655;
+  --coffee-gold: #C49A6C;
+  --coffee-latte: #E8D5C4;
+}
 
-  --color-text-primary: #2b231a;
-  --color-text-secondary: #4e463b;
-  --color-text-muted: #6e6355;
+.light {
+  --color-bg-primary: #FDFCF8;
+  --color-bg-secondary: #FAF6F0;
+  --color-bg-card: rgba(184, 134, 85, 0.07);
+  --color-bg-card-hover: rgba(184, 134, 85, 0.12);
+  --color-bg-card-border: rgba(74, 48, 34, 0.12);
+
+  --color-text-primary: #4A3022;
+  --color-text-secondary: #6b5747;
+  --color-text-muted: #8a7462;
   --color-text-muted-dark: #5f5547;
 
-  --color-glass-bg: rgba(255, 255, 255, 0.75);
-  --color-glass-border: rgba(90, 60, 30, 0.15);
+  --color-glass-bg: rgba(255, 255, 255, 0.8);
+  --color-glass-border: rgba(184, 134, 85, 0.18);
 
-  --color-accent: #7a4f24;
-  --color-accent-dark: #684114;
-  --color-accent-secondary: #966a33;
-  --color-accent-secondary-dark: #7d5526;
+  --color-accent: #B88655;
+  --color-accent-dark: #a2714a;
+  --color-accent-secondary: #C49A6C;
+  --color-accent-secondary-dark: #a87f52;
 
-  --color-btn-text: #faf6f0;
+  --color-btn-text: #FDFCF8;
 
-  --color-accent-glow: rgba(122, 79, 36, 0.2);
-  --color-glass-shadow: 0 8px 32px rgba(90, 60, 30, 0.12);
-  --color-bg-card-shadow: 0 4px 24px rgba(90, 60, 30, 0.12);
-  --shadow-card-hover: 0 8px 32px rgba(90, 60, 30, 0.16);
-  --shadow-inner: inset 0 2px 4px rgba(90, 60, 30, 0.08);
+  --color-accent-glow: rgba(184, 134, 85, 0.22);
+  --color-glass-shadow: 0 8px 32px rgba(74, 48, 34, 0.12);
+  --color-bg-card-shadow: 0 4px 24px rgba(74, 48, 34, 0.1);
+  --shadow-card-hover: 0 8px 32px rgba(74, 48, 34, 0.14);
+  --shadow-inner: inset 0 2px 4px rgba(74, 48, 34, 0.08);
 
-  --shadow-card: 0 4px 24px rgba(90, 60, 30, 0.1);
-  --shadow-glow: 0 0 40px rgba(122, 79, 36, 0.1);
+  --shadow-card: 0 4px 24px rgba(74, 48, 34, 0.09);
+  --shadow-glow: 0 0 40px rgba(184, 134, 85, 0.14);
 }
 
 *, *::before, *::after {
@@ -116,6 +131,23 @@ body {
   transition: background-color 0.3s, color 0.3s;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Tema claro: corpo em serifa Lora para o clima editorial de cafeteria.
+   Escopado a `body-editorial` (páginas de marketing/conteúdo) para não
+   afetar o painel do leitor (dashboard.astro passa editorial={false}). */
+.light body.body-editorial {
+  font-family: var(--font-body);
+}
+
+.light body.body-editorial .section-title,
+.light body.body-editorial h1,
+.light body.body-editorial h2,
+.light body.body-editorial h3,
+.light body.body-editorial .hero-title,
+.light body.body-editorial .article-title {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
 }
 
 .container {
@@ -980,6 +1012,14 @@ body {
   mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 40%, transparent 100%);
   -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 40%, transparent 100%);
   opacity: 0.6;
+}
+
+/* ================================================================
+   IMERSÃO NO SCROLL — o hero recua suavemente ao rolar (zoom-out)
+   ================================================================ */
+[data-hero] {
+  transform-origin: center top;
+  will-change: transform, opacity;
 }
 
 /* Barra de progresso de scroll (topo) */

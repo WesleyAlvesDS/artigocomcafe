@@ -18,6 +18,7 @@ export interface Props {
   disableTransitions?: boolean
   hideAiAssistant?: boolean
   transitionName?: string
+  editorial?: boolean
 }
 
 const {
@@ -29,7 +30,8 @@ const {
   breadcrumbs = [],
   disableTransitions = false,
   hideAiAssistant = false,
-  transitionName = 'page-root'
+  transitionName = 'page-root',
+  editorial = true
 } = Astro.props
 
 const siteUrl = 'https://artigocomcafe.com'
@@ -105,7 +107,7 @@ const organizationJsonLd = {
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&family=JetBrains+Mono:wght@400..500&family=Cormorant+Garamond:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&family=JetBrains+Mono:wght@400..500&family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@500;600;700;800;900&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
 
     <link rel="preconnect" href="https://back.artigocomcafe.com" crossorigin />
     <link rel="dns-prefetch" href="https://back.artigocomcafe.com" />
@@ -457,7 +459,7 @@ const organizationJsonLd = {
       </style>
     </noscript>
   </head>
-  <body data-api-base="https://back.artigocomcafe.com/api">
+  <body data-api-base="https://back.artigocomcafe.com/api" class:list={[editorial && 'body-editorial']}>
     <div class="app-aurora" aria-hidden="true"></div>
     <div class="app-grid-overlay" aria-hidden="true"></div>
     <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
@@ -620,6 +622,35 @@ const organizationJsonLd = {
         } else {
           initAll()
         }
+      })()
+    </script>
+
+    <script is:inline>
+      // ── Imersão no scroll: hero recua (zoom-out) e desvanece ao rolar ──
+      (function () {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+        var ticking = false
+
+        function update() {
+          var hero = document.querySelector('[data-hero]')
+          if (!hero) { ticking = false; return }
+          var y = window.pageYOffset
+          var vh = window.innerHeight
+          // Primeiros 60% da viewport de rolagem do hero
+          var max = vh * 0.6
+          var p = Math.min(1, y / max)
+          // Zoom-out + recuo + desvanecimento suave
+          hero.style.transform = 'scale(' + (1 - p * 0.06).toFixed(4) + ') translateY(' + (p * 40).toFixed(1) + 'px)'
+          hero.style.opacity = String(Math.max(0, 1 - p * 0.35))
+          hero.style.filter = p > 0 ? 'blur(' + (p * 2.5).toFixed(2) + 'px)' : ''
+          ticking = false
+        }
+
+        function request() {
+          if (!ticking) { requestAnimationFrame(update); ticking = true }
+        }
+        window.addEventListener('scroll', request, { passive: true })
+        window.addEventListener('resize', request, { passive: true })
       })()
     </script>
 

@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro'
 import DashboardPage from '../components/DashboardPage.tsx'
 ---
 
-<Base title="Dashboard — Artigo com Café" description="Seu painel de controle e evolução no Artigo com Café. Acompanhe grãos, leituras, trilhas, clima e mais." canonical="/dashboard/" hideAiAssistant>
+<Base title="Dashboard — Artigo com Café" description="Seu painel de controle e evolução no Artigo com Café. Acompanhe grãos, leituras, trilhas, clima e mais." canonical="/dashboard/" hideAiAssistant editorial={false}>
   <section class="min-h-screen py-20 px-4" aria-label="Dashboard">
     <div class="max-w-7xl mx-auto">
       <DashboardPage client:load />
