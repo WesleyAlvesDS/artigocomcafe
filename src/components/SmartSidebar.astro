@@ -158,6 +158,34 @@ const { articleTitle, articleUrl, tocHeadings, categories, tags, readingTime } =
 
   <div class="sidebar-divider"></div>
 
+  {/* Tema de leitura */}
+  <div class="sidebar-card">
+    <h3 class="sidebar-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3v18" />
+        <path d="M5 21h14" />
+        <path d="M7 6h10" />
+      </svg>
+      Tema de leitura
+    </h3>
+    <div class="reading-themes" role="radiogroup" aria-label="Tema de leitura">
+      <button type="button" class="theme-btn" data-reading-theme="default" role="radio" aria-checked="true">
+        <span class="theme-swatch sw-default"></span>
+        <span>Clássico</span>
+      </button>
+      <button type="button" class="theme-btn" data-reading-theme="serif" role="radio" aria-checked="false">
+        <span class="theme-swatch sw-serif"></span>
+        <span>Serifado</span>
+      </button>
+      <button type="button" class="theme-btn" data-reading-theme="sepia" role="radio" aria-checked="false">
+        <span class="theme-swatch sw-sepia"></span>
+        <span>Sépia</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="sidebar-divider"></div>
+
   {/* Reading Time */}
   <div class="sidebar-card">
     <div class="reading-time">
@@ -272,6 +300,31 @@ const { articleTitle, articleUrl, tocHeadings, categories, tags, readingTime } =
       setFontSize(savedFontSize);
     }
 
+    // ── Tema de leitura (clássico / serifado / sépia) ──
+    const themeButtons = document.querySelectorAll('[data-reading-theme]');
+    const readingTarget = document.querySelector('.article-content, .recipe-main');
+
+    function applyReadingTheme(theme) {
+      document.body.classList.remove('reading-serif', 'reading-sepia');
+      if (theme === 'serif') document.body.classList.add('reading-serif');
+      if (theme === 'sepia') document.body.classList.add('reading-sepia');
+      themeButtons.forEach(b => {
+        const active = b.dataset.readingTheme === theme;
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-checked', active ? 'true' : 'false');
+      });
+      localStorage.setItem('article-reading-theme', theme);
+    }
+
+    themeButtons.forEach(btn => {
+      btn.addEventListener('click', () => applyReadingTheme(btn.dataset.readingTheme));
+    });
+
+    const savedTheme = localStorage.getItem('article-reading-theme');
+    if (savedTheme && readingTarget) {
+      applyReadingTheme(savedTheme);
+    }
+
     // Copy link with feedback
     const copyLinkBtn = document.getElementById('copy-link');
     if (copyLinkBtn) {
@@ -357,3 +410,66 @@ const { articleTitle, articleUrl, tocHeadings, categories, tags, readingTime } =
     });
   })();
 </script>
+
+<style>
+  .reading-themes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .theme-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.7rem;
+    border-radius: 10px;
+    border: 1px solid var(--color-bg-card-border);
+    background: var(--color-bg-card);
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+    font-weight: 500;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
+  }
+
+  .theme-btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-text-primary);
+    transform: translateX(2px);
+  }
+
+  .theme-btn.active {
+    border-color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    color: var(--color-accent);
+  }
+
+  .theme-swatch {
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    border: 1px solid var(--color-bg-card-border);
+  }
+
+  .sw-default {
+    background: linear-gradient(135deg, var(--color-bg-card), var(--color-bg-card-hover));
+  }
+
+  .sw-serif {
+    background: linear-gradient(135deg, #2b231a, #4e463b);
+  }
+
+  .sw-sepia {
+    background: linear-gradient(135deg, #f4ecd8, #e8dcc0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-btn {
+      transition: none !important;
+    }
+  }
+</style>

@@ -1039,6 +1039,273 @@ body {
 /* Cursor pointer em links/cliques por padrão nos botões de ação leve */
 a, button { -webkit-tap-highlight-color: transparent; }
 
+/* ================================================================
+   MICRO-INTERAÇÕES FUTURISTAS — spotlight, tilt 3D, magnético
+   ================================================================ */
+
+/* Spotlight que segue o mouse dentro de elementos marcados */
+.spotlight-card {
+  position: relative;
+}
+
+.spotlight-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    340px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    color-mix(in srgb, var(--color-accent) 9%, transparent),
+    transparent 65%
+  );
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.spotlight-card:hover::after {
+  opacity: 1;
+}
+
+/* Tilt 3D sutil — usa transform gerenciado via JS */
+.tilt-card {
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.3s ease;
+}
+
+.tilt-card .tilt-layer {
+  transform: translateZ(18px);
+  transform-style: preserve-3d;
+}
+
+/* Botões magnéticos — aproximam-se do cursor */
+.magnetic {
+  transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spotlight-card::after {
+    opacity: 0 !important;
+    transition: none;
+  }
+  .tilt-card {
+    transform: none !important;
+    transition: none !important;
+  }
+  .magnetic {
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ================================================================
+   EXPERIÊNCIA DE LEITURA — temas, tipografia, lightbox
+   ================================================================ */
+
+/* Tema Serifado: fonte serif no corpo do artigo + maior espaçamento */
+body.reading-serif .article-content,
+body.reading-serif .recipe-main {
+  font-family: var(--font-serif);
+  font-size: 1.08em;
+  line-height: 1.85;
+}
+
+body.reading-serif .article-content p,
+body.reading-serif .recipe-main p {
+  margin-bottom: 1.4em;
+}
+
+/* Tema Sépia: fundo quente estilo leitura clássica */
+body.reading-sepia {
+  --reading-bg: #f4ecd8;
+  --reading-text: #3d3226;
+  --reading-muted: #6b5c47;
+}
+
+body.reading-sepia .article-content-section,
+body.reading-sepia .recipe-content-section {
+  background: linear-gradient(180deg, color-mix(in srgb, #f4ecd8 6%, var(--color-bg-primary)), transparent 30%);
+}
+
+body.reading-sepia .article-content,
+body.reading-sepia .recipe-main {
+  color: var(--reading-muted);
+}
+
+body.reading-sepia .article-content h2,
+body.reading-sepia .article-content h3,
+body.reading-sepia .article-content p {
+  color: var(--reading-text);
+}
+
+/* Parágrafo inicial com capitular elegante (artigos) */
+.article-content > p:first-of-type::first-letter {
+  font-family: var(--font-serif);
+  font-size: 3.2em;
+  float: left;
+  line-height: 0.85;
+  padding-right: 0.12em;
+  padding-top: 0.06em;
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .article-content > p:first-of-type::first-letter {
+    font-size: 2.6em;
+  }
+}
+
+/* Lightbox de imagens dentro do artigo */
+.prose img.zoomable,
+.recipe-description img.zoomable {
+  cursor: zoom-in;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s;
+}
+
+.prose img.zoomable:hover {
+  transform: scale(1.015);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.img-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(5, 4, 2, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s;
+  cursor: zoom-out;
+}
+
+.img-lightbox.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.img-lightbox img {
+  max-width: min(1100px, 92vw);
+  max-height: 88vh;
+  object-fit: contain;
+  border-radius: 14px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+  transform: scale(0.96);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.img-lightbox.open img {
+  transform: scale(1);
+}
+
+.img-lightbox-close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s;
+}
+
+.img-lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.18);
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prose img.zoomable,
+  .recipe-description img.zoomable,
+  .img-lightbox img {
+    transition: none !important;
+  }
+}
+
+/* ================================================================
+   NAVEGAÇÃO INTELIGENTE — botão voltar-ao-topo com progresso
+   ================================================================ */
+.back-to-top {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 1200;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--color-bg-card) 85%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--color-glass-border);
+  color: var(--color-accent);
+  box-shadow: var(--shadow-card), 0 0 0 1px rgba(255,255,255,0.03);
+  opacity: 0;
+  transform: translateY(18px) scale(0.92);
+  pointer-events: none;
+  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.back-to-top.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.back-to-top:hover {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-glow), 0 0 0 1px color-mix(in srgb, var(--color-accent) 30%, transparent);
+  transform: translateY(-3px) scale(1.04);
+}
+
+.back-to-top:active {
+  transform: translateY(0) scale(0.96);
+}
+
+.btt-ring-fg {
+  stroke-dasharray: 125.66;
+  stroke-dashoffset: 125.66;
+  transition: stroke-dashoffset 0.1s linear;
+}
+
+@media (max-width: 600px) {
+  .back-to-top {
+    bottom: 1.1rem;
+    right: 1.1rem;
+    width: 48px;
+    height: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .back-to-top,
+  .btt-ring-fg {
+    transition: none !important;
+  }
+}
+
 /* Acessibilidade + perf: reduz tudo se o usuário preferir menos movimento */
 @media (prefers-reduced-motion: reduce) {
   .app-aurora::before,

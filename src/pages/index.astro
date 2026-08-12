@@ -25,27 +25,48 @@ const categories = await getCategories()
     </div>
   </section>
 
-  <section class="section" data-scroll-reveal="fade" style="padding-top: 1rem; padding-bottom: 0;">
-    <div class="container" style="max-width: 720px;">
-      <CafeDoDia client:load />
-    </div>
-  </section>
+  {/* ── Experiência imersiva: grade assimétrica dos widgets ── */}
+  <section class="section home-experience" data-scroll-reveal="fade">
+    <div class="container">
+      <div class="experience-header" data-scroll-reveal="fade">
+        <div>
+          <span class="section-label">Sua Pausa Perfeita</span>
+          <h2 class="section-title" style="margin-bottom: 0.35rem;">Um café, muitas descobertas</h2>
+        </div>
+        <p class="experience-sub">
+          Conteúdo, clima e economia — tudo pensado para o seu momento.
+        </p>
+      </div>
 
-  <section class="section" data-scroll-reveal="fade" data-scroll-delay="100" style="padding-top: 1rem; padding-bottom: 0;">
-    <div class="container" style="max-width: 720px;">
-      <ReceitaDoDia client:load />
-    </div>
-  </section>
+      <div class="experience-grid" data-stagger data-stagger-delay="60" data-stagger-start="100">
+        <div class="exp-cell exp-cell-large" data-stagger-item data-scroll-reveal="slide-up">
+          <span class="exp-cell-label" aria-hidden="true">
+            <span class="pulse-dot"></span> Em destaque hoje
+          </span>
+          <CafeDoDia client:load />
+        </div>
 
-  <section class="section" data-scroll-reveal="fade" data-scroll-delay="200" style="padding-top: 1rem; padding-bottom: 0;">
-    <div class="container" style="max-width: 720px;">
-      <ClimaDoCafe client:visible />
-    </div>
-  </section>
+        <div class="exp-cell exp-cell-recipe" data-stagger-item data-scroll-reveal="slide-up">
+          <span class="exp-cell-label" aria-hidden="true">
+            <span class="pulse-dot"></span> Para preparar agora
+          </span>
+          <ReceitaDoDia client:load />
+        </div>
 
-  <section class="section" data-scroll-reveal="fade" data-scroll-delay="300" style="padding-top: 1rem; padding-bottom: 0;">
-    <div class="container" style="max-width: 720px;">
-      <ExchangeRateWidget client:visible compact={true} maxRates={5} />
+        <div class="exp-cell exp-cell-clima" data-stagger-item data-scroll-reveal="slide-up">
+          <span class="exp-cell-label" aria-hidden="true">
+            <span class="pulse-dot"></span> Clima agora
+          </span>
+          <ClimaDoCafe client:visible />
+        </div>
+
+        <div class="exp-cell exp-cell-cambio" data-stagger-item data-scroll-reveal="slide-up">
+          <span class="exp-cell-label" aria-hidden="true">
+            <span class="pulse-dot"></span> Câmbio ao vivo
+          </span>
+          <ExchangeRateWidget client:visible compact={true} maxRates={4} />
+        </div>
+      </div>
     </div>
   </section>
 
@@ -184,6 +205,86 @@ const categories = await getCategories()
   .home-leaderboard {
     padding-top: 0.5rem;
     padding-bottom: 1rem;
+  }
+
+  /* ── Experiência imersiva ─────────────────────────── */
+  .home-experience {
+    padding: 3rem 0 2rem;
+  }
+
+  .experience-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+  }
+
+  .experience-sub {
+    max-width: 380px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--color-text-muted);
+  }
+
+  .experience-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1.25rem;
+  }
+
+  .exp-cell {
+    position: relative;
+    min-width: 0;
+  }
+
+  .exp-cell-large {
+    grid-column: span 7;
+  }
+
+  .exp-cell-recipe {
+    grid-column: span 5;
+  }
+
+  .exp-cell-clima {
+    grid-column: span 5;
+  }
+
+  .exp-cell-cambio {
+    grid-column: span 7;
+  }
+
+  .exp-cell-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--color-text-muted);
+    margin-bottom: 0.9rem;
+  }
+
+  .exp-cell-label .pulse-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--color-accent);
+  }
+
+  .exp-cell > *:last-child {
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 900px) {
+    .exp-cell-large,
+    .exp-cell-recipe,
+    .exp-cell-clima,
+    .exp-cell-cambio {
+      grid-column: span 12;
+    }
   }
 
   .home-ad-disclosure {
