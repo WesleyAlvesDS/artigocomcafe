@@ -55,14 +55,14 @@ if (empty($path)) {
 $method = $_SERVER['REQUEST_METHOD'];
 $cacheDir = __DIR__ . '/api-cache';
 $cacheTtls = [
-    '/articles/cafe-do-dia' => 60,
-    '/recipes/cafe-do-dia' => 60,
-    '/recipes/featured' => 60,
-    '/integrations/weather' => 60,
-    '/integrations/headlines' => 60,
-    '/integrations/exchange' => 30,
-    '/ai/status' => 60,
-    '/test' => 30,
+    '/articles/cafe-do-dia' => 900,
+    '/recipes/cafe-do-dia' => 900,
+    '/recipes/featured' => 900,
+    '/integrations/weather' => 600,
+    '/integrations/headlines' => 600,
+    '/integrations/exchange' => 300,
+    '/ai/status' => 600,
+    '/test' => 60,
 ];
 $cacheable = ($method === 'GET') && isset($cacheTtls['/' . $path]);
 $cacheFile = $cacheable ? $cacheDir . '/' . sha1($path . '?' . $queryString) . '.json' : null;
@@ -87,10 +87,34 @@ function proxy_try_stale_cache($cacheFile) {
     return true;
 }
 
+// Lock de revalidação (stale-while-revalidate): evita que rajadas de
+// requisições simultâneas com cache expirado sobrecarreguem o backend.
+$revalidateLock = null; // handle do flock mantido aberto durante o fetch
+
 if ($cacheable && is_file($cacheFile)) {
     $cacheData = @json_decode(file_get_contents($cacheFile), true);
-    if (is_array($cacheData) && isset($cacheData['body']) && (time() - ($cacheData['ts'] ?? 0)) <= $cacheTtls[$path]) {
-        proxy_cache_serve($cacheFile, $cacheData, 'HIT');
+    if (is_array($cacheData) && isset($cacheData['body'])) {
+        $age = time() - ($cacheData['ts'] ?? 0);
+        // Cache fresco: serve direto (HIT)
+        if ($age <= $cacheTtls[$path]) {
+            proxy_cache_serve($cacheFile, $cacheData, 'HIT');
+        }
+        // Stale-while-revalidate: serve a cópia antiga imediatamente e tenta
+        // revalidar (somente 1 processo por endpoint via flock). Garante que
+        // o frontend NUNCA veja 503 enquanto existir qualquer cache.
+        if ($age <= ($cacheTtls[$path] * 6)) {
+            $lockFile = $cacheFile . '.lock';
+            $lock = @fopen($lockFile, 'c');
+            if ($lock && @flock($lock, LOCK_EX | LOCK_NB)) {
+                // Venceu o lock: revalida no backend abaixo, mantendo o lock
+                // aberto até a gravação do cache (ver fim do arquivo).
+                $revalidateLock = $lock;
+            } else {
+                // Outro processo já está revalidando — serve stale agora.
+                if ($lock) { @fclose($lock); }
+                proxy_cache_serve($cacheFile, $cacheData, 'STALE');
+            }
+        }
     }
 }
 
@@ -157,8 +181,8 @@ for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
         CURLOPT_HEADER => true,
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_MAXREDIRS => 5,
-        CURLOPT_TIMEOUT => 30,
-        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_TIMEOUT => 10,
+        CURLOPT_CONNECTTIMEOUT => 5,
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_SSL_VERIFYHOST => 0,
         CURLOPT_ENCODING => '', // Accept & decode all encodings (gzip, deflate, br)
@@ -199,6 +223,7 @@ if ($response === false || $httpCode === 0) {
     if (proxy_try_stale_cache($cacheFile)) {
         exit;
     }
+    if ($revalidateLock) { @flock($revalidateLock, LOCK_UN); @fclose($revalidateLock); }
     http_response_code(502);
     header('Content-Type: application/json');
     echo json_encode(['error' => 'Proxy error', 'message' => $error ?: 'Sem resposta do backend']);
@@ -247,6 +272,12 @@ if ($cacheable && $httpCode >= 200 && $httpCode < 300) {
         'content_type' => $contentType ?: 'application/json',
         'body' => $responseBody,
     ]));
+}
+
+// Libera o lock de revalidação (stale-while-revalidate)
+if ($revalidateLock) {
+    @flock($revalidateLock, LOCK_UN);
+    @fclose($revalidateLock);
 }
 
 // Set HTTP status code

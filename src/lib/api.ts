@@ -30,7 +30,8 @@ function onTokenRefreshed(token: string | null) {
 
 async function request<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  retryAttempt = 0
 ): Promise<T> {
   const token = getToken()
   const headers: Record<string, string> = {
@@ -43,10 +44,30 @@ async function request<T>(
     headers['Authorization'] = `Bearer ${token}`
   }
 
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers,
-  })
+  let response: Response
+  try {
+    response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      headers,
+    })
+  } catch (networkErr) {
+    // Falha de rede — só GET é seguro para retry automático
+    if (retryAttempt < 2 && (!options.method || options.method === 'GET')) {
+      await new Promise(r => setTimeout(r, 600 * (retryAttempt + 1)))
+      return request<T>(endpoint, options, retryAttempt + 1)
+    }
+    throw new ApiError('Falha de conexão com a API', 0)
+  }
+
+  // Retry para 503/502/429 transitórios (PHP-FPM compartilhado sob rajada)
+  if (
+    (response.status === 503 || response.status === 502 || response.status === 429) &&
+    retryAttempt < 2 &&
+    (!options.method || options.method === 'GET')
+  ) {
+    await new Promise(r => setTimeout(r, 600 * (retryAttempt + 1)))
+    return request<T>(endpoint, options, retryAttempt + 1)
+  }
 
   // Handle 401 - token expirado
   if (response.status === 401) {

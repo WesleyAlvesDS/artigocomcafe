@@ -1,6 +1,6 @@
 // Artigo com Café - Service Worker
 // Versão: 2.1.0 (with Push Notifications - resilient caching)
-const CACHE_NAME = 'artigocomcafe-v4'
+const CACHE_NAME = 'artigocomcafe-v5'
 
 const PRECACHE_URLS = [
   '/',
@@ -82,6 +82,33 @@ self.addEventListener('fetch', (event) => {
               return caches.match('/blog/') || caches.match('/')
             }
             return caches.match('/offline/') || caches.match('/')
+          })
+        })
+    )
+    return
+  }
+
+  // API proxy: network-first — dados dinâmicos nunca devem ser servidos
+  // de cache-frio (evita respostas stale e falhas intermitentes de auditoria)
+  if (url.pathname.includes('api-proxy')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, clone)
+            })
+          }
+          return response
+        })
+        .catch(() => {
+          return caches.match(event.request).then((cached) => {
+            if (cached) return cached
+            return new Response(JSON.stringify({ error: 'offline' }), {
+              status: 503,
+              headers: { 'Content-Type': 'application/json' },
+            })
           })
         })
     )
