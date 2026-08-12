@@ -31,6 +31,55 @@ try {
 
 const difficultyLabel: Record<string, string> = { facil: 'Fácil', media: 'Média', dificil: 'Difícil' }
 
+// ── Conversor de porções ────────────────────────────────────────
+// O backend costuma gravar a quantidade dentro do campo `unit`
+// (ex.: "2 1/2 tbs", "150ml", "1 cup", "4"), com `amount` nulo.
+// Este parser extrai (quantidade, unidade) do jeito que vier.
+interface RawIngredient {
+  name: string
+  amount?: string | null
+  unit?: string | null
+}
+
+function parseIngredientQty(ing: RawIngredient): { qty: string; unit: string; name: string } {
+  const raw = [ing.amount, ing.unit].filter(Boolean).join(' ').trim()
+  if (!raw) return { qty: '', unit: '', name: ing.name }
+  // Número + unidade ("2 1/2 tbs", "150ml", "1 cup", "4")
+  const m = raw.match(/^(\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:[.,]\d+)?)\s*(.*)$/)
+  if (m) return { qty: m[1].replace(',', '.'), unit: m[2].trim(), name: ing.name }
+  // Sem número: texto descritivo (ex.: "a gosto") — junta ao nome para não duplicar
+  const suffix = raw.toLowerCase()
+  const name = ing.name.toLowerCase().includes(suffix) ? ing.name : `${ing.name} ${raw}`
+  return { qty: '', unit: '', name }
+}
+
+// Dados preparados para o conversor (quantidade como número decimal)
+// "2 1/2" -> 2.5 · "1/2" -> 0.5 · "150" -> 150
+function qtyToNumber(q: string): number | null {
+  let total = 0
+  let found = false
+  for (const part of q.split(/\s+/)) {
+    if (!part) continue
+    if (part.includes('/')) {
+      const [n, d] = part.split('/').map(Number)
+      if (!d) return null
+      total += n / d
+      found = true
+    } else {
+      const v = parseFloat(part)
+      if (isNaN(v)) return null
+      total += v
+      found = true
+    }
+  }
+  return found && isFinite(total) && total > 0 ? total : null
+}
+
+const ingredientData = (recipe?.ingredients || []).map(ing => {
+  const { qty, unit, name } = parseIngredientQty(ing)
+  return { qty: qtyToNumber(qty), qtyRaw: qty, unit, name }
+})
+
 // Schema.org Recipe
 const schemaRecipe = recipe ? {
   '@context': 'https://schema.org',
@@ -166,17 +215,45 @@ const schemaRecipe = recipe ? {
               )}
 
               <section class="recipe-ingredients" data-reveal>
-                <h2>Ingredientes</h2>
+                <div class="section-head-row">
+                  <h2>Ingredientes</h2>
+                  {(recipe.servings != null && recipe.servings > 0) && (
+                    <div class="servings-stepper" aria-label="Ajustar porções">
+                      <button type="button" class="stepper-btn" id="servings-minus" aria-label="Diminuir porções" disabled>−</button>
+                      <span class="stepper-value"><strong id="servings-value">{recipe.servings}</strong> porções</span>
+                      <button type="button" class="stepper-btn" id="servings-plus" aria-label="Aumentar porções">+</button>
+                    </div>
+                  )}
+                </div>
                 <ul class="ingredients-list" id="ingredients-list">
                   {(recipe.ingredients || []).map((ing, i) => (
-                    <li class="ingredient-item">
+                    <li class="ingredient-item" data-ingredient-row={i}>
                       <label>
                         <input type="checkbox" class="ingredient-check" data-ingredient={i} />
                         <span class="ingredient-text">
-                          {[ing.amount, ing.unit, ing.name].filter(Boolean).join(' ')}
+                          <span class="ingredient-qty" data-ingredient-qty data-qty={ingredientData[i]?.qty ?? ''}>
+                            {ingredientData[i]?.qtyRaw || ''}
+                          </span>
+                          {ingredientData[i]?.qty != null && ingredientData[i]?.unit ? ' ' : ''}
+                          <span class="ingredient-unit" data-ingredient-unit>{ingredientData[i]?.unit || ''}</span>{' '}
+                          <span class="ingredient-name" data-ingredient-name>{ingredientData[i]?.name || ing.name}</span>
                           {ing.optional && <em class="ingredient-optional"> (opcional)</em>}
                         </span>
                       </label>
+                      <button
+                        type="button"
+                        class="ingredient-sub-btn"
+                        data-sub-btn={i}
+                        aria-label={`Ver substituições de ${ing.name}`}
+                        title="Ver substituições"
+                      >↔</button>
+                      <div class="ingredient-sub-menu" data-sub-menu={i} role="menu" aria-hidden="true">
+                        <div class="sub-menu-head">
+                          <span class="sub-menu-title">Substituir <strong data-sub-orig-name>{ing.name}</strong></span>
+                          <button type="button" class="sub-menu-close" data-sub-close={i} aria-label="Fechar">✕</button>
+                        </div>
+                        <div class="sub-menu-options" data-sub-options={i}></div>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -296,7 +373,8 @@ const schemaRecipe = recipe ? {
       recipeCook: recipe.cook_time_minutes || 0,
       recipeDifficulty: recipe.difficulty,
       recipeCategoryName: recipe.category?.name || '',
-      recipeIngredientNames: (recipe.ingredients || []).map(i => i.name),
+      recipeIngredientData: ingredientData,
+      recipeBaseServings: recipe.servings || 0,
       recipeStepCount: (recipe.steps || []).length
     }}>
       (function() {
@@ -448,6 +526,232 @@ const schemaRecipe = recipe ? {
         if (printBtn) {
           printBtn.addEventListener('click', () => window.print())
         }
+
+        // 6. Conversor de porções
+        const servingsValue = document.getElementById('servings-value')
+        const servingsMinus = document.getElementById('servings-minus')
+        const servingsPlus = document.getElementById('servings-plus')
+        const baseServings = Number(recipeBaseServings) || 0
+        const rows = document.querySelectorAll('[data-ingredient-row]')
+
+        // Frações amigáveis para exibição
+        const FRACTIONS = { 0.25: '1/4', 0.33: '1/3', 0.5: '1/2', 0.66: '2/3', 0.75: '3/4' }
+        function formatQty(n) {
+          if (!isFinite(n) || n <= 0) return ''
+          const rounded = Math.round(n * 100) / 100
+          const whole = Math.floor(rounded)
+          let frac = rounded - whole
+          // Aproxima para as frações mais comuns
+          let best = ''
+          let bestDiff = 0.06
+          for (const [dec, label] of Object.entries(FRACTIONS)) {
+            const diff = Math.abs(frac - Number(dec))
+            if (diff < bestDiff) { best = label; bestDiff = diff }
+          }
+          if (best && whole > 0) return `${whole} ${best}`
+          if (best) return best
+          if (whole > 0) return String(whole)
+          return String(rounded)
+        }
+
+        function applyServings(target) {
+          if (!servingsValue || baseServings <= 0) return
+          const clamped = Math.min(Math.max(target, 1), 99)
+          const factor = clamped / baseServings
+          servingsValue.textContent = String(clamped)
+          if (servingsMinus) servingsMinus.disabled = clamped <= 1
+          if (servingsPlus) servingsPlus.disabled = clamped >= 99
+          rows.forEach(row => {
+            const qtyEl = row.querySelector('[data-ingredient-qty]')
+            const origQty = Number(qtyEl?.dataset.qty) || 0
+            if (qtyEl && origQty > 0) {
+              const scaled = origQty * factor
+              qtyEl.textContent = formatQty(scaled)
+            }
+          })
+        }
+
+        if (servingsPlus) servingsPlus.addEventListener('click', () => {
+          applyServings(Number(servingsValue.textContent) + 1)
+        })
+        if (servingsMinus) servingsMinus.addEventListener('click', () => {
+          applyServings(Number(servingsValue.textContent) - 1)
+        })
+
+        // 7. Substituições de ingredientes
+        // Dicionário: chave (em minúsculas) -> opções de substituição
+        const SUBSTITUTIONS = [
+          {
+            keys: ['açúcar', 'acucar', 'sugar', 'a\u00e7\u00facar'],
+            options: [
+              { label: 'Mel (3/4 da quantidade)', note: 'Mais doce e úmido; reduza o líquido em 1 colher por xícara.' },
+              { label: 'Açúcar de coco (1:1)', note: 'Sabor caramelizado; mesma proporção.' },
+              { label: 'Xilitol ou eritritol (1:1)', note: 'Zero calorias; pode cristalizar se aquecer demais.' }
+            ]
+          },
+          {
+            keys: ['manteiga', 'butter'],
+            options: [
+              { label: 'Óleo de coco (1:1)', note: 'Sabor leve de coco; ótimo em massas.' },
+              { label: 'Margarina vegetal (1:1)', note: 'Mesma textura em massas e cremes.' },
+              { label: 'Azeite de oliva (3/4)', note: 'Use 3/4 da quantidade; sabor mais intenso.' }
+            ]
+          },
+          {
+            keys: ['ovos', 'ovo', 'egg'],
+            options: [
+              { label: 'Linhaça hidratada (1 ovo = 1 colher + 3 de água)', note: 'Deixe descansar 10 min antes de usar.' },
+              { label: 'Banana amassada (1/4 xícara por ovo)', note: 'Mais doçura e umidade.' },
+              { label: 'Iogurte natural (1/4 xícara por ovo)', note: 'Mantém maciez em bolos.' }
+            ]
+          },
+          {
+            keys: ['leite', 'milk'],
+            options: [
+              { label: 'Leite de aveia (1:1)', note: 'Sabor neutro, textura próxima.' },
+              { label: 'Leite de amêndoas (1:1)', note: 'Mais leve; adicione 1 colher de óleo se a massa pedir gordura.' },
+              { label: 'Leite de coco (1:1)', note: 'Mais cremoso e com sabor marcante.' }
+            ]
+          },
+          {
+            keys: ['farinha de trigo', 'farinha', 'flour'],
+            options: [
+              { label: 'Farinha integral (1:1)', note: 'Use 25% menos líquido ou deixe a massa descansar 30 min.' },
+              { label: 'Farinha de aveia (1:1)', note: 'Sabor suave; textura mais densa.' },
+              { label: 'Mix sem glúten (1:1)', note: 'Acrescente 1/2 colher de goma xantana por xícara.' }
+            ]
+          },
+          {
+            keys: ['creme de leite', 'cream'],
+            options: [
+              { label: 'Iogurte natural integral (1:1)', note: 'Mais leve e levemente ácido.' },
+              { label: 'Creme de coco (1:1)', note: 'Vegano e cremoso; doçura natural.' },
+              { label: 'Leite + amido de milho (1 xícara: 1 colher)', note: 'Misture e aqueça até engrossar.' }
+            ]
+          },
+          {
+            keys: ['chocolate', 'chocolate ao leite'],
+            options: [
+              { label: 'Cacau em pó + manteiga (3 colheres + 1 colher)', note: 'Equivale a 100g de chocolate meio amargo.' },
+              { label: 'Chocolate amargo 70% (1:1)', note: 'Menos doce; ajuste o açúcar da receita.' },
+              { label: 'Alfarroba (1:1)', note: 'Sem cafeína, sabor mais caramelizado.' }
+            ]
+          },
+          {
+            keys: ['fermento em pó', 'baking powder', 'fermento químico'],
+            options: [
+              { label: 'Bicarbonato + limão (1/4 colher + 1/2 colher)', note: 'Substitui 1 colher de fermento químico.' },
+              { label: 'Bicarbonato + vinagre (1/4 colher + 1/2 colher)', note: 'Misture na hora de levar ao forno.' }
+            ]
+          },
+          {
+            keys: ['amendoim', 'peanut'],
+            options: [
+              { label: 'Amêndoas (1:1)', note: 'Sabor mais delicado e menos alergênico.' },
+              { label: 'Castanha de caju (1:1)', note: 'Cremosidade parecida em pastas e farofas.' }
+            ]
+          }
+        ]
+
+        function normalizeKey(text) {
+          return String(text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
+        }
+
+        const substitutedNames = {}
+
+        rows.forEach(row => {
+          const btn = row.querySelector('[data-sub-btn]')
+          const menu = row.querySelector('[data-sub-menu]')
+          const optionsBox = row.querySelector('[data-sub-options]')
+          const nameEl = row.querySelector('[data-ingredient-name]')
+          const origName = nameEl ? nameEl.textContent.trim() : ''
+          if (!btn || !menu || !optionsBox || !nameEl) return
+
+          // Encontra substituições que batem com o nome do ingrediente
+          const norm = normalizeKey(origName)
+          const match = SUBSTITUTIONS.find(s => s.keys.some(k => norm.includes(normalizeKey(k))))
+          if (!match) { btn.style.display = 'none'; return }
+          row.classList.add('has-sub')
+
+          function restoreOriginal() {
+            nameEl.textContent = origName
+            row.classList.remove('substituted')
+            const note = row.querySelector('.substitution-note')
+            if (note) note.remove()
+            delete substitutedNames[row.dataset.ingredientRow]
+            // Reconstroi as opções (remove o item de restaurar)
+            optionsBox.innerHTML = ''
+            buildOptions()
+          }
+
+          function buildOptions() {
+            optionsBox.innerHTML = ''
+            if (substitutedNames[row.dataset.ingredientRow]) {
+              const restore = document.createElement('button')
+              restore.type = 'button'
+              restore.className = 'sub-option restore'
+              restore.setAttribute('role', 'menuitem')
+              const restoreLabel = document.createElement('span')
+              restoreLabel.className = 'sub-option-label'
+              restoreLabel.textContent = `↺ Restaurar ${origName}`
+              restore.appendChild(restoreLabel)
+              restore.addEventListener('click', restoreOriginal)
+              optionsBox.appendChild(restore)
+            }
+            match.options.forEach((opt) => {
+              const item = document.createElement('button')
+              item.type = 'button'
+              item.className = 'sub-option'
+              item.setAttribute('role', 'menuitem')
+              item.innerHTML = `<span class="sub-option-label">${opt.label}</span><span class="sub-option-note">${opt.note || ''}</span>`
+              item.addEventListener('click', () => {
+                nameEl.textContent = opt.label.split(' (')[0]
+                substitutedNames[row.dataset.ingredientRow] = { name: opt.label, origName }
+                row.classList.add('substituted')
+                // Substitui a nota anterior, se houver, em vez de empilhar
+                const oldNote = row.querySelector('.substitution-note')
+                if (oldNote) oldNote.remove()
+                const note = document.createElement('em')
+                note.className = 'ingredient-optional substitution-note'
+                note.textContent = ` (substituído: ${opt.label})`
+                row.querySelector('.ingredient-text')?.appendChild(note)
+                closeMenus()
+              })
+              optionsBox.appendChild(item)
+            })
+          }
+
+          buildOptions()
+
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation()
+            const isOpen = menu.classList.contains('open')
+            closeMenus()
+            if (!isOpen) {
+              menu.classList.add('open')
+              menu.setAttribute('aria-hidden', 'false')
+            }
+          })
+        })
+
+        function closeMenus() {
+          document.querySelectorAll('[data-sub-menu]').forEach(m => {
+            m.classList.remove('open')
+            m.setAttribute('aria-hidden', 'true')
+          })
+        }
+
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('.ingredient-sub-menu') && !e.target.closest('.ingredient-sub-btn')) {
+            closeMenus()
+          }
+        })
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') closeMenus()
+        })
+        document.querySelectorAll('[data-sub-close]').forEach(btn => {
+          btn.addEventListener('click', () => closeMenus())
+        })
       })();
     </script>
   </Base>
@@ -762,6 +1066,209 @@ const schemaRecipe = recipe ? {
     justify-content: space-between;
     gap: 1rem;
     margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  /* ── Conversor de porções ─────────────────────── */
+  .servings-stepper {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.4rem 0.6rem 0.4rem 0.9rem;
+    border-radius: 100px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    box-shadow: var(--shadow-card);
+  }
+
+  .stepper-value {
+    font-size: 0.82rem;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+  }
+
+  .stepper-value strong {
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+  }
+
+  .stepper-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--color-bg-card-border);
+    background: var(--color-bg-card);
+    color: var(--color-text-primary);
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .stepper-btn:hover:not(:disabled) {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .stepper-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  /* ── Substituições de ingredientes ────────────── */
+  .ingredient-item {
+    position: relative;
+  }
+
+  .ingredient-item.substituted {
+    border-color: color-mix(in srgb, var(--color-accent-secondary) 55%, transparent);
+    background: color-mix(in srgb, var(--color-accent-secondary) 5%, var(--color-bg-card));
+  }
+
+  .ingredient-sub-btn {
+    position: absolute;
+    right: 0.7rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    border: 1px solid var(--color-bg-card-border);
+    background: var(--color-bg-card);
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .ingredient-sub-btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    transform: translateY(-50%) scale(1.08);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .ingredient-sub-btn:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .ingredient-item.has-sub label {
+    padding-right: 2.6rem;
+  }
+
+  .ingredient-sub-menu {
+    position: absolute;
+    right: 0.7rem;
+    top: calc(100% - 0.4rem);
+    z-index: 50;
+    width: min(320px, calc(100% - 1.4rem));
+    padding: 0.75rem;
+    border-radius: 14px;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-glass-border);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px);
+    transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .ingredient-sub-menu.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .sub-menu-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .sub-menu-title {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+  }
+
+  .sub-menu-title strong {
+    color: var(--color-text-primary);
+  }
+
+  .sub-menu-close {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0.15rem;
+    transition: color 0.2s;
+  }
+
+  .sub-menu-close:hover {
+    color: var(--color-accent);
+  }
+
+  .sub-menu-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .sub-option {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    text-align: left;
+    padding: 0.55rem 0.7rem;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: var(--color-bg-card);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    transition: all 0.25s;
+  }
+
+  .sub-option:hover {
+    border-color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 6%, var(--color-bg-card));
+  }
+
+  .sub-option-label {
+    font-weight: 600;
+  }
+
+  .sub-option-note {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    line-height: 1.4;
+  }
+
+  .sub-option.restore {
+    border: 1px dashed var(--color-accent);
+    color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 5%, transparent);
+    margin-bottom: 0.25rem;
+  }
+
+  .substitution-note {
+    display: block;
+    margin-top: 0.2rem;
   }
 
   .steps-count {
@@ -1209,8 +1716,15 @@ const schemaRecipe = recipe ? {
     }
 
     .step-done,
-    .ingredient-check {
+    .ingredient-check,
+    .ingredient-sub-btn,
+    .ingredient-sub-menu,
+    .servings-stepper {
       display: none !important;
+    }
+
+    .ingredient-item label {
+      padding-right: 0;
     }
 
     .step-text {
