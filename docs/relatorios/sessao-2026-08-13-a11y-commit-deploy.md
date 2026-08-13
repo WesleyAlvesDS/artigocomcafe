@@ -49,9 +49,19 @@
 - Build local: 437 páginas em 3m30s; upload + extração no servidor OK.
 - Validação pós-deploy em produção (`prod-validation.mjs`) — **11/11 PASS** e **a11y 0 violações**.
 
+## 🚀 Deploy do backend (autorizado pelo usuário — 13/08/2026)
+
+- `deploy.ps1 -Back` via PowerShell — **BACK_OK**: upload + extração OK, `migrate --force` = "Nothing to migrate" (sem migrations novas), `php artisan optimize` OK (config/events/routes/views/blade-icons/filament cacheados).
+- Validação pós-deploy em produção:
+  - `GET /api/tags` → **200** com tags (direto e via `api-proxy.php/tags`) ✅
+  - `POST /api/upload/image` com token real → **200** `{url: https://back.artigocomcafe.com/storage/uploads/7/…}`; URL pública acessível (HTTP 200, image/png) ✅ (imagem de teste removida do servidor após validação)
+  - `storage:link` já existia no servidor (symlink `public/storage` → `storage/app/public`) ✅
+- **Observação (pré-existente, não regressão):** endpoints protegidos sem token válido retornam **500** (`Route [login] not defined` do middleware `auth` de Sanctum) em vez de 401 — mesmo comportamento de `/user/posts`, `/user/library` etc. Sugestão: tratar o `AuthenticationException` para devolver 401 JSON (o front tem interceptor de 401).
+
 ## 📌 Pendências
 
-- [ ] Deploy do **backend** (novas rotas `/tags` e `/upload/image` + controllers) — commitado, mas não publicado; o front já chama esses endpoints.
+- [ ] Corrigir `auth` do backend para retornar **401 JSON** (hoje 500) quando não autenticado — melhoria sugerida, fora do escopo desta sessão.
+- [x] Deploy do **backend** (rotas `/tags` e `/upload/image`) — **concluído e validado** ✅
 - [x] Re-auditoria completa com credenciais — **concluída (13/08/2026 13:49)**: 8/8 auditorias ✅ em passe único — ver `test-results/auditoria-2026-08-13-13-49-56.md`.
 
 ## 📊 Re-auditoria consolidada (`run-all-audits.mjs --all --report`)
