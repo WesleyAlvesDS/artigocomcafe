@@ -515,6 +515,19 @@ const organizationJsonLd = {
 
       document.addEventListener('astro:page-load', initReveal)
 
+      // Segurança p/ navegação SPA: após a troca de página, revela imediatamente
+      // os elementos que já estão no viewport — cobre corridas do observer
+      // (layout ainda assentando, fonts/imagens) sem precisar de F5.
+      document.addEventListener('astro:page-load', () => {
+        setTimeout(() => {
+          document.querySelectorAll('[data-reveal]').forEach(el => {
+            if (el.classList.contains('revealed')) return
+            const r = el.getBoundingClientRect()
+            if (r.top < window.innerHeight && r.bottom > 0) el.classList.add('revealed')
+          })
+        }, 350)
+      })
+
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initReveal)
       } else {
@@ -631,8 +644,10 @@ const organizationJsonLd = {
     </script>
 
     <script is:inline>
-      // ── Imersão no scroll: fundo do hero recua (zoom-out) e desvanece ao rolar ──
-      // Aplica-se SOMENTE a .hero-bg (imagem), nunca ao conteúdo (texto/newsletter).
+      // ── Imersão no scroll: fundo do hero faz zoom-in suave (nunca encolhe) ──
+      // Escala >1 evita revelar as bordas/limites da imagem durante o scroll
+      // (o zoom-out anterior expunha os "quadrados" da imagem no topo/baixo).
+      // Aplica-se SOMENTE a .hero-bg (imagem), nunca ao conteúdo.
       (function () {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
         var ticking = false
@@ -647,10 +662,11 @@ const organizationJsonLd = {
           // Primeiros 60% da viewport de rolagem do hero
           var max = vh * 0.6
           var p = Math.min(1, y / max)
-          // Zoom-out + recuo + desvanecimento suave APENAS no fundo
-          bg.style.transform = 'scale(' + (1 - p * 0.06).toFixed(4) + ') translateY(' + (p * 40).toFixed(1) + 'px)'
-          bg.style.opacity = String(Math.max(0, 1 - p * 0.35))
-          bg.style.filter = p > 0 ? 'blur(' + (p * 2.5).toFixed(2) + 'px)' : ''
+          // Zoom-in (escala 1 → 1.06) + leve recuo + desvanecimento suave.
+          // Sempre >= 1: a imagem cobre 100% da área, sem bordas visíveis.
+          bg.style.transform = 'scale(' + (1 + p * 0.06).toFixed(4) + ') translateY(' + (p * 12).toFixed(1) + 'px)'
+          bg.style.opacity = String(Math.max(0, 1 - p * 0.45))
+          bg.style.filter = p > 0 ? 'blur(' + (p * 2).toFixed(2) + 'px)' : ''
           ticking = false
         }
 
@@ -659,6 +675,8 @@ const organizationJsonLd = {
         }
         window.addEventListener('scroll', request, { passive: true })
         window.addEventListener('resize', request, { passive: true })
+        window.addEventListener('astro:page-load', request)
+        update()
       })()
     </script>
 
@@ -764,11 +782,11 @@ const organizationJsonLd = {
       })()
     </script>
 
-    <Header transition:persist="site-header" />
+    <Header />
     <main id="main-content" tabindex="-1" transition:name={transitionName} transition:animate="fade">
       <slot />
     </main>
-    <Footer transition:persist="site-footer" />
+    <Footer />
     
     <CookieConsent />
     <PwaInstallPrompt client:visible />

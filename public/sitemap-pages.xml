@@ -35,4 +35,29 @@
     <priority>0.2</priority>
     <changefreq>monthly</changefreq>
   </url>
+  <url>
+    <loc>https://artigocomcafe.com/metodos-de-preparo/</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://artigocomcafe.com/tipos-de-graos/</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://artigocomcafe.com/como-fazer-cafe/</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://artigocomcafe.com/cafes-do-brasil/</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://artigocomcafe.com/glossario-do-cafe/</loc>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
 </urlset>

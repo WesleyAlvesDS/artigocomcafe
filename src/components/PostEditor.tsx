@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, type FormEvent, type KeyboardEvent, type ChangeEvent } from 'react'
 import { api } from '../lib/api'
-import { saveDraft, readDraft, clearDraft, emitDraftChange, type PostFormData, type DraftData } from '../lib/draft'
+import { saveDraft, readDraft, readDraftList, clearDraft, removeDraftEntry, emitDraftChange, type PostFormData, type DraftData } from '../lib/draft'
 import { showToast } from './Toast'
 
 interface PostItem {
@@ -13,6 +13,7 @@ interface PostItem {
   reading_time: number | null
   category: { name: string; slug: string } | null
   tags: { name: string; slug: string }[]
+  meta_description?: string | null
   date: string
   created_at: string
   updated_at: string
@@ -63,63 +64,71 @@ const statusColors: Record<string, string> = {
   archived: '#6b7280',
 }
 
-function renderMarkdown(text: string): string {
+export function renderMarkdown(text: string): string {
   if (!text) return ''
-  
+
+  // 1. Escapa HTML bruto para prevenir XSS. Inclui aspas para não permitir
+  //    quebrar atributos em links/imagens. As marcações markdown (`*`, `#`,
+  //    `` ` ``) não são afetadas, então o processamento abaixo continua válido.
   let html = text
-    .replace(/&/g, '&')
-    .replace(/</g, '<')
-    .replace(/>/g, '>')
-  
-  // Code blocks first
-  html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code></pre>')
-  
-  // Inline code
-  html = html.replace(/`([^`]+)`/g, '<code>$1</code>')
-  
-  // Bold
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+
+  // 2. Code blocks first (conteúdo já escapado acima — apenas envolve)
+  html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, lang, code) =>
+    `<pre><code class="language-${lang || ''}">${code}</code></pre>`)
+
+  // 3. Inline code
+  html = html.replace(/`([^`\n]+)`/g, (_, code) => `<code>${code}</code>`)
+
+  // 4. Bold
   html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-  
-  // Italic
-  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>')
-  
-  // Strikethrough
+
+  // 5. Italic
+  html = html.replace(/(^|[^*])\*([^*]+)\*/g, '$1<em>$2</em>')
+
+  // 6. Strikethrough
   html = html.replace(/~~([^~]+)~~/g, '<del>$1</del>')
-  
-  // Headings
+
+  // 7. Headings
   html = html.replace(/^### (.*$)/gm, '<h3>$1</h3>')
   html = html.replace(/^## (.*$)/gm, '<h2>$1</h2>')
   html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>')
-  
-  // Blockquote
-  html = html.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>')
-  
-  // Horizontal rule
+
+  // 8. Blockquote (já escapado: `>` virou `&gt;`)
+  html = html.replace(/^&gt; (.*$)/gm, '<blockquote>$1</blockquote>')
+
+  // 9. Horizontal rule
   html = html.replace(/^---$/gm, '<hr>')
-  
-  // Links
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
-  
-  // Images
-  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<figure><img src="$2" alt="$1" loading="lazy"/><figcaption>$1</figcaption></figure>')
-  
-  // Task lists
+
+  // 10. Links — apenas http/https/mailto/# (bloqueia javascript: e afins)
+  html = html.replace(/\[([^\]]+)\]\(((?:https?:)?\/\/[^)\s]+|mailto:[^)\s]+|#[^\s)]+)\)/g,
+    '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+
+  // 11. Images
+  html = html.replace(/!\[([^\]]*)\]\(((?:https?:)?\/\/[^)\s]+|data:image\/[a-z]+;base64,[^)\s]+)\)/g,
+    '<figure><img src="$2" alt="$1" loading="lazy"/><figcaption>$1</figcaption></figure>')
+
+  // 12. Task lists
   html = html.replace(/^- \[ \] (.*$)/gm, '<li class="task-item"><input type="checkbox" disabled> $1</li>')
   html = html.replace(/^- \[x\] (.*$)/gm, '<li class="task-item"><input type="checkbox" checked disabled> $1</li>')
-  
-  // Lists
+
+  // 13. Lists
   html = html.replace(/^- (.*$)/gm, '<li>$1</li>')
   html = html.replace(/^\d+\. (.*$)/gm, '<li>$1</li>')
   html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
   html = html.replace(/<\/ul>\n<ul>/g, '')
-  
-  // Paragraphs
+
+  // 14. Paragraphs
   html = html.replace(/^(?!<[hbuol]|<pre|<blockquote|<hr|<figure|<ul|<ol)(.+$)/gm, '<p>$1</p>')
   html = html.replace(/<\/p>\n<p>/g, '</p><p>')
-  
-  // Clean up
+
+  // 15. Clean up
   html = html.replace(/\n{3,}/g, '\n\n')
-  
+
   return html
 }
 
@@ -131,7 +140,13 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
     status: initialPost?.status || 'draft',
     category: initialPost?.category || null,
     tags_input: initialPost?.tags.map(t => t.name).join(', ') || '',
+    slug: initialPost?.slug || '',
+    meta_description: initialPost?.meta_description || '',
   })
+  const [slugTouched, setSlugTouched] = useState(!!initialPost)
+  const [showSeo, setShowSeo] = useState(false)
+  const [suggestedCategories, setSuggestedCategories] = useState<string[]>([])
+  const [suggestedTags, setSuggestedTags] = useState<string[]>([])
   const [showPreview, setShowPreview] = useState(false)
   const [previewHtml, setPreviewHtml] = useState('')
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'publishing'>('idle')
@@ -146,7 +161,13 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
   const editorRef = useRef<HTMLTextAreaElement>(null)
   const previewRef = useRef<HTMLDivElement>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const composing = !initialPost || !!initialPost
+
+  // Refs p/ evitar closures stale nos atalhos de teclado (⌘B/⌘I/⌘K/⌘S/⌘⇧Enter).
+  const formDataRef = useRef(formData)
+  formDataRef.current = formData
+  const wrapSelectionRef = useRef<(prefix: string, suffix: string) => void>(() => {})
+  const handleSaveRef = useRef<() => void>(() => {})
+  const handlePublishRef = useRef<() => void>(() => {})
 
   // Load content if editing
   useEffect(() => {
@@ -158,19 +179,59 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
         status: initialPost.status,
         category: initialPost.category,
         tags_input: initialPost.tags.map(t => t.name).join(', '),
+        slug: initialPost.slug,
+        meta_description: initialPost.meta_description || '',
       })
-      // Try to load draft first
-      const draft = readDraft()
-      if (draft && draft.mode === 'edit' && draft.postId === initialPost.id) {
-        setFormData(draft.data)
+      setSlugTouched(true)
+      // Try to load multi-draft first (fallback para chave única antiga)
+      const list = readDraftList()
+      const keyed = list[`post:${initialPost.id}`]
+      if (keyed && keyed.data) {
+        setFormData(keyed.data)
+      } else {
+        const draft = readDraft()
+        if (draft && draft.mode === 'edit' && draft.postId === initialPost.id) {
+          setFormData(draft.data)
+        }
       }
       setIsLoading(false)
+    } else {
+      // Criação: restaura rascunho de "novo artigo" se existir
+      const list = readDraftList()
+      const keyed = list['create']
+      if (keyed && keyed.data) {
+        setFormData(keyed.data)
+      }
     }
   }, [initialPost])
 
+  // Autocomplete de categorias/tags (P2) — dados p/ <datalist>
+  useEffect(() => {
+    let active = true
+    api.get<{ categories?: { name: string }[] }>('/categories')
+      .then(d => { if (active) setSuggestedCategories((d.categories || []).map(c => c.name).filter(Boolean)) })
+      .catch(() => {})
+    api.get<{ tags?: { name: string }[] }>('/tags')
+      .then(d => { if (active) setSuggestedTags((d.tags || []).map(t => t.name).filter(Boolean)) })
+      .catch(() => {})
+    return () => { active = false }
+  }, [])
+
+  // Auto-slug: gera slug do título enquanto o usuário não editar manualmente
+  useEffect(() => {
+    if (slugTouched) return
+    const slug = formData.title
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+    setFormData(prev => prev.slug !== slug ? { ...prev, slug } : prev)
+  }, [formData.title, slugTouched])
+
   // Auto-save draft
   useEffect(() => {
-    if (!composing) return
     if (saveTimer.current) clearTimeout(saveTimer.current)
     setSaveState('saving')
     saveTimer.current = setTimeout(() => {
@@ -187,7 +248,7 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current)
     }
-  }, [formData, composing, initialPost])
+  }, [formData, initialPost])
 
   // Live preview update
   useEffect(() => {
@@ -214,7 +275,8 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
     }
   }, [showPreview])
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts — usa refs p/ sempre chamar os handlers da ÚLTIMA render
+  // (antes capturava closures stale da primeira render: ⌘S salvava formData vazio).
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey)) return
@@ -222,24 +284,24 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
       switch (e.key.toLowerCase()) {
         case 's':
           e.preventDefault()
-          handleSave()
+          handleSaveRef.current()
           break
         case 'b':
           e.preventDefault()
-          wrapSelection('**', '**')
+          wrapSelectionRef.current('**', '**')
           break
         case 'i':
           e.preventDefault()
-          wrapSelection('*', '*')
+          wrapSelectionRef.current('*', '*')
           break
         case 'k':
           e.preventDefault()
-          wrapSelection('`', '`')
+          wrapSelectionRef.current('`', '`')
           break
         case 'enter':
           if (e.shiftKey) {
             e.preventDefault()
-            handlePublish()
+            handlePublishRef.current()
           }
           break
       }
@@ -254,7 +316,7 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
     if (!textarea) return
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
-    const text = formData.content
+    const text = formDataRef.current.content
     const selected = text.slice(start, end)
     const newText = text.slice(0, start) + prefix + selected + suffix + text.slice(end)
     setFormData(prev => ({ ...prev, content: newText }))
@@ -264,13 +326,14 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
       textarea.selectionEnd = start + prefix.length + selected.length
     }, 0)
   }
+  wrapSelectionRef.current = wrapSelection
 
   const insertMarkdown = (markdown: string, replaceSelection = true) => {
     const textarea = editorRef.current
     if (!textarea) return
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
-    const text = formData.content
+    const text = formDataRef.current.content
     let newText = text
     
     if (replaceSelection && start !== end) {
@@ -286,8 +349,17 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
         textarea.selectionStart = start
         textarea.selectionEnd = start + markdown.length
       } else {
-        textarea.selectionStart = start + markdown.length
-        textarea.selectionEnd = start + markdown.length
+        // Sem seleção: seleciona o placeholder para o usuário digitar por cima
+        const first = newText.indexOf('texto', start)
+        const placeholderIdx = first >= 0 ? first : newText.indexOf('código', start)
+        const ph = placeholderIdx >= 0 ? placeholderIdx : newText.indexOf('url', start)
+        if (ph >= 0) {
+          textarea.selectionStart = ph
+          textarea.selectionEnd = ph + (first >= 0 ? 'texto'.length : placeholderIdx >= 0 ? 'código'.length : 'url'.length)
+        } else {
+          textarea.selectionStart = start + markdown.length
+          textarea.selectionEnd = start + markdown.length
+        }
       }
     }, 0)
   }
@@ -362,8 +434,8 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
     setError('')
     setSaveState('saving')
     try {
-      const tags = formData.tags_input.split(',').map(t => t.trim()).filter(Boolean)
-      const payload = { ...formData, tags }
+      const tags = formDataRef.current.tags_input.split(',').map(t => t.trim()).filter(Boolean)
+      const payload = { ...formDataRef.current, tags, meta_description: formDataRef.current.meta_description }
       
       if (initialPost) {
         await api.put(`/user/posts/${initialPost.id}`, payload)
@@ -374,6 +446,7 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
         showToast('Artigo criado!', 'success')
       }
       clearDraft()
+      removeDraftEntry(initialPost ? `post:${initialPost.id}` : 'create')
       emitDraftChange()
       setSaveState('saved')
       setLastSaved(new Date())
@@ -383,13 +456,14 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
       setSaveState('idle')
     }
   }
+  handleSaveRef.current = handleSave
 
   const handlePublish = async () => {
     setError('')
     setSaveState('publishing')
     try {
-      const tags = formData.tags_input.split(',').map(t => t.trim()).filter(Boolean)
-      const payload = { ...formData, tags, status: 'published' as const }
+      const tags = formDataRef.current.tags_input.split(',').map(t => t.trim()).filter(Boolean)
+      const payload = { ...formDataRef.current, tags, meta_description: formDataRef.current.meta_description, status: 'published' as const }
       
       if (initialPost) {
         await api.put(`/user/posts/${initialPost.id}`, payload)
@@ -397,6 +471,7 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
         await api.post('/user/posts', payload)
       }
       clearDraft()
+      removeDraftEntry(initialPost ? `post:${initialPost.id}` : 'create')
       emitDraftChange()
       showToast('Artigo publicado! 🎉', 'success')
       onClose()
@@ -405,6 +480,7 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
       setSaveState('idle')
     }
   }
+  handlePublishRef.current = handlePublish
 
   const handleCancel = () => {
     if (formData.title || formData.content) {
@@ -540,7 +616,12 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
                 onChange={e => setFormData({ ...formData, category: { name: e.target.value, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') } })}
                 className="category-input"
                 placeholder="Categoria (ex: Guias, Cultura, Métodos)"
+                list="suggested-categories"
+                autoComplete="off"
               />
+              <datalist id="suggested-categories">
+                {suggestedCategories.map(c => <option key={c} value={c} />)}
+              </datalist>
             </div>
           </div>
 
@@ -598,11 +679,16 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
                 onChange={e => setFormData({ ...formData, tags_input: e.target.value })}
                 className="tags-input"
                 placeholder="Tags separadas por vírgula (café, torrefação, método...)"
+                list="suggested-tags"
+                autoComplete="off"
               />
+              <datalist id="suggested-tags">
+                {suggestedTags.map(t => <option key={t} value={t} />)}
+              </datalist>
             </div>
             <div className="editor-actions">
               {error && <span className="editor-error" role="alert">{error}</span>}
-              <div className="save-status">
+              <div className="save-status" aria-live="polite" aria-atomic="true">
                 {saveState === 'saving' && <span className="saving"><span className="spinner" aria-hidden="true"></span>Salvando...</span>}
                 {saveState === 'saved' && <span className="saved">✓ Salvo às {lastSaved?.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>}
                 {saveState === 'publishing' && <span className="publishing"><span className="spinner" aria-hidden="true"></span>Publicando...</span>}
@@ -664,6 +750,52 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
               className="preview-content"
               dangerouslySetInnerHTML={{ __html: previewHtml }}
             />
+          </div>
+        )}
+      </div>
+
+      {/* Painel SEO (P2) — slug + meta description */}
+      <div className="seo-panel">
+        <button
+          type="button"
+          className="seo-toggle"
+          onClick={() => setShowSeo(!showSeo)}
+          aria-expanded={showSeo}
+          aria-controls="seo-fields"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+          SEO
+          <span className={`seo-toggle-caret${showSeo ? ' open' : ''}`} aria-hidden="true">▾</span>
+        </button>
+        {showSeo && (
+          <div className="seo-fields" id="seo-fields">
+            <div className="seo-field">
+              <label htmlFor="editor-slug">Slug (URL)</label>
+              <input
+                id="editor-slug"
+                type="text"
+                value={formData.slug}
+                onChange={e => {
+                  setSlugTouched(true)
+                  setFormData({ ...formData, slug: e.target.value })
+                }}
+                placeholder="ex.: como-fazer-cafe-perfeito"
+                className="slug-input"
+                spellCheck={false}
+              />
+            </div>
+            <div className="seo-field">
+              <label htmlFor="editor-meta">Meta description ({formData.meta_description.length}/160)</label>
+              <textarea
+                id="editor-meta"
+                value={formData.meta_description}
+                onChange={e => setFormData({ ...formData, meta_description: e.target.value })}
+                rows={3}
+                maxLength={320}
+                placeholder="Resumo que aparece no Google (recomendado: até 160 caracteres)..."
+                className="meta-input"
+              />
+            </div>
           </div>
         )}
       </div>

@@ -8,7 +8,9 @@ use App\Models\Category;
 use App\Models\Tag;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class UserPostController extends Controller
 {
@@ -34,6 +36,7 @@ class UserPostController extends Controller
             'reading_time' => $a->reading_time,
             'category' => $a->category ? ['name' => $a->category->name, 'slug' => $a->category->slug] : null,
             'tags' => $a->tags->map(fn ($t) => ['name' => $t->name, 'slug' => $t->slug])->values(),
+            'meta_description' => $a->meta['meta_description'] ?? null,
             'date' => $a->published_at?->toDateString() ?? $a->created_at->toDateString(),
             'created_at' => $a->created_at->toISOString(),
             'updated_at' => $a->updated_at->toISOString(),
@@ -55,12 +58,35 @@ class UserPostController extends Controller
     }
 
     /**
+     * Upload an image for an article (returns a public URL).
+     */
+    public function uploadImage(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'image' => 'required|image|mimes:jpeg,jpg,png,webp,gif|max:5120',
+        ]);
+
+        $file = $validated['image'];
+        $user = $request->user();
+        $safe = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) ?: 'imagem';
+        $name = time() . '_' . $safe . '.' . $file->getClientOriginalExtension();
+        $path = 'uploads/' . $user->id . '/' . $name;
+
+        Storage::disk('public')->putFileAs(dirname($path), $file, basename($path));
+
+        return response()->json([
+            'url' => config('app.url') . '/storage/' . $path,
+        ]);
+    }
+
+    /**
      * Create a new article owned by the authenticated user.
      */
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'slug' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('articles', 'slug')->whereNull('deleted_at')],
             'excerpt' => 'nullable|string|max:500',
             'content' => 'nullable|string',
             'status' => 'sometimes|string|in:draft,review,scheduled,published,archived',
@@ -68,17 +94,19 @@ class UserPostController extends Controller
             'category.name' => 'nullable|string|max:255',
             'tags' => 'nullable|array',
             'tags.*' => 'string|max:100',
+            'meta_description' => 'nullable|string|max:320',
         ]);
 
         $article = Article::create([
             'title' => $validated['title'],
-            'slug' => $this->uniqueSlug($validated['title']),
+            'slug' => $this->uniqueSlug($validated['title'], $validated['slug'] ?? null),
             'excerpt' => $validated['excerpt'] ?? null,
             'content' => $validated['content'] ?? '',
             'status' => $validated['status'] ?? 'draft',
             'user_id' => $request->user()->id,
             'category_id' => $this->resolveCategory($validated['category'] ?? null)?->id,
             'reading_time' => $this->estimateReadingTime($validated['content'] ?? ''),
+            'meta' => $this->mergeMeta(null, $validated['meta_description'] ?? null),
             'published_at' => ($validated['status'] ?? 'draft') === 'published' ? now() : null,
         ]);
 
@@ -98,6 +126,7 @@ class UserPostController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'slug' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('articles', 'slug')->ignore($article->id)->whereNull('deleted_at')],
             'excerpt' => 'nullable|string|max:500',
             'content' => 'nullable|string',
             'status' => 'sometimes|string|in:draft,review,scheduled,published,archived',
@@ -105,17 +134,20 @@ class UserPostController extends Controller
             'category.name' => 'nullable|string|max:255',
             'tags' => 'nullable|array',
             'tags.*' => 'string|max:100',
+            'meta_description' => 'nullable|string|max:320',
         ]);
 
         $wasPublished = $article->status === 'published';
 
         $article->update([
             'title' => $validated['title'],
+            'slug' => $this->uniqueSlug($validated['title'], $validated['slug'] ?? $article->slug, $article->id),
             'excerpt' => $validated['excerpt'] ?? null,
             'content' => $validated['content'] ?? '',
             'status' => $validated['status'] ?? $article->status,
             'category_id' => $this->resolveCategory($validated['category'] ?? null)?->id,
             'reading_time' => $this->estimateReadingTime($validated['content'] ?? ''),
+            'meta' => $this->mergeMeta($article->meta, $validated['meta_description'] ?? null),
         ]);
 
         $newStatus = $article->status;
@@ -156,23 +188,33 @@ class UserPostController extends Controller
             'reading_time' => $article->reading_time,
             'category' => $article->category ? ['name' => $article->category->name, 'slug' => $article->category->slug] : null,
             'tags' => $article->tags->map(fn ($t) => ['name' => $t->name, 'slug' => $t->slug])->values(),
+            'meta_description' => $article->meta['meta_description'] ?? null,
             'date' => $article->published_at?->toDateString() ?? $article->created_at->toDateString(),
             'created_at' => $article->created_at->toISOString(),
             'updated_at' => $article->updated_at->toISOString(),
         ];
     }
 
-    private function uniqueSlug(string $title): string
+    private function uniqueSlug(string $title, ?string $preferred = null, ?int $ignoreId = null): string
     {
-        $base = Str::slug($title) ?: 'artigo';
+        $sluggedTitle = Str::slug($title) ?: 'artigo';
+        $base = $preferred ? (Str::slug($preferred) ?: $sluggedTitle) : $sluggedTitle;
         $slug = $base;
         $i = 2;
-        while (Article::withTrashed()->where('slug', $slug)->exists()) {
+        while (Article::withTrashed()->where('slug', $slug)->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))->exists()) {
             $slug = $base . '-' . $i;
             $i++;
         }
 
         return $slug;
+    }
+
+    private function mergeMeta(?array $existing, ?string $metaDescription): array
+    {
+        $meta = $existing ?? [];
+        $meta['meta_description'] = $metaDescription;
+
+        return $meta;
     }
 
     private function resolveCategory(?array $category): ?Category

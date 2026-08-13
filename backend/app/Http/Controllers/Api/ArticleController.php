@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\Category;
+use App\Models\Tag;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -148,5 +149,19 @@ class ArticleController extends Controller
             ->get();
 
         return response()->json(['categories' => $categories]);
+    }
+
+    /**
+     * List existing tags for autocomplete in the editor.
+     */
+    public function tags(): JsonResponse
+    {
+        $tags = Tag::query()
+            ->withCount(['articles' => fn($q) => $q->where('status', 'published')])
+            ->orderBy('name')
+            ->limit(200)
+            ->get(['id', 'name', 'slug']);
+
+        return response()->json(['tags' => $tags]);
     }
 }

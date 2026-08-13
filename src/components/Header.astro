@@ -30,9 +30,9 @@ function isActive(item: { href: string; page: string }): boolean {
 }
 ---
 
-<header class="header" transition:name="site-header" transition:animate="none">
+<header class="header">
   <div class="header-inner container">
-    <a href="/" class="header-logo" aria-label="Artigo com Café - Home" transition:name="site-logo" transition:persist="site-logo">
+    <a href="/" class="header-logo" aria-label="Artigo com Café - Home">
       <img
         class="header-logo-img"
         src="/images/artigologo.svg"
@@ -41,12 +41,10 @@ function isActive(item: { href: string; page: string }): boolean {
         height="578"
         loading="eager"
         fetchpriority="high"
-        transition:name="site-logo-img"
-        transition:persist="site-logo-img"
       />
     </a>
 
-    <nav class="header-nav" aria-label="Navegação principal" transition:name="site-nav" transition:persist="site-nav">
+    <nav class="header-nav" aria-label="Navegação principal">
       {mainNav.map(item => item.dropdown ? (
         <div class="nav-dropdown" data-dropdown={item.page}>
           <a href={item.href} class:list={['nav-link', { active: isActive(item) }]} data-page={item.page} aria-haspopup="true" aria-expanded="false" aria-controls={`dropdown-${item.page}`}>
@@ -90,25 +88,30 @@ function isActive(item: { href: string; page: string }): boolean {
     </nav>
 
     <div class="header-actions">
-      <button class="nav-icon-btn" id="search-toggle" data-testid="search-toggle" aria-label="Buscar artigos (Ctrl+K)" title="Buscar (Ctrl+K)" type="button" transition:name="search-btn" transition:persist="search-btn">
+      <button class="nav-icon-btn" id="search-toggle" data-testid="search-toggle" aria-label="Buscar artigos (Ctrl+K)" title="Buscar (Ctrl+K)" type="button">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
       </button>
-      <ThemeToggle client:idle transition:name="theme-toggle" transition:persist="theme-toggle" />
-      <UserMenu client:load transition:name="user-menu" transition:persist="user-menu" />
-      <a href="/newsletter" class="nav-cta btn-primary" transition:name="newsletter-cta" transition:persist="newsletter-cta">Newsletter</a>
+      <ThemeToggle client:idle />
+      <UserMenu client:load />
+      <a href="/newsletter" class="nav-cta btn-primary">Newsletter</a>
     </div>
 
-    <button class="hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false" transition:name="hamburger" transition:persist="hamburger">
+    <button class="hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false">
       <span class="hamburger-line"></span>
       <span class="hamburger-line"></span>
       <span class="hamburger-line"></span>
     </button>
   </div>
 
-  <nav class="mobile-menu" id="mobile-menu" aria-hidden="true" transition:name="mobile-menu" transition:persist="mobile-menu">
+  </header>
+
+  {/* O menu mobile fica FORA do <header>: o backdrop-filter do header cria
+      um containing block que prende position:fixed ao header (menu abria com
+      ~108px de altura). Como irmão fixo, ele cobre a viewport inteira. */}
+  <nav class="mobile-menu" id="mobile-menu" aria-hidden="true">
     <div class="mobile-menu-head">
       <button class="mobile-icon-btn" id="search-toggle-mobile" data-testid="search-toggle-mobile" aria-label="Buscar artigos" type="button">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -141,7 +144,6 @@ function isActive(item: { href: string; page: string }): boolean {
 
     <a href="/newsletter" class="mobile-link btn-primary btn-block">Newsletter</a>
   </nav>
-</header>
 
 <style>
   .header {
@@ -155,8 +157,9 @@ function isActive(item: { href: string; page: string }): boolean {
     -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--color-glass-border);
     transition: background var(--transition), border-color var(--transition), box-shadow var(--transition), transform var(--transition);
-    will-change: transform, box-shadow, background;
-    contain: layout style paint;
+    /* Sem contain/will-change-transform aqui: eles criam containing block para
+       descendentes fixed (menu mobile) e clipam o dropdown de Receitas que
+       renderiza abaixo do header (bug: dropdown invisível no hover). */
   }
 
   .header.scrolled {
@@ -682,30 +685,61 @@ function isActive(item: { href: string; page: string }): boolean {
 </style>
 
 <script>
-  const hamburger = document.getElementById('hamburger')
-  const mobileMenu = document.getElementById('mobile-menu')
+  // ── Interatividade do header resiliente à navegação SPA ──
+  // O header é recriado a cada troca de página, então toda a lógica vive em
+  // funções re-executáveis via astro:page-load (o DOM novo já está presente)
+  // e cliques usam delegação no document (sobrevive a qualquer re-render).
+  (function () {
+    // ── Estado de autenticação no menu mobile ──
+    function refreshAuthState() {
+      var mobileMenu = document.getElementById('mobile-menu')
+      if (!mobileMenu) return
+      var isAuth = typeof window !== 'undefined' && !!localStorage.getItem('auth_token')
+      mobileMenu.classList.toggle('is-auth', isAuth)
+      mobileMenu.querySelectorAll('[data-section-lock]').forEach(el => { el.hidden = isAuth })
+      mobileMenu.querySelectorAll('[data-login-hint]').forEach(el => { el.hidden = isAuth })
+    }
 
-  // ── Estado de autenticação no menu mobile ──
-  function refreshAuthState() {
-    if (!mobileMenu) return
-    const isAuth = typeof window !== 'undefined' && !!localStorage.getItem('auth_token')
-    mobileMenu.classList.toggle('is-auth', isAuth)
-    mobileMenu.querySelectorAll('[data-section-lock]').forEach(el => { el.hidden = isAuth })
-    mobileMenu.querySelectorAll('[data-login-hint]').forEach(el => { el.hidden = isAuth })
-  }
-  refreshAuthState()
-  document.addEventListener('auth:changed', refreshAuthState)
-  window.addEventListener('storage', refreshAuthState)
+    // ── Estado ativo dos links (SPA) ──
+    function setActiveLinks() {
+      var path = window.location.pathname
+      var links = document.querySelectorAll('.header-nav .nav-link, .mobile-menu .mobile-link')
+      var rules = [
+        { parent: '/blog', prefix: '/blog/' },
+        { parent: '/receitas', prefix: '/receitas/' },
+      ]
+      function match(href) {
+        if (path === '/' && href === '/') return true
+        if (path === href) return true
+        if (href !== '/' && path.indexOf(href + '/') === 0) return true
+        for (var i = 0; i < rules.length; i++) {
+          var r = rules[i]
+          if (href === r.parent && path.indexOf(r.prefix) === 0) return true
+        }
+        return false
+      }
+      links.forEach(function (a) {
+        a.classList.remove('active')
+        var href = a.getAttribute('href')
+        if (href && match(href)) a.classList.add('active')
+      })
+    }
 
-  if (hamburger && mobileMenu) {
     function closeMenu() {
-      hamburger.classList.remove('active')
-      hamburger.setAttribute('aria-expanded', 'false')
-      mobileMenu.setAttribute('aria-hidden', 'true')
+      var hamburger = document.getElementById('hamburger')
+      var mobileMenu = document.getElementById('mobile-menu')
+      if (hamburger) {
+        hamburger.classList.remove('active')
+        hamburger.setAttribute('aria-expanded', 'false')
+      }
+      if (mobileMenu) mobileMenu.setAttribute('aria-hidden', 'true')
       document.body.style.overflow = ''
     }
 
     function openMenu() {
+      var hamburger = document.getElementById('hamburger')
+      var mobileMenu = document.getElementById('mobile-menu')
+      if (!hamburger || !mobileMenu) return
       refreshAuthState()
       hamburger.classList.add('active')
       hamburger.setAttribute('aria-expanded', 'true')
@@ -713,163 +747,146 @@ function isActive(item: { href: string; page: string }): boolean {
       document.body.style.overflow = 'hidden'
     }
 
-    hamburger.addEventListener('click', (e) => {
-      e.stopPropagation()
-      const isOpen = hamburger.classList.contains('active')
-      if (isOpen) { closeMenu() } else { openMenu() }
-    })
+    function closeDropdowns(except) {
+      var dropdowns = document.querySelectorAll('[data-dropdown]')
+      Array.prototype.forEach.call(dropdowns, function (dd) {
+        if (dd === except) return
+        dd.classList.remove('open')
+        var link = dd.querySelector('.nav-link')
+        if (link) link.setAttribute('aria-expanded', 'false')
+      })
+    }
 
-    document.addEventListener('click', (e) => {
-      if (hamburger.classList.contains('active')) {
-        const target = e.target
-        if (target instanceof Node && !hamburger.contains(target) && !mobileMenu.contains(target)) {
-          closeMenu()
-        }
+    function openSearch() {
+      window.dispatchEvent(new CustomEvent('search:open'))
+      closeMenu()
+    }
+
+    // ── Binding direto (hover/focus no dropdown) — re-executa após cada swap ──
+    function initHeader() {
+      var header = document.querySelector('.header')
+      if (!header || header.dataset.hxBound === '1') return
+      header.dataset.hxBound = '1'
+
+      var dropdowns = Array.prototype.slice.call(document.querySelectorAll('[data-dropdown]'))
+      dropdowns.forEach(function (dd) {
+        var link = dd.querySelector('.nav-link')
+        dd.addEventListener('mouseenter', function () {
+          dd.classList.add('open')
+          if (link) link.setAttribute('aria-expanded', 'true')
+        })
+        dd.addEventListener('mouseleave', function () { closeDropdowns() })
+        dd.addEventListener('focusin', function () {
+          dd.classList.add('open')
+          if (link) link.setAttribute('aria-expanded', 'true')
+        })
+        dd.addEventListener('focusout', function (e) {
+          if (!dd.contains(e.relatedTarget)) closeDropdowns()
+        })
+      })
+    }
+
+    // ── Delegação de clique no document (imune a re-render do header) ──
+    function onDocumentClick(e) {
+      var t = e.target
+      if (!t || !t.closest) return
+
+      // Hamburger (mobile)
+      if (t.closest('#hamburger')) {
+        e.stopPropagation()
+        var hamburger = document.getElementById('hamburger')
+        var isOpen = hamburger && hamburger.classList.contains('active')
+        if (isOpen) { closeMenu() } else { openMenu() }
+        return
       }
-    })
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && hamburger.classList.contains('active')) {
+      // Busca (desktop e mobile)
+      if (t.closest('#search-toggle') || t.closest('#search-toggle-mobile')) {
+        openSearch()
+        return
+      }
+
+      // Dropdown: clique no link alterna; clique num item navega normalmente
+      var dd = t.closest('[data-dropdown]')
+      if (dd) {
+        var link = dd.querySelector('.nav-link')
+        if (link && (t === link || link.contains(t))) {
+          e.preventDefault()
+          var isOpen = dd.classList.contains('open')
+          closeDropdowns()
+          if (!isOpen) {
+            dd.classList.add('open')
+            link.setAttribute('aria-expanded', 'true')
+          }
+        }
+        return
+      }
+
+      // Clique fora do header fecha menu mobile aberto e dropdowns
+      var mobileMenu = document.getElementById('mobile-menu')
+      if (mobileMenu && mobileMenu.getAttribute('aria-hidden') === 'false') {
+        var hamb = document.getElementById('hamburger')
+        if (!hamb.contains(t) && !mobileMenu.contains(t)) closeMenu()
+      }
+      closeDropdowns()
+    }
+
+    function onKeyDown(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        openSearch()
+      }
+      if (e.key === 'Escape') {
+        closeMenu()
+        closeDropdowns()
+      }
+    }
+
+    function onMobileLinkClick(e) {
+      if (e.target && e.target.closest && e.target.closest('.mobile-link')) {
         closeMenu()
       }
-    })
-
-    mobileMenu.querySelectorAll('.mobile-link').forEach(link => {
-      link.addEventListener('click', () => { closeMenu() })
-    })
-
-    Array.prototype.forEach.call(mobileMenu.children, (el, i) => {
-      el.style.setProperty('--i', String(i))
-    })
-
-    document.addEventListener('astro:before-swap', closeMenu)
-    document.addEventListener('astro:after-swap', refreshAuthState)
-  }
-
-  // ── Estado ativo dos links (SPA) ──
-  function setActiveLinks() {
-    const path = window.location.pathname
-    const links = document.querySelectorAll('.header-nav .nav-link, .mobile-menu .mobile-link')
-    const rules = [
-      { parent: '/blog', prefix: '/blog/' },
-      { parent: '/receitas', prefix: '/receitas/' },
-    ]
-    function match(href) {
-      if (path === '/' && href === '/') return true
-      if (path === href) return true
-      if (href !== '/' && path.indexOf(href + '/') === 0) return true
-      for (const r of rules) {
-        if (href === r.parent && path.indexOf(r.prefix) === 0) return true
-      }
-      return false
     }
-    links.forEach(function (a) {
-      a.classList.remove('active')
-      const href = a.getAttribute('href')
-      if (href && match(href)) a.classList.add('active')
-    })
-  }
 
-  let lastScrollY = window.pageYOffset;
-  let ticking = false;
+    function initAll() {
+      initHeader()
+      setActiveLinks()
+      refreshAuthState()
+    }
 
-  function updateHeader() {
-    const header = document.querySelector('.header');
-    if (window.pageYOffset > 10) {
-      header.classList.add('scrolled');
+    // Registra os listeners de ciclo de vida UMA única vez (sobrevive a
+    // re-execução do bundle em navegação SPA).
+    if (!window.__headerLifecycleBound) {
+      window.__headerLifecycleBound = true
+      document.addEventListener('click', onDocumentClick)
+      document.addEventListener('click', onMobileLinkClick)
+      document.addEventListener('keydown', onKeyDown)
+      document.addEventListener('astro:page-load', initAll)
+      document.addEventListener('astro:before-swap', function () { closeMenu(); closeDropdowns() })
+      document.addEventListener('astro:after-swap', function () { setActiveLinks(); refreshAuthState() })
+      window.addEventListener('storage', refreshAuthState)
+      document.addEventListener('auth:changed', refreshAuthState)
+    }
+
+    // Header .scrolled (sombra ao rolar)
+    var ticking = false
+    function updateHeader() {
+      var header = document.querySelector('.header')
+      if (!header) { ticking = false; return }
+      if (window.pageYOffset > 10) header.classList.add('scrolled')
+      else header.classList.remove('scrolled')
+      ticking = false
+    }
+    function requestTick() {
+      if (!ticking) { requestAnimationFrame(updateHeader); ticking = true }
+    }
+    window.addEventListener('scroll', requestTick, { passive: true })
+
+    // Run inicial
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initAll)
     } else {
-      header.classList.remove('scrolled');
+      initAll()
     }
-    ticking = false;
-  }
-
-  function requestTick() {
-    if (!ticking) {
-      requestAnimationFrame(updateHeader);
-      ticking = true;
-    }
-  }
-
-  window.addEventListener('scroll', () => {
-    lastScrollY = window.pageYOffset;
-    requestTick();
-  }, { passive: true });
-
-  document.addEventListener('astro:after-swap', setActiveLinks)
-  setActiveLinks()
-
-  const searchToggle = document.getElementById('search-toggle')
-  const searchToggleMobile = document.getElementById('search-toggle-mobile')
-
-  function openSearch() {
-    window.dispatchEvent(new CustomEvent('search:open'))
-    if (hamburger) {
-      hamburger.classList.remove('active')
-      hamburger.setAttribute('aria-expanded', 'false')
-    }
-    if (mobileMenu) {
-      mobileMenu.setAttribute('aria-hidden', 'true')
-      document.body.style.overflow = ''
-    }
-  }
-
-  searchToggle?.addEventListener('click', openSearch)
-  searchToggleMobile?.addEventListener('click', openSearch)
-
-  document.addEventListener('keydown', (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-      e.preventDefault()
-      openSearch()
-    }
-  })
-
-  // ── Dropdown acessível (hover + clique + Esc + clique fora) ──
-  const dropdowns = Array.prototype.slice.call(document.querySelectorAll('[data-dropdown]'))
-
-  function closeDropdowns(except) {
-    dropdowns.forEach(dd => {
-      if (dd === except) return
-      dd.classList.remove('open')
-      const link = dd.querySelector('.nav-link')
-      link?.setAttribute('aria-expanded', 'false')
-    })
-  }
-
-  dropdowns.forEach(dd => {
-    const link = dd.querySelector('.nav-link')
-    dd.addEventListener('mouseenter', () => {
-      dd.classList.add('open')
-      link?.setAttribute('aria-expanded', 'true')
-    })
-    dd.addEventListener('mouseleave', () => {
-      closeDropdowns()
-    })
-    dd.addEventListener('focusin', () => {
-      dd.classList.add('open')
-      link?.setAttribute('aria-expanded', 'true')
-    })
-    dd.addEventListener('focusout', (e) => {
-      if (!dd.contains(e.relatedTarget)) closeDropdowns()
-    })
-    link?.addEventListener('click', (e) => {
-      e.preventDefault()
-      const isOpen = dd.classList.contains('open')
-      closeDropdowns()
-      if (!isOpen) {
-        dd.classList.add('open')
-        link.setAttribute('aria-expanded', 'true')
-      }
-    })
-  })
-
-  document.addEventListener('click', (e) => {
-    const target = e.target
-    if (target instanceof Node && !target.closest('[data-dropdown]')) closeDropdowns()
-  })
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeDropdowns()
-  })
-
-  document.addEventListener('astro:before-swap', () => closeDropdowns())
+  })()
 </script>

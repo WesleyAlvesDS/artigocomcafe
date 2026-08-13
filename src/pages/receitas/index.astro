@@ -50,8 +50,11 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
         </p>
       </div>
       
-      <div class="recipes-filters" data-scroll-reveal="fade" data-scroll-delay="100">
-        <form class="search-form" method="GET" action="/receitas">
+      {/* Form agrupa busca + filtros: os selects usam this.form.submit() e
+          precisam estar DENTRO do <form> (antes estavam fora → this.form era
+          null e os filtros de dificuldade/tempo nunca aplicavam). */}
+      <form class="recipes-filters" method="GET" action="/receitas" data-scroll-reveal="fade" data-scroll-delay="100">
+        <div class="search-form">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -64,11 +67,7 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
             class="search-input"
             aria-label="Buscar receitas"
           />
-          {categorySlug && <input type="hidden" name="categoria" value={categorySlug} />}
-          {tagSlug && <input type="hidden" name="tag" value={tagSlug} />}
-          {difficulty && <input type="hidden" name="dificuldade" value={difficulty} />}
-          {timeMax && <input type="hidden" name="tempo_max" value={timeMax} />}
-        </form>
+        </div>
         
         <div class="filters-row">
           <div class="categories-filter" data-stagger data-stagger-delay="60">
@@ -125,7 +124,7 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
             <a href="/receitas" class="clear-filters">Limpar todos</a>
           </div>
         )}
-      </div>
+      </form>
     </div>
   </section>
 

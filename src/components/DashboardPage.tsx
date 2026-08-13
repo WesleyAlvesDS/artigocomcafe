@@ -5,7 +5,7 @@ import { useAuth } from '../lib/auth'
 import { api } from '../lib/api'
 import { getCurrentVocabulary } from '../lib/themes'
 import { getLocationPref, saveLocationPref, type LocationPref } from '../lib/consent'
-import { saveDraft, readDraft, clearDraft, emitDraftChange, type PostFormData } from '../lib/draft'
+import { saveDraft, readDraft, readDraftList, clearDraft, emitDraftChange, type PostFormData } from '../lib/draft'
 import PostManagementWidget from './PostManagementWidget'
 import DashboardMobileNav from './DashboardMobileNav'
 import { showToast } from './Toast'
@@ -787,7 +787,7 @@ function DashboardContent() {
   const [hasDraft, setHasDraft] = useState(false)
 
   useEffect(() => {
-    const sync = () => setHasDraft(!!readDraft())
+    const sync = () => setHasDraft(Object.keys(readDraftList()).length > 0 || !!readDraft())
     sync()
     window.addEventListener('dash-draft-change', sync)
     return () => window.removeEventListener('dash-draft-change', sync)

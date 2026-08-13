@@ -8,7 +8,7 @@
 import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 
-const BASE_URL = 'https://artigocomcafe.com';
+const BASE_URL = process.env.BASE_URL || 'https://artigocomcafe.com';
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice'];
 
 const RESULTS = {

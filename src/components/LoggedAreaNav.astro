@@ -29,19 +29,20 @@ const areas = [
     <span class="crumb-current">{crumb || areas.find(a => a.page === current)?.label || 'Painel'}</span>
   </div>
 
-  <div class="logged-chips" role="list">
+  <ul class="logged-chips">
     {areas.map(area => (
-      <a
-        href={area.href}
-        class:list={['logged-chip', area.page === current && 'active']}
-        role="listitem"
-        aria-current={area.page === current ? 'page' : undefined}
-      >
-        <span class="logged-chip-icon" aria-hidden="true">{area.icon}</span>
-        {area.label}
-      </a>
+      <li class="logged-chip-item">
+        <a
+          href={area.href}
+          class:list={['logged-chip', area.page === current && 'active']}
+          aria-current={area.page === current ? 'page' : undefined}
+        >
+          <span class="logged-chip-icon" aria-hidden="true">{area.icon}</span>
+          {area.label}
+        </a>
+      </li>
     ))}
-  </div>
+  </ul>
 </nav>
 
 <style>
@@ -84,6 +85,13 @@ const areas = [
     display: flex;
     flex-wrap: wrap;
     gap: 0.45rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .logged-chip-item {
+    display: inline-flex;
   }
 
   .logged-chip {

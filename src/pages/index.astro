@@ -142,6 +142,57 @@ const categories = await getCategories()
     </div>
   </section>
 
+  {/* ── Guia do Café: páginas SEO de engajamento (interlinking interno) ── */}
+  <section class="section seo-guides-section" data-scroll-reveal="fade">
+    <div class="container">
+      <div class="section-header" data-scroll-reveal="fade">
+        <span class="section-label">Guia do Café</span>
+        <h2 class="section-title">Aprenda com nossos guias</h2>
+        <p class="section-subtitle">
+          Guias completos para aprofundar seu conhecimento — do grão à xícara.
+        </p>
+      </div>
+      <div class="seo-guides-grid" data-stagger data-stagger-delay="80" data-stagger-start="100">
+        <a href="/metodos-de-preparo/" class="seo-guide-card glass-card tilt-card" data-stagger-item>
+          <span class="seo-guide-icon" aria-hidden="true">☕</span>
+          <h3 class="seo-guide-title">Métodos de Preparo</h3>
+          <p class="seo-guide-desc">V60, prensa francesa, espresso, moka, cold brew e AeroPress — comparativo completo.</p>
+          <span class="seo-guide-link">Ver guia →</span>
+        </a>
+        <a href="/tipos-de-graos/" class="seo-guide-card glass-card tilt-card" data-stagger-item>
+          <span class="seo-guide-icon" aria-hidden="true">🫘</span>
+          <h3 class="seo-guide-title">Tipos de Grãos</h3>
+          <p class="seo-guide-desc">Arábica vs Robusta, torras e origens — escolha o café certo para o seu paladar.</p>
+          <span class="seo-guide-link">Ver guia →</span>
+        </a>
+        <a href="/como-fazer-cafe/" class="seo-guide-card glass-card tilt-card" data-stagger-item>
+          <span class="seo-guide-icon" aria-hidden="true">✨</span>
+          <h3 class="seo-guide-title">Como Fazer Café</h3>
+          <p class="seo-guide-desc">Moagem, proporção, temperatura e tempo — o passo a passo para o café perfeito em casa.</p>
+          <span class="seo-guide-link">Ver guia →</span>
+        </a>
+        <a href="/cafes-do-brasil/" class="seo-guide-card glass-card tilt-card" data-stagger-item>
+          <span class="seo-guide-icon" aria-hidden="true">🇧🇷</span>
+          <h3 class="seo-guide-title">Cafés do Brasil</h3>
+          <p class="seo-guide-desc">Cerrado Mineiro, Sul de Minas, Mogiana, Bahia e mais — conheça os terroirs brasileiros.</p>
+          <span class="seo-guide-link">Ver guia →</span>
+        </a>
+        <a href="/glossario-do-cafe/" class="seo-guide-card glass-card tilt-card" data-stagger-item>
+          <span class="seo-guide-icon" aria-hidden="true">📖</span>
+          <h3 class="seo-guide-title">Glossário do Café</h3>
+          <p class="seo-guide-desc">Acidez, corpo, crema, torra e 30+ termos essenciais explicados sem enrolação.</p>
+          <span class="seo-guide-link">Ver guia →</span>
+        </a>
+        <a href="/blog" class="seo-guide-card glass-card tilt-card" data-stagger-item>
+          <span class="seo-guide-icon" aria-hidden="true">📝</span>
+          <h3 class="seo-guide-title">Todos os Artigos</h3>
+          <p class="seo-guide-desc">Conteúdo autoral aprofundado sobre cultura, história e técnicas do café.</p>
+          <span class="seo-guide-link">Explorar blog →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
   <section class="section features-section" data-scroll-reveal="fade">
     <div class="container">
       <div class="features-grid" data-stagger data-stagger-delay="100" data-stagger-start="150">
@@ -388,6 +439,56 @@ const categories = await getCategories()
   .section-footer {
     text-align: center;
     margin-top: 3rem;
+  }
+
+  .seo-guides-section {
+    padding: 4rem 0;
+  }
+
+  .seo-guides-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .seo-guide-card {
+    padding: 1.75rem;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s, border-color 0.3s;
+  }
+
+  .seo-guide-card:hover {
+    border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+  }
+
+  .seo-guide-icon {
+    font-size: 1.9rem;
+    line-height: 1;
+  }
+
+  .seo-guide-title {
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0;
+  }
+
+  .seo-guide-desc {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    margin: 0;
+    flex: 1;
+  }
+
+  .seo-guide-link {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-accent);
   }
 
   .features-section {

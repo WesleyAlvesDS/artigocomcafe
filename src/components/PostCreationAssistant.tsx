@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef, type ChangeEvent, type KeyboardEvent } from 'react'
 import { api } from '../lib/api'
 import { showToast } from './Toast'
+import { saveDraft, removeDraftEntry, emitDraftChange } from '../lib/draft'
+import { renderMarkdown } from './PostEditor'
 
 interface HeadlineItem {
   title: string
@@ -134,6 +136,7 @@ export default function PostCreationAssistant({ onPostCreated, onClose }: PostCr
   const [analysis, setAnalysis] = useState<any>(null)
   const [editorContent, setEditorContent] = useState('')
   const [showAnalysis, setShowAnalysis] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
   const [wordCount, setWordCount] = useState(0)
   const [readTime, setReadTime] = useState(0)
 
@@ -256,8 +259,29 @@ ${POST_GENERATION_PROMPT}`
   }
 
   const saveAsDraft = async () => {
-    // Save via PostEditor or API
-    showToast('Rascunho salvo! Continue editando quando quiser.', 'success')
+    try {
+      if (!editorContent.trim()) {
+        showToast('Escreva algo antes de salvar o rascunho.', 'warning')
+        return
+      }
+      const titleMatch = editorContent.match(/^#\s+(.+)$/m)
+      saveDraft({
+        mode: 'create',
+        data: {
+          title: titleMatch?.[1] || 'Artigo sem título',
+          excerpt: editorContent.replace(/^#.*$/m, '').replace(/[#*`>]/g, '').trim().slice(0, 300),
+          content: editorContent,
+          status: 'draft',
+          category: null,
+          tags_input: '',
+        },
+        saved_at: new Date().toISOString(),
+      })
+      emitDraftChange()
+      showToast('Rascunho salvo! Continue editando quando quiser.', 'success')
+    } catch {
+      showToast('Erro ao salvar rascunho.', 'error')
+    }
   }
 
   const publishPost = async () => {
@@ -278,6 +302,8 @@ ${POST_GENERATION_PROMPT}`
       }
       
       const res = await api.post('/user/posts', payload)
+      removeDraftEntry('create')
+      emitDraftChange()
       showToast('Artigo publicado! 🎉', 'success')
       onPostCreated?.(res)
       onClose()
@@ -293,6 +319,27 @@ ${POST_GENERATION_PROMPT}`
     setEditorContent(content)
     updateStats(content)
   }
+
+  // Keyboard shortcuts: ⌘S salva rascunho, ⌘Enter publica (anunciados no footer)
+  useEffect(() => {
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      const t = e.target as HTMLElement | null
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+          e.preventDefault()
+          saveAsDraft()
+        }
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        if (step === 'editor' || step === 'analysis') {
+          e.preventDefault()
+          if (editorContent.trim() && !loading) publishPost()
+        }
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [step, editorContent, loading])
 
   const goBackToEditor = () => {
     setShowAnalysis(false)
@@ -457,6 +504,16 @@ ${POST_GENERATION_PROMPT}`
                 {loading ? 'Analisando...' : '🔍 Analisar (Diamante)'}
               </button>
               <button
+                onClick={() => setShowPreview(p => !p)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors border ${
+                  showPreview
+                    ? 'text-[var(--color-accent)] bg-[var(--color-accent)]/20 border-[var(--color-accent)]/40'
+                    : 'text-[var(--color-text-secondary)] border-[var(--color-bg-card-border)] hover:bg-[var(--color-bg-card-hover)]'
+                }`}
+              >
+                {showPreview ? '👁 Ocultar Preview' : '👁 Preview'}
+              </button>
+              <button
                 onClick={saveAsDraft}
                 className="px-3 py-1.5 text-xs font-medium text-[var(--color-text-secondary)] border border-[var(--color-bg-card-border)] rounded-lg hover:bg-[var(--color-bg-card-hover)] transition-colors"
               >
@@ -511,6 +568,18 @@ ${POST_GENERATION_PROMPT}`
               aria-label="Conteúdo do artigo em Markdown"
             />
           </div>
+
+          {showPreview && (
+            <div className="editor-preview w-1/2 border-l border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)]/40 overflow-y-auto p-4" aria-label="Preview do artigo">
+              {editorContent.trim() ? (
+                <div className="prose prose-sm max-w-none text-[var(--color-text-primary)]"
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(editorContent) }}
+                />
+              ) : (
+                <p className="text-sm text-[var(--color-text-muted)]">Digite ou gere um artigo para ver o preview...</p>
+              )}
+            </div>
+          )}
 
           <div className="editor-footer p-4 border-t border-[var(--color-bg-card-border)]">
             <div className="flex items-center justify-between">

@@ -38,6 +38,7 @@ Route::get('/articles/popular', [ArticleController::class, 'popular']);
 Route::get('/articles/{slug}', [ArticleController::class, 'show']);
 
 Route::get('/categories', [ArticleController::class, 'categories']);
+Route::get('/tags', [ArticleController::class, 'tags']);
 
 // Receitas (Fase 6 - receitas.md)
 Route::get('/recipes', [RecipeController::class, 'index']);
@@ -60,6 +61,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user/posts', [UserPostController::class, 'store']);
     Route::put('/user/posts/{article}', [UserPostController::class, 'update']);
     Route::delete('/user/posts/{article}', [UserPostController::class, 'destroy']);
+    Route::post('/upload/image', [UserPostController::class, 'uploadImage']);
 
     Route::get('/user/library', [CollectionController::class, 'myLibrary']);
     Route::get('/user/library/recipes', [CollectionController::class, 'myRecipeLibrary']);

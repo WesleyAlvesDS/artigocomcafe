@@ -1,0 +1,354 @@
+---
+import type { SeoLanding } from '../data/seoLanding'
+
+interface Props {
+  data: SeoLanding
+}
+
+const { data } = Astro.props
+const siteUrl = 'https://artigocomcafe.com'
+const canonical = `/${data.slug}/`
+---
+
+<section class="seo-landing">
+  <div class="seo-hero">
+    <div class="container">
+      <div class="seo-hero-inner" data-reveal>
+        <span class="section-label">Guia do Café</span>
+        <h1 class="seo-title">{data.h1}</h1>
+        <p class="seo-intro">{data.intro}</p>
+        <div class="seo-cta-row">
+          <a href="/blog" class="btn-primary ripple">Ler artigos</a>
+          <a href="/receitas" class="btn-ghost ripple">Ver receitas</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="seo-body">
+      <div class="seo-main">
+        {data.sections.map(section => (
+          <section class="seo-section" id={section.id} data-reveal>
+            <h2 class="seo-section-title">{section.title}</h2>
+            <div class="seo-section-body prose" set:html={section.body} />
+          </section>
+        ))}
+
+        <section class="seo-faq" id="perguntas-frequentes" data-reveal>
+          <h2 class="seo-section-title">Perguntas frequentes</h2>
+          <div class="faq-list" data-faq-list>
+            {data.faqs.map((faq, i) => (
+              <div class="faq-item" data-faq-item>
+                <button type="button" class="faq-question" aria-expanded="false" aria-controls={`faq-a-${i}`} id={`faq-q-${i}`}>
+                  <span>{faq.q}</span>
+                  <svg class="faq-caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
+                </button>
+                <div class="faq-answer" id={`faq-a-${i}`} role="region" aria-labelledby={`faq-q-${i}`} hidden>
+                  <p>{faq.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <aside class="seo-sidebar">
+        <div class="seo-card glass-card" data-reveal>
+          <span class="seo-card-label">Explore</span>
+          <h3 class="seo-card-title">{data.ctaTitle}</h3>
+          <p class="seo-card-text">{data.ctaText}</p>
+          <a href={data.ctaHref} class="btn-primary ripple btn-block">{data.ctaLabel}</a>
+        </div>
+        <div class="seo-card glass-card" data-reveal="delay-2">
+          <span class="seo-card-label">Comece por aqui</span>
+          <nav class="seo-toc" aria-label="Conteúdo desta página">
+            {data.sections.map(section => (
+              <a href={`#${section.id}`} class="seo-toc-link">{section.title}</a>
+            ))}
+            <a href="#perguntas-frequentes" class="seo-toc-link">Perguntas frequentes</a>
+          </nav>
+        </div>
+        <div class="seo-card glass-card" data-reveal="delay-2">
+          <span class="seo-card-label">Newsletter</span>
+          <h3 class="seo-card-title">Café e conhecimento, toda semana</h3>
+          <p class="seo-card-text">Receba os melhores artigos e receitas no seu email.</p>
+          <a href="/newsletter" class="btn-ghost ripple btn-block">Assinar newsletter</a>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<script is:inline>
+  // Accordion de FAQ resiliente à navegação SPA (re-executa a cada troca de página).
+  (function () {
+    var list = document.querySelector('[data-faq-list]')
+    if (!list || list.dataset.bound === '1') return
+    list.dataset.bound = '1'
+    list.querySelectorAll('[data-faq-item]').forEach(function (item) {
+      var q = item.querySelector('.faq-question')
+      var a = item.querySelector('.faq-answer')
+      if (!q || !a) return
+      q.addEventListener('click', function () {
+        var open = a.hidden === false
+        // Fecha os demais (acordeão)
+        list.querySelectorAll('[data-faq-item]').forEach(function (other) {
+          var oq = other.querySelector('.faq-question')
+          var oa = other.querySelector('.faq-answer')
+          if (other !== item) {
+            if (oa) oa.hidden = true
+            if (oq) oq.setAttribute('aria-expanded', 'false')
+          }
+        })
+        a.hidden = open
+        q.setAttribute('aria-expanded', String(!open))
+      })
+    })
+  })()
+</script>
+
+<style>
+  .seo-landing {
+    padding-top: 5.5rem;
+  }
+
+  .seo-hero {
+    position: relative;
+    padding: 4.5rem 0 3.5rem;
+    background:
+      radial-gradient(60% 90% at 85% 0%, color-mix(in srgb, var(--coffee-gold) 14%, transparent), transparent 70%),
+      linear-gradient(180deg, color-mix(in srgb, var(--color-bg-card) 55%, var(--color-bg-primary)), var(--color-bg-primary));
+    border-bottom: 1px solid var(--color-bg-card-border);
+    overflow: hidden;
+  }
+
+  .seo-hero-inner {
+    max-width: 820px;
+  }
+
+  .seo-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.1rem, 4.6vw, 3.4rem);
+    font-weight: 900;
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+    color: var(--color-text-primary);
+    margin: 0.75rem 0 1.25rem;
+  }
+
+  .seo-intro {
+    font-size: 1.08rem;
+    line-height: 1.75;
+    color: var(--color-text-secondary);
+    max-width: 640px;
+  }
+
+  .seo-cta-row {
+    display: flex;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+    margin-top: 1.75rem;
+  }
+
+  .seo-cta-row .btn-primary,
+  .seo-cta-row .btn-ghost {
+    padding: 0.85rem 1.6rem;
+    border-radius: 100px;
+  }
+
+  .seo-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 3rem;
+    align-items: start;
+    padding: 3.5rem 0 5rem;
+  }
+
+  .seo-main {
+    min-width: 0;
+  }
+
+  .seo-section {
+    margin-bottom: 3rem;
+    scroll-margin-top: 90px;
+  }
+
+  .seo-section-title {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin-bottom: 1rem;
+    letter-spacing: -0.01em;
+  }
+
+  .seo-section-body p {
+    line-height: 1.8;
+    color: var(--color-text-secondary);
+    margin-bottom: 1rem;
+  }
+
+  .seo-section-body strong {
+    color: var(--color-text-primary);
+  }
+
+  /* FAQ */
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .faq-item {
+    border: 1px solid var(--color-bg-card-border);
+    border-radius: var(--radius-card);
+    background: var(--color-bg-card);
+    overflow: hidden;
+  }
+
+  .faq-question {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: none;
+    border: none;
+    color: var(--color-text-primary);
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    text-align: left;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .faq-question:hover {
+    color: var(--color-accent);
+  }
+
+  .faq-caret {
+    flex-shrink: 0;
+    color: var(--color-accent);
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .faq-question[aria-expanded="true"] .faq-caret {
+    transform: rotate(180deg);
+  }
+
+  .faq-answer {
+    padding: 0 1.25rem 1.1rem;
+  }
+
+  .faq-answer p {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+  }
+
+  /* Sidebar */
+  .seo-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: sticky;
+    top: 96px;
+  }
+
+  .seo-card {
+    padding: 1.4rem;
+  }
+
+  .seo-card-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--color-accent);
+  }
+
+  .seo-card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0.5rem 0 0.4rem;
+  }
+
+  .seo-card-text {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    margin-bottom: 1rem;
+  }
+
+  .btn-block {
+    display: block;
+    width: 100%;
+    text-align: center;
+  }
+
+  .seo-toc {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .seo-toc-link {
+    padding: 0.4rem 0.5rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .seo-toc-link:hover {
+    color: var(--color-accent);
+    border-left-color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  }
+
+  @media (max-width: 1000px) {
+    .seo-body {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    .seo-sidebar {
+      position: static;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .faq-caret {
+      transition: none;
+    }
+  }
+</style>
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  'mainEntity': data.faqs.map(faq => ({
+    '@type': 'Question',
+    'name': faq.q,
+    'acceptedAnswer': { '@type': 'Answer', 'text': faq.a }
+  }))
+})} />
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  'headline': data.h1,
+  'description': data.description,
+  'author': { '@type': 'Organization', 'name': 'Artigo com Café' },
+  'publisher': { '@type': 'Organization', 'name': 'Artigo com Café' },
+  'mainEntityOfPage': `${siteUrl}${canonical}`
+})} />

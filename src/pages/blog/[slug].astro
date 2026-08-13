@@ -67,25 +67,51 @@ if (post && (prevSlug || nextSlug)) {
   }
 }
 
-// Build TOC from content headings
-const tocHeadings: { id: string; text: string; level: number }[] = []
-if (post) {
+// Conteúdo normalizado: h1 → h2 (um único h1 por página, o título do artigo)
+const rawContent = post ? post.content.replace(/<h1([^>]*)>/gi, '<h2$1>').replace(/<\/h1>/gi, '</h2>') : ''
+
+// Slugify ÚNICO (usado pelo TOC e pelos ids injetados no conteúdo — se divergirem,
+// os links de âncora quebram e o scroll-spy nunca ativa).
+function slugifyHeading(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+}
+
+function buildToc(content: string): { id: string; text: string; level: number }[] {
+  const headings: { id: string; text: string; level: number }[] = []
+  const seen = new Map<string, number>()
   const hRegex = /<(h2|h3)([^>]*)>([\s\S]*?)<\/\1>/gi
   let m
-  while ((m = hRegex.exec(post.content)) !== null) {
+  while ((m = hRegex.exec(content)) !== null) {
     const text = m[3].replace(/<[^>]+>/g, '').trim()
-    if (text) {
-      const id = text
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9\s-]/g, '')
-        .trim()
-        .replace(/\s+/g, '-')
-      tocHeadings.push({ id: id || 'section-' + tocHeadings.length, text, level: m[1] === 'h2' ? 2 : 3 })
-    }
+    if (!text) continue
+    let id = slugifyHeading(text) || 'section'
+    const count = seen.get(id) || 0
+    seen.set(id, count + 1)
+    if (count > 0) id = `${id}-${count + 1}`
+    headings.push({ id, text, level: m[1] === 'h2' ? 2 : 3 })
   }
+  return headings
 }
+
+// Injeta id="..." nos h2/h3 do conteúdo, casando com o TOC (item a item).
+function addHeadingIds(content: string, toc: { id: string; text: string; level: number }[]): string {
+  let i = 0
+  return content.replace(/<(h2|h3)([^>]*)>([\s\S]*?)<\/\1>/gi, (match, tag: string, attrs: string, inner: string) => {
+    const heading = toc[i++]
+    const idAttr = heading ? ` id="${heading.id}"` : ''
+    return `<${tag}${attrs}${idAttr}>${inner}</${tag}>`
+  })
+}
+
+// Build TOC from content headings (mesma base do conteúdo renderizado)
+const tocHeadings: { id: string; text: string; level: number }[] = rawContent ? buildToc(rawContent) : []
+const contentWithIds = post ? addHeadingIds(rawContent, tocHeadings) : ''
 ---
 
 {error ? (
@@ -184,7 +210,7 @@ if (post) {
         <div class="container">
           <div class="article-layout">
             <div class="article-main">
-              <div class="article-content prose" set:html={post!.content.replace(/<h1([^>]*)>/gi, '<h2$1>').replace(/<\/h1>/gi, '</h2>')} />
+              <div class="article-content prose" set:html={contentWithIds} />
 
               <AdSterraNative className="ad-article-inline" lazy />
 
