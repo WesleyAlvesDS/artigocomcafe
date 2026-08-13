@@ -52,7 +52,7 @@
 ## 📌 Pendências
 
 - [ ] Deploy do **backend** (novas rotas `/tags` e `/upload/image` + controllers) — commitado, mas não publicado; o front já chama esses endpoints.
-- [x] Re-auditoria completa com credenciais — **concluída (13/08/2026 13:27)**: 8/8 auditorias ✅ — ver `test-results/auditoria-2026-08-13-13-27-12.md`.
+- [x] Re-auditoria completa com credenciais — **concluída (13/08/2026 13:49)**: 8/8 auditorias ✅ em passe único — ver `test-results/auditoria-2026-08-13-13-49-56.md`.
 
 ## 📊 Re-auditoria consolidada (`run-all-audits.mjs --all --report`)
 
