@@ -81,6 +81,6 @@ Rodada em 13/08/2026 com `TEST_USER`/`TEST_PASS`/`DASH_EMAIL`/`DASH_PASSWORD` (p
 
 **Score: 8/8 (100%)** — a falha inicial do `dash-audit` era ambiental (sem servidor na porta 4331);
 `run-all-audits.mjs` foi aprimorado para subir o `static-server` automaticamente antes dessa auditoria.
-- [ ] Registrar padrões no skill `bug-hunter` (novo padrão: roles ARIA em elementos errados).
+- [x] Registrar padrões no skill `bug-hunter` — **concluído**: novo playbook §6 (`aria-allowed-role`/roles ARIA em elementos errados, fix com `<ul>`/`<li>` semântico, como detectar/validar) + entrada em "Padrões aprendidos" + descrição da skill atualizada. (`.agents/` é gitignored — a skill é local.)
 
 *Relatório gerado em 2026-08-13 · Skillmaster: Playwright como parceiro de desenvolvimento.*
