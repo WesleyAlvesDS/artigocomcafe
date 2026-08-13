@@ -1,3 +1,6 @@
+import { showToast } from '../components/Toast'
+import { resetThemeColors } from './themes'
+
 const API_URL = '/api-proxy.php'
 
 class ApiError extends Error {
@@ -16,16 +19,42 @@ function getToken(): string | null {
   return localStorage.getItem('auth_token')
 }
 
-let isRefreshing = false
-let refreshSubscribers: Array<(token: string | null) => void> = []
+// Endpoints em que 401 NÃO significa "sessão expirada" (são erros de
+// credencial ou operação sem token). Nestes casos o erro é propagado para
+// o form exibir a mensagem correta — sem toast nem redirecionamento.
+const AUTH_401_EXEMPT = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/logout',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+]
 
-function subscribeTokenRefresh(cb: (token: string | null) => void) {
-  refreshSubscribers.push(cb)
+function isExpiredSession(endpoint: string, status: number): boolean {
+  return status === 401 && !AUTH_401_EXEMPT.some(e => endpoint.startsWith(e))
 }
 
-function onTokenRefreshed(token: string | null) {
-  refreshSubscribers.forEach(cb => cb(token))
-  refreshSubscribers = []
+// Limpa a sessão local, avisa a UI e leva o usuário para o login (preservando
+// a origem via ?next=). Sem loop: se já estiver em /entrar, não redireciona.
+let sessionExpiredHandled = false
+function handleSessionExpired() {
+  if (typeof window === 'undefined') return
+  if (sessionExpiredHandled) return
+  sessionExpiredHandled = true
+  localStorage.removeItem('auth_token')
+  window.dispatchEvent(new CustomEvent('auth:changed', { detail: { authenticated: false } }))
+  resetThemeColors()
+  showToast('Sessão expirada', 'warning', {
+    message: 'Sua sessão expirou. Faça login novamente para continuar.',
+  })
+  const here = window.location.pathname
+  const loginPath = '/entrar'
+  if (here === loginPath || here === loginPath + '/') return
+  const origin = window.location.pathname + window.location.search
+  // Pequeno atraso para o toast renderizar antes da navegação completa.
+  setTimeout(() => {
+    window.location.href = `/entrar/?next=${encodeURIComponent(origin)}`
+  }, 350)
 }
 
 async function request<T>(
@@ -69,69 +98,10 @@ async function request<T>(
     return request<T>(endpoint, options, retryAttempt + 1)
   }
 
-  // Handle 401 - token expirado
-  if (response.status === 401) {
-    if (!isRefreshing) {
-      isRefreshing = true
-      try {
-        const refreshResp = await fetch(`${API_URL}/auth/refresh`, {
-          method: 'POST',
-          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-        })
-        if (refreshResp.ok) {
-          const data = await refreshResp.json()
-          if (data.token) {
-            localStorage.setItem('auth_token', data.token)
-            onTokenRefreshed(data.token)
-            // Retry original request with new token
-            headers['Authorization'] = `Bearer ${data.token}`
-            const retryResponse = await fetch(`${API_URL}${endpoint}`, {
-              ...options,
-              headers,
-            })
-            isRefreshing = false
-            if (!retryResponse.ok) {
-              const body = await retryResponse.json().catch(() => ({}))
-              throw new ApiError(
-                body.message || `API Error: ${retryResponse.status}`,
-                retryResponse.status,
-                body.errors
-              )
-            }
-            return retryResponse.json()
-          }
-        }
-        // Refresh failed - clear auth
-        localStorage.removeItem('auth_token')
-        onTokenRefreshed(null)
-        if (typeof window !== 'undefined') {
-          window.location.href = '/entrar/'
-        }
-      } catch {
-        localStorage.removeItem('auth_token')
-        onTokenRefreshed(null)
-        if (typeof window !== 'undefined') {
-          window.location.href = '/entrar/'
-        }
-      } finally {
-        isRefreshing = false
-      }
-    } else {
-      // Wait for refresh to complete
-      return new Promise((resolve, reject) => {
-        subscribeTokenRefresh((newToken) => {
-          if (newToken) {
-            headers['Authorization'] = `Bearer ${newToken}`
-            fetch(`${API_URL}${endpoint}`, { ...options, headers })
-              .then(r => r.json())
-              .then(resolve)
-              .catch(reject)
-          } else {
-            reject(new ApiError('Sessão expirada', 401))
-          }
-        })
-      })
-    }
+  // Handle 401 - token inválido/expirado (Sanctum: sem refresh, token é revogado)
+  if (response.status === 401 && isExpiredSession(endpoint, 401)) {
+    handleSessionExpired()
+    throw new ApiError('Sessão expirada. Faça login novamente.', 401)
   }
 
   if (!response.ok) {

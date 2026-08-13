@@ -2,7 +2,6 @@
 import Base from '../../layouts/Base.astro'
 import RecipeCard from '../../components/RecipeCard.astro'
 import ReadingTracker from '../../components/ReadingTracker'
-import { ToastProvider } from '../../components/Toast'
 import AdSterraNative from '../../components/AdSterraNative.astro'
 import AdSterraSmartLink from '../../components/AdSterraSmartLink.astro'
 import AdSterraBanner from '../../components/AdSterraBanner.astro'
@@ -315,9 +314,7 @@ const schemaRecipe = recipe ? {
                 <div class="tips-grid" id="chef-tips"></div>
               </section>
 
-              <ToastProvider>
-        <ReadingTracker recipeId={recipe.id} articleTitle={recipe.title} client:load />
-      </ToastProvider>
+              <ReadingTracker recipeId={recipe.id} articleTitle={recipe.title} client:load />
 
       <div class="recipe-author" data-reveal>
                 <div class="author-avatar">&#9749;</div>

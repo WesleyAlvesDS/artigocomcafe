@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { api, isAuthenticated } from '../lib/api'
-import { useToast } from './Toast'
+import { showToast } from './Toast'
 
 interface Props {
   articleId?: number
@@ -9,7 +9,6 @@ interface Props {
 }
 
 export default function ReadingTracker({ articleId, recipeId, articleTitle }: Props) {
-  const { addToast } = useToast()
   const [progress, setProgress] = useState(0)
   const [visible, setVisible] = useState(false)
   const completedRef = useRef(false)
@@ -72,12 +71,11 @@ export default function ReadingTracker({ articleId, recipeId, articleTitle }: Pr
           completedRef.current = true
           try {
             await api.post(completeEndpoint)
-            addToast({
-              type: 'grain',
-              title: `${noun === 'receita' ? 'Receita concluída' : 'Leitura concluída'}! 🎉`,
-              message: `Você ganhou grãos por ${isRecipe ? 'preparar' : 'ler'} "${articleTitle.substring(0, 40)}..."`,
-              duration: 5000,
-            })
+            showToast(
+              `${noun === 'receita' ? 'Receita concluída' : 'Leitura concluída'}! 🎉`,
+              'grain',
+              { message: `Você ganhou grãos por ${isRecipe ? 'preparar' : 'ler'} "${articleTitle.substring(0, 40)}..."`, duration: 5000 }
+            )
           } catch {
             completedRef.current = false // Allow retry on failure
           }
@@ -88,7 +86,7 @@ export default function ReadingTracker({ articleId, recipeId, articleTitle }: Pr
     }, 15000)
 
     return () => clearInterval(interval)
-  }, [visible, contentId, isRecipe, articleTitle, addToast])
+  }, [visible, contentId, isRecipe, articleTitle])
 
   if (!visible) return null
 

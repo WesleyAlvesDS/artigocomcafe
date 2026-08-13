@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
 
-type ToastType = 'success' | 'error' | 'info' | 'grain' | 'achievement'
+type ToastType = 'success' | 'error' | 'info' | 'warning' | 'grain' | 'achievement'
 
 interface Toast {
   id: number
@@ -81,6 +81,7 @@ const TYPE_STYLES: Record<ToastType, { bg: string; border: string; icon: string 
   success: { bg: 'rgba(34,197,94,0.15)', border: 'rgba(34,197,94,0.3)', icon: '✅' },
   error: { bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)', icon: '❌' },
   info: { bg: 'rgba(59,130,246,0.15)', border: 'rgba(59,130,246,0.3)', icon: 'ℹ️' },
+  warning: { bg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.3)', icon: '⚠️' },
   grain: { bg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.3)', icon: '🫘' },
   achievement: { bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.3)', icon: '🏆' },
 }

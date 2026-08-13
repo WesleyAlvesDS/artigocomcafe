@@ -688,7 +688,7 @@ function isActive(item: { href: string; page: string }): boolean {
   // ── Estado de autenticação no menu mobile ──
   function refreshAuthState() {
     if (!mobileMenu) return
-    const isAuth = typeof window !== 'undefined' && !!localStorage.getItem('token')
+    const isAuth = typeof window !== 'undefined' && !!localStorage.getItem('auth_token')
     mobileMenu.classList.toggle('is-auth', isAuth)
     mobileMenu.querySelectorAll('[data-section-lock]').forEach(el => { el.hidden = isAuth })
     mobileMenu.querySelectorAll('[data-login-hint]').forEach(el => { el.hidden = isAuth })

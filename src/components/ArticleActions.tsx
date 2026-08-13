@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { api, isAuthenticated } from '../lib/api'
-import { ToastProvider, useToast } from './Toast'
+import { showToast } from './Toast'
 
 interface Props {
   articleId: number
@@ -9,15 +9,6 @@ interface Props {
 type BtnState = 'idle' | 'loading' | 'done' | 'error'
 
 export default function ArticleActions({ articleId }: Props) {
-  return (
-    <ToastProvider>
-      <ActionsContent articleId={articleId} />
-    </ToastProvider>
-  )
-}
-
-function ActionsContent({ articleId }: Props) {
-  const { addToast } = useToast()
   const [complete, setComplete] = useState<BtnState>('idle')
   const [save, setSave] = useState<BtnState>('idle')
 
@@ -34,7 +25,7 @@ function ActionsContent({ articleId }: Props) {
     try {
       await api.post(`/articles/${articleId}/complete`)
       setComplete('done')
-      addToast({ type: 'grain', title: 'Leitura concluída! 🎉', message: 'Você ganhou grãos por completar esta leitura.', duration: 5000 })
+      showToast('Leitura concluída! 🎉', 'grain', { message: 'Você ganhou grãos por completar esta leitura.', duration: 5000 })
     } catch {
       setComplete('error')
       setTimeout(() => setComplete('idle'), 3000)
@@ -47,7 +38,7 @@ function ActionsContent({ articleId }: Props) {
     try {
       await api.post(`/user/library/${articleId}`)
       setSave('done')
-      addToast({ type: 'success', title: 'Salvo na biblioteca 📚', message: 'O artigo foi adicionado à sua Minha Biblioteca.', duration: 4000 })
+      showToast('Salvo na biblioteca 📚', 'success', { message: 'O artigo foi adicionado à sua Minha Biblioteca.', duration: 4000 })
     } catch {
       setSave('error')
       setTimeout(() => setSave('idle'), 3000)

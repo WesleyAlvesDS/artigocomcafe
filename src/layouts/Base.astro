@@ -6,6 +6,7 @@ import CookieConsent from '../components/CookieConsent.astro'
 import PwaInstallPrompt from '../components/PwaInstallPrompt'
 import SearchModal from '../components/SearchModal'
 import AIFloatingWidget from '../components/AIFloatingWidget'
+import ToastMount from '../components/ToastMount'
 import { ClientRouter } from "astro:transitions";
 
 export interface Props {
@@ -773,6 +774,7 @@ const organizationJsonLd = {
     <PwaInstallPrompt client:visible />
     <SearchModal client:load />
     {!hideAiAssistant && <AIFloatingWidget client:load />}
+    <ToastMount client:load transition:persist="toast-mount" />
 
     {!disableTransitions && (
       <script is:inline>

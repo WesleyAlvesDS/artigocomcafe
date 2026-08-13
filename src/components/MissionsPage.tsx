@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { api } from '../lib/api'
 import AuthPage from './AuthPage'
 import { getCurrentVocabulary } from '../lib/themes'
-import { useToast } from './Toast'
+import { showToast } from './Toast'
 
 interface Mission {
   id: number
@@ -27,7 +27,6 @@ function MissionsContent() {
   const [missions, setMissions] = useState<Mission[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'daily' | 'weekly'>('daily')
-  const { addToast } = useToast()
   const vocab = getCurrentVocabulary()
 
   const loadMissions = () => {
@@ -44,19 +43,13 @@ function MissionsContent() {
   const handleClaim = async (mission: Mission) => {
     try {
       const res = await api.post<{ grains: number }>(`/missions/${mission.id}/claim`)
-      addToast({
-        type: 'grain',
-        title: `${vocab.currency_icon} +${res.grains} ${vocab.currency}!`,
+      showToast(`${vocab.currency_icon} +${res.grains} ${vocab.currency}!`, 'grain', {
         message: `Recompensa de "${mission.title}" resgatada!`,
         duration: 5000,
       })
       loadMissions()
     } catch (err: any) {
-      addToast({
-        type: 'error',
-        title: 'Erro ao resgatar',
-        message: err.message || 'Tente novamente',
-      })
+      showToast('Erro ao resgatar', 'error', { message: err.message || 'Tente novamente' })
     }
   }
 

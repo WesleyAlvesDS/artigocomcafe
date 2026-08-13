@@ -5,7 +5,6 @@ import ReaderAssistant from '../../components/ReaderAssistant'
 import ArticleCard from '../../components/ArticleCard.astro'
 import ArticleActions from '../../components/ArticleActions'
 import ArticleToc from '../../components/ArticleToc'
-import { ToastProvider } from '../../components/Toast'
 import ScrollAnimations from '../../components/ScrollAnimations.astro'
 import SmartSidebar from '../../components/SmartSidebar.astro'
 import AdSterraNative from '../../components/AdSterraNative.astro'
@@ -373,9 +372,7 @@ if (post) {
       })();
     </script>
 
-    <ToastProvider>
-      <ReadingTracker articleId={post!.id} articleTitle={post!.title} client:load />
-    </ToastProvider>
+    <ReadingTracker articleId={post!.id} articleTitle={post!.title} client:load />
     <ReaderAssistant client:visible />
   </Base>
 )}
