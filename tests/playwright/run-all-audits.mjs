@@ -188,6 +188,17 @@ function printReport() {
   }
 }
 
+// ── Servidor estático para auditorias locais (dash-audit roda contra localhost) ──
+let staticServer = null;
+function startStaticServer(port = 4331) {
+  return new Promise((resolve) => {
+    staticServer = spawn(process.execPath, ['tests/playwright/static-server.mjs', String(port), 'dist'], {
+      cwd: ROOT, stdio: 'ignore',
+    });
+    setTimeout(resolve, 800);
+  });
+}
+
 // ── Main ────────────────────────────────────────────────────────────────────
 console.log('🔍 SKILLMASTER — AUDITORIA CONSOLIDADA');
 console.log(`📅 ${new Date().toISOString()}`);
@@ -201,7 +212,17 @@ if (selected.length === 0) {
 }
 
 for (const audit of selected) {
+  // dash-audit.mjs valida o painel do leitor contra um servidor estático local
+  // (token/API mockados), então sobe o static-server antes e derruba depois.
+  if (audit.file === 'dash-audit.mjs') {
+    console.log('\n🖥️  Subindo static-server (dist) na porta 4331 para a auditoria do leitor...');
+    await startStaticServer();
+  }
   await runAudit(audit);
+  if (audit.file === 'dash-audit.mjs' && staticServer) {
+    staticServer.kill('SIGKILL');
+    staticServer = null;
+  }
 }
 
 printReport();
