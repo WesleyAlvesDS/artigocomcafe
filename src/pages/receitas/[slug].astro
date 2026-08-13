@@ -213,7 +213,7 @@ const schemaRecipe = recipe ? {
         <div class="recipe-cover" data-reveal>
           <div class="container">
             <div class="cover-frame">
-              <img src={recipe.cover_image} alt={recipe.title} class="cover-image" loading="eager" fetchpriority="high" decoding="async" />
+               <img src={recipe.cover_image} alt={recipe.title} class="cover-image" width="1600" height="900" loading="eager" fetchpriority="high" decoding="async" />
             </div>
           </div>
         </div>
@@ -314,7 +314,7 @@ const schemaRecipe = recipe ? {
                 <div class="tips-grid" id="chef-tips"></div>
               </section>
 
-              <ReadingTracker recipeId={recipe.id} articleTitle={recipe.title} client:load />
+               <ReadingTracker recipeId={recipe.id} articleTitle={recipe.title} client:visible />
 
       <div class="recipe-author" data-reveal>
                 <div class="author-avatar">&#9749;</div>

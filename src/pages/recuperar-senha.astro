@@ -22,9 +22,9 @@ import ResetPasswordForm from '../components/ResetPasswordForm.tsx'
       </div>
       <div data-reveal class="bg-card border border-border rounded-2xl p-8 shadow-sm">
         {Astro.url.searchParams.get('token') ? (
-          <ResetPasswordForm client:load />
+          <ResetPasswordForm client:visible />
         ) : (
-          <ForgotPasswordForm client:load />
+          <ForgotPasswordForm client:visible />
         )}
         <p class="mt-6 text-center text-sm text-muted-foreground">
           Lembrou a senha?{' '}

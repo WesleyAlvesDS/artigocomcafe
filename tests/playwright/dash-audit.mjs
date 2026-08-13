@@ -360,29 +360,41 @@ async function testAuthenticated(browser, viewport, label) {
     // Assistente IA). O audit navega como o usuário real: clica em cada seção
     // e valida o conteúdo. Isso também garante que as arestas de navegação
     // interna do dashboard funcionam de ponta a ponta.
-    const goToSection = async (label) => {
+    const goToSection = async (label, id) => {
       // Em mobile a sidebar desktop fica oculta (lg:block); o filtro
       // `:visible` garante que clicamos no botão de navegação correto.
-      let btn = page.locator(`button:has-text("${label}")`).filter({ visible: true }).first();
-      let found = await btn.count();
-      if (found === 0) {
-        // Mobile: a navegação vive em um bottom sheet aberto pelo FAB.
-        // Reproduzimos o fluxo real do usuário: FAB → sheet → seção.
-        const fab = page.locator('.dash-mobile-fab').filter({ visible: true }).first();
-        const fabCount = await fab.count();
-        if (fabCount > 0) {
-          await fab.click({ timeout: 5000 }).catch(() => {});
-          await sleep(500);
-          btn = page.locator(`.dash-mobile-sheet.open button:has-text("${label}")`).first();
+      for (let attempt = 0; attempt < 2; attempt++) {
+        let btn = page.locator(`button:has-text("${label}")`).filter({ visible: true }).first();
+        let found = await btn.count();
+        if (found === 0) {
+          // Mobile: a navegação vive em um bottom sheet aberto pelo FAB.
+          // Reproduzimos o fluxo real do usuário: FAB → sheet → seção.
+          const fab = page.locator('.dash-mobile-fab').filter({ visible: true }).first();
+          const fabCount = await fab.count();
+          if (fabCount > 0) {
+            await fab.click({ timeout: 5000 }).catch(() => {});
+            await sleep(500);
+            btn = page.locator(`.dash-mobile-sheet.open button:has-text("${label}")`).first();
+          }
         }
+        await btn.click({ timeout: 8000 }).catch(() => {});
+        // Confirma que a seção realmente abriu (goTo faz history.replaceState
+        // com `#<id>`), em vez de depender de sleep fixo — cliques engolidos
+        // pelo `.catch` acima derrubavam as checagens seguintes sem diagnóstico.
+        const opened = await page.waitForFunction(
+          (sectionId) => location.hash === `#${sectionId}`,
+          id,
+          { timeout: 2500 },
+        ).then(() => true).catch(() => false);
+        if (opened) return;
+        warn(`Seção "${label}" não abriu (tentativa ${attempt + 1}) — tentando de novo`);
+        await sleep(400);
       }
-      await btn.click({ timeout: 8000 }).catch(() => {});
-      await sleep(900);
     };
 
     // Contexto do Dia → widgets de API
     console.log('\n--- API Plan Widgets (seção Contexto do Dia) ---');
-    await goToSection('Contexto do Dia');
+    await goToSection('Contexto do Dia', 'context');
     const weatherWidget = await page.locator('text=/clima do café/i').count();
     report('Widget Clima (API plan) visível', weatherWidget >= 1, `matches: ${weatherWidget}`);
 
@@ -400,23 +412,31 @@ async function testAuthenticated(browser, viewport, label) {
 
     // Meus Artigos → CRUD de posts do usuário (rota /user/posts)
     console.log('\n--- Meus Artigos Widget ---');
-    await goToSection('Meus Artigos');
+    await goToSection('Meus Artigos', 'posts');
     const myPostsWidget = await page.locator('text=/meus artigos/i').count();
     report('Widget Meus Artigos visível', myPostsWidget >= 1, `matches: ${myPostsWidget}`);
 
-    const firstPost = await page.locator('text=/Meu primeiro artigo sobre café/i').count();
+    // O widget monta e busca /user/posts ao abrir a seção — aguarda a lista
+    // renderizar em vez de contar logo após o clique (evita corrida com o fetch).
+    const firstPost = await page.waitForSelector('text=/Meu primeiro artigo sobre café/i', { timeout: 6000 })
+      .then(() => 1).catch(() => 0);
     report('Meus Artigos lista posts do usuário', firstPost >= 1, `matches: ${firstPost}`);
 
-    const createPostBtn = await page.locator('text=/Novo Artigo/i').count();
+    const createPostBtn = await page.waitForSelector('text=/Novo Artigo/i', { timeout: 6000 })
+      .then(() => 1).catch(() => 0);
     report('Botão de criar artigo presente', createPostBtn >= 1, `matches: ${createPostBtn}`);
 
     // Assistente IA
     console.log('\n--- AI Assistant Widget ---');
-    await goToSection('Assistente IA');
-    const aiWidget = await page.locator('text=/assistente do criador/i').count();
+    await goToSection('Assistente IA', 'assistant');
+    // Aguarda o conteúdo renderizar (a seção monta o widget + fetch de /ai/status)
+    // em vez de contar logo após um sleep fixo.
+    const aiWidget = await page.waitForSelector('text=/assistente do criador/i', { timeout: 6000 })
+      .then(() => 1).catch(() => 0);
     report('Widget Assistente do Criador visível', aiWidget >= 1, `matches: ${aiWidget}`);
 
-    const aiInput = await page.locator('input[aria-label*="IA" i], input[placeholder*="Como" i], input[type="text"]').count();
+    const aiInput = await page.waitForSelector('input[aria-label="Pergunte ao assistente de IA"]', { timeout: 6000 })
+      .then(() => 1).catch(() => 0);
     report('Campo de pergunta do assistente visível', aiInput >= 1, `inputs: ${aiInput}`);
 
     // Check quick actions

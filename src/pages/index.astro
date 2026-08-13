@@ -50,14 +50,14 @@ const categories = await getCategories()
           <span class="exp-cell-label" aria-hidden="true">
             <span class="pulse-dot"></span> Em destaque hoje
           </span>
-          <CafeDoDia client:load />
+          <CafeDoDia client:visible />
         </div>
 
         <div class="exp-cell exp-cell-recipe" data-stagger-item data-scroll-reveal="slide-up">
           <span class="exp-cell-label" aria-hidden="true">
             <span class="pulse-dot"></span> Para preparar agora
           </span>
-          <ReceitaDoDia client:load />
+          <ReceitaDoDia client:visible />
         </div>
 
         <div class="exp-cell exp-cell-clima" data-stagger-item data-scroll-reveal="slide-up">

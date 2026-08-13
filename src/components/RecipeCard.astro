@@ -15,10 +15,12 @@ const difficultyColor = { facil: '#22c55e', media: '#f59e0b', dificil: '#ef4444'
 
 <a href={`/receitas/${recipe.slug}`} class="recipe-card glass-card" data-reveal={revealDelay || ''}>
   <div class="recipe-image-wrapper">
-    <img
+      <img
       src={recipe.cover_image || '/images/recipe-default.svg'}
       alt={recipe.title}
       class="recipe-image"
+      width="1200"
+      height="675"
       loading="lazy"
       decoding="async"
     />

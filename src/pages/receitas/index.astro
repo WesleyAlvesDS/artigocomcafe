@@ -58,7 +58,7 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
         <div class="recipes-main">
           {/* Navegador client-side: busca, filtros e paginação funcionam no
               site estático (os cards SSG entram como estado inicial). */}
-          <RecipeBrowser client:load categories={categories} initialRecipes={recipes} />
+          <RecipeBrowser client:visible categories={categories} initialRecipes={recipes} />
           {recipes.length > 6 && (
             <>
               {/* In-feed: anúncio nativo após a grade */}

@@ -96,6 +96,8 @@ function BookCard({ book, onOpen, savedShelf }: {
           <img
             src={cover}
             alt={`Capa de ${book.title}`}
+            width="180"
+            height="270"
             loading="lazy"
             decoding="async"
             onError={() => setImgOk(false)}
@@ -171,7 +173,7 @@ function BookModal({ book, onClose, savedShelf, onShelfChange, savingShelf }: {
         <div class="modal-grid">
           <div class="modal-cover">
             {cover ? (
-              <img src={cover} alt={`Capa de ${book.title}`} />
+              <img src={cover} alt={`Capa de ${book.title}`} width="320" height="480" decoding="async" />
             ) : (
               <div class="book-cover-fallback large"><span aria-hidden="true">📖</span></div>
             )}

@@ -24,13 +24,15 @@ const staggerDelay = index * 80
   
   {post.featuredImage && (
     <div class="article-image-wrapper" transition:name={imageTransitionName} transition:animate="morph">
-      <img
-        src={post.featuredImage}
-        alt={post.featuredImageAlt}
-        class="article-image"
-        loading="lazy"
-        decoding="async"
-      />
+       <img
+         src={post.featuredImage}
+         alt={post.featuredImageAlt}
+         class="article-image"
+         width="1200"
+         height="675"
+         loading="lazy"
+         decoding="async"
+       />
       <div class="image-overlay" aria-hidden="true"></div>
     </div>
   )}

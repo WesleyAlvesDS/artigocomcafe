@@ -48,7 +48,7 @@ const { posts, pagination } = await getPosts(currentPage, 9, categorySlug || und
         <div class="blog-main">
           {/* Navegador client-side: busca, categoria e tag funcionam no site
               estático (cards SSG como estado inicial). */}
-          <PostBrowser client:load categories={categories} initialPosts={posts} initialPagination={pagination} />
+          <PostBrowser client:visible categories={categories} initialPosts={posts} initialPagination={pagination} />
           {posts.length > 4 && (
             <>
               {/* In-feed: anúncio nativo após a grade */}

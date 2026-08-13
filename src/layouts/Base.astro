@@ -837,9 +837,9 @@ const organizationJsonLd = {
     
     <CookieConsent />
     <PwaInstallPrompt client:visible />
-    <SearchModal client:load />
-    {!hideAiAssistant && <AIFloatingWidget client:load />}
-    <ToastMount client:load transition:persist="toast-mount" />
+    <SearchModal client:idle />
+    {!hideAiAssistant && <AIFloatingWidget client:idle />}
+    <ToastMount client:idle transition:persist="toast-mount" />
 
     {!disableTransitions && (
       <script is:inline>
