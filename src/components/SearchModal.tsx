@@ -7,6 +7,7 @@ interface SearchResult {
   title: string
   slug: string
   date: string
+  type: 'artigo' | 'receita'
 }
 
 const overlayStyle: React.CSSProperties = {
@@ -116,19 +117,30 @@ export default function SearchModal() {
 
     setLoading(true)
     try {
-      const response = await fetch(
-        `${API_URL}/articles?search=${encodeURIComponent(q)}&per_page=5`
-      )
-      if (response.ok) {
-        const data = await response.json()
-        setResults(data.data.map((p: { id: number; title: string; slug: string; published_at: string }) => ({
-          id: p.id,
-          title: p.title,
-          slug: p.slug,
-          date: p.published_at
-        })))
-        setSelectedIndex(-1)
-      }
+      // Busca unificada: artigos + receitas em paralelo.
+      const [articlesRes, recipesRes] = await Promise.all([
+        fetch(`${API_URL}/articles?search=${encodeURIComponent(q)}&per_page=5`),
+        fetch(`${API_URL}/recipes?search=${encodeURIComponent(q)}&per_page=5`),
+      ])
+      const articles = articlesRes.ok ? await articlesRes.json() : null
+      const recipes = recipesRes.ok ? await recipesRes.json() : null
+
+      const articleResults: SearchResult[] = (articles?.data || []).map((p: { id: number; title: string; slug: string; published_at: string }) => ({
+        id: p.id,
+        title: p.title,
+        slug: p.slug,
+        date: p.published_at,
+        type: 'artigo',
+      }))
+      const recipeResults: SearchResult[] = (recipes?.data || []).map((p: { id: number; title: string; slug: string; published_at: string }) => ({
+        id: p.id,
+        title: p.title,
+        slug: p.slug,
+        date: p.published_at,
+        type: 'receita',
+      }))
+      setResults([...articleResults, ...recipeResults].slice(0, 10))
+      setSelectedIndex(-1)
     } catch {
       setResults([])
     } finally {
@@ -150,7 +162,8 @@ export default function SearchModal() {
       e.preventDefault()
       setSelectedIndex(prev => Math.max(prev - 1, -1))
     } else if (e.key === 'Enter' && selectedIndex >= 0 && results[selectedIndex]) {
-      window.location.href = `/blog/${results[selectedIndex].slug}`
+      const r = results[selectedIndex]
+      window.location.href = r.type === 'receita' ? `/receitas/${r.slug}` : `/blog/${r.slug}`
       setOpen(false)
     }
   }
@@ -190,12 +203,13 @@ export default function SearchModal() {
           )}
           {results.map((result, index) => (
             <a
-              key={result.id}
-              href={`/blog/${result.slug}`}
+              key={`${result.type}-${result.id}`}
+              href={result.type === 'receita' ? `/receitas/${result.slug}` : `/blog/${result.slug}`}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                gap: '0.75rem',
                 padding: '0.75rem 1.25rem',
                 textDecoration: 'none',
                 color: 'var(--color-text-primary)',
@@ -206,7 +220,29 @@ export default function SearchModal() {
               onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-card)')}
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
             >
-              <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>{result.title}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+                <span
+                  style={{
+                    flexShrink: 0,
+                    fontSize: '0.65rem',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                    padding: '0.15rem 0.45rem',
+                    borderRadius: '100px',
+                    background: result.type === 'receita'
+                      ? 'color-mix(in srgb, var(--color-accent) 16%, transparent)'
+                      : 'var(--color-bg-card)',
+                    border: '1px solid var(--color-bg-card-border)',
+                    color: 'var(--color-accent)',
+                  }}
+                >
+                  {result.type}
+                </span>
+                <span style={{ fontSize: '0.9rem', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {result.title}
+                </span>
+              </span>
               <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
                 {new Date(result.date).toLocaleDateString('pt-BR')}
               </span>

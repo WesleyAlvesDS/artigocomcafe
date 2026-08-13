@@ -226,6 +226,9 @@ function isActive(item: { href: string; page: string }): boolean {
 
   .nav-link {
     position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
     padding: 0.5rem 0.95rem;
     color: var(--color-text-secondary);
     text-decoration: none;
@@ -267,7 +270,9 @@ function isActive(item: { href: string; page: string }): boolean {
   }
 
   .nav-caret {
-    margin-left: 0.25rem;
+    display: inline-block;
+    flex-shrink: 0;
+    line-height: 0;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
@@ -276,12 +281,21 @@ function isActive(item: { href: string; page: string }): boolean {
     transform: rotate(180deg);
   }
 
+  /* Painel OPACO com blur: o glass-card padrão é quase transparente (7%) e
+     sem backdrop-filter, deixando o conteúdo do dropdown ilegível sobre o
+     fundo da página. Aqui usamos o fundo do tema quase sólido + blur. */
   .dropdown-panel {
     position: absolute;
     top: calc(100% + 0.75rem);
     left: 50%;
     width: 340px;
     padding: 1rem;
+    background: color-mix(in srgb, var(--color-bg-primary) 92%, transparent);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card), 0 8px 40px rgba(0, 0, 0, 0.28);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
@@ -302,7 +316,7 @@ function isActive(item: { href: string; page: string }): boolean {
     transform: translateX(-50%) rotate(45deg);
     width: 16px;
     height: 16px;
-    background: var(--color-bg-card);
+    background: color-mix(in srgb, var(--color-bg-primary) 92%, transparent);
     border-left: 1px solid var(--color-glass-border);
     border-top: 1px solid var(--color-glass-border);
     border-radius: 3px;

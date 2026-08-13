@@ -1,4 +1,5 @@
 import AuthPage from './AuthPage'
+import ReaderHeader from './ReaderHeader'
 import { api } from '../lib/api'
 import { useState, useEffect } from 'react'
 
@@ -25,10 +26,11 @@ function TrailsContent() {
 
   return (
     <div class="space-y-6">
-      <div class="text-center">
-        <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Trilhas de Conhecimento</h1>
-        <p class="text-muted-foreground mt-2">Aprenda de forma estruturada</p>
-      </div>
+      <ReaderHeader
+        label="🎓 Trilhas"
+        title="Trilhas de Conhecimento"
+        subtitle="Aprenda de forma estruturada"
+      />
       {trails.length === 0 ? (
         <div class="text-center py-16 text-muted-foreground">
           <p class="text-4xl mb-4">🗺️</p>
@@ -39,7 +41,7 @@ function TrailsContent() {
           {trails.map(trail => {
             const dc = difficultyConfig[trail.difficulty] || { color: 'text-muted-foreground bg-muted', label: trail.difficulty }
             return (
-              <div class="bg-card border border-border rounded-2xl p-6">
+              <div class="reader-card p-6">
                 <div class="flex items-start gap-4">
                   <div class="flex-1">
                     <div class="flex items-center gap-2 mb-1">

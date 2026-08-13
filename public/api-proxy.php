@@ -56,6 +56,11 @@ $method = $_SERVER['REQUEST_METHOD'];
 $cacheDir = __DIR__ . '/api-cache';
 $cacheTtls = [
     '/articles/cafe-do-dia' => 900,
+    // Lista completa de receitas (usada pelo navegador client-side na página
+    // /receitas): o payload com per_page=1000 é grande (~1.3MB), então o cache
+    // evita bater no backend a cada visita. Stale-while-revalidate já cobre
+    // falhas transitórias do PHP-FPM.
+    '/recipes' => 900,
     '/recipes/cafe-do-dia' => 900,
     '/recipes/featured' => 900,
     '/integrations/weather' => 600,

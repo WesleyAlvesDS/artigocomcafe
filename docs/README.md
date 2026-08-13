@@ -50,6 +50,7 @@ Os serviços correspondentes no backend estão em `backend/app/Services/Integrat
 | [relatorios/sessao-2026-08-12-navbar.md](relatorios/sessao-2026-08-12-navbar.md) | Navbar flexível/data-driven, bug do blog mal formatado e AdSterraNative |
 | [relatorios/sessao-2026-08-12-arealogada.md](relatorios/sessao-2026-08-12-arealogada.md) | Área logada: navegação/breadcrumbs, CSS do editor, UserMenu e SmartSidebar |
 | [relatorios/sessao-2026-08-13.md](relatorios/sessao-2026-08-13.md) | Cookies tudo por padrão, IA sem login, hero imersivo, deploy sincronizado |
+| [relatorios/sessao-2026-08-13-design-perf.md](relatorios/sessao-2026-08-13-design-perf.md) | Navbar dropdown, selects dark, área do leitor fluida, filtros de receitas client-side, busca unificada, perf + swipe |
 
 ## 🧪 Testes
 

@@ -1,4 +1,5 @@
 import AuthPage from './AuthPage'
+import ReaderHeader from './ReaderHeader'
 import { api } from '../lib/api'
 import { useState, useEffect } from 'react'
 import { getCurrentVocabulary } from '../lib/themes'
@@ -19,23 +20,24 @@ function GrainsContent() {
 
   return (
     <div class="space-y-8">
-      <div class="text-center">
-        <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Meus {vocab.currency}</h1>
-        <p class="text-muted-foreground mt-2">Quanto mais você {vocab.harvest.toLowerCase()}, mais {vocab.currency.toLowerCase()} recebe</p>
-      </div>
+      <ReaderHeader
+        label={`🫘 ${vocab.currency}`}
+        title={`Meus ${vocab.currency}`}
+        subtitle={`Quanto mais você ${vocab.harvest.toLowerCase()}, mais ${vocab.currency.toLowerCase()} recebe`}
+      />
       <div class="grid grid-cols-3 gap-4">
         {[
           { label: 'Saldo', value: data?.balance || 0, color: 'text-amber-400' },
           { label: vocab.harvest, value: data?.total_earned || 0, color: 'text-green-400' },
           { label: vocab.roast_action, value: data?.total_spent || 0, color: 'text-red-400' },
         ].map(item => (
-          <div class="bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] rounded-2xl p-6 text-center">
+          <div class="reader-card p-6 text-center">
             <div class={`text-3xl font-bold ${item.color}`}>{item.value}</div>
             <div class="text-xs text-muted-foreground mt-1">{item.label}</div>
           </div>
         ))}
       </div>
-      <div class="bg-card border border-border rounded-2xl p-6">
+      <div class="reader-card p-6">
         <h2 class="font-semibold text-[var(--color-text-primary)] mb-4">Histórico</h2>
         {!data?.recent?.length ? (
           <p class="text-muted-foreground text-center py-8">Complete leituras para ganhar {vocab.currency.toLowerCase()}.</p>

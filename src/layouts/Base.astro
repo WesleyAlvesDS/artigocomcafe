@@ -108,7 +108,12 @@ const organizationJsonLd = {
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&family=JetBrains+Mono:wght@400..500&family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@500;600;700;800;900&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+    {/* Fontes carregadas de forma NÃO bloqueante (media=print onload): o texto
+        renderiza com fallback imediatamente e troca para a fonte real quando
+        baixar (display=swap). Reduz o tempo até a primeira pintura. */}
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&family=JetBrains+Mono:wght@400..500&family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@500;600;700;800;900&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&family=JetBrains+Mono:wght@400..500&family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@500;600;700;800;900&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&family=JetBrains+Mono:wght@400..500&family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@500;600;700;800;900&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" /></noscript>
 
     <link rel="preconnect" href="https://back.artigocomcafe.com" crossorigin />
     <link rel="dns-prefetch" href="https://back.artigocomcafe.com" />
@@ -711,6 +716,48 @@ const organizationJsonLd = {
         })
 
         update()
+      })()
+    </script>
+
+    <script is:inline>
+      // ── Navegação estilo app: deslizar (swipe) p/ voltar/avançar ──
+      // Em telas touch, gesto horizontal sobre o conteúdo navega no histórico
+      // (como apps nativos). Ignora gestos iniciados em links/botões/inputs e
+      // em áreas com scroll horizontal interno (grades).
+      (function () {
+        if (!('ontouchstart' in window)) return
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+        var startX = 0, startY = 0, tracking = false
+        document.addEventListener('touchstart', function (e) {
+          var t = e.target
+          if (t && t.closest) {
+            if (t.closest('a, button, input, select, textarea, [role="button"], .recipes-grid, .books-grid, .carousel, [data-no-swipe]')) return
+          }
+          tracking = true
+          startX = e.touches[0].clientX
+          startY = e.touches[0].clientY
+        }, { passive: true })
+        document.addEventListener('touchmove', function (e) {
+          if (!tracking) return
+          var dx = e.touches[0].clientX - startX
+          var dy = e.touches[0].clientY - startY
+          // Gesto predominantemente vertical = scroll normal: cancela o swipe
+          if (Math.abs(dy) > 20 && Math.abs(dy) > Math.abs(dx) * 1.5) tracking = false
+        }, { passive: true })
+        document.addEventListener('touchend', function (e) {
+          if (!tracking) return
+          tracking = false
+          var dx = e.changedTouches[0].clientX - startX
+          var dy = e.changedTouches[0].clientY - startY
+          if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy)) return
+          if (dx > 0) {
+            // Deslizar para a direita → voltar (como o gesto nativo Android)
+            if (window.history.length > 1) history.back()
+          } else {
+            // Deslizar para a esquerda → avançar
+            history.forward()
+          }
+        }, { passive: true })
       })()
     </script>
 

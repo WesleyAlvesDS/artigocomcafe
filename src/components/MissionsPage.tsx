@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { api } from '../lib/api'
 import AuthPage from './AuthPage'
+import ReaderHeader from './ReaderHeader'
 import { getCurrentVocabulary } from '../lib/themes'
 import { showToast } from './Toast'
 
@@ -67,12 +68,11 @@ function MissionsContent() {
   return (
     <div class="space-y-8">
       {/* Header */}
-      <div class="text-center">
-        <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Missões</h1>
-        <p class="text-[var(--color-text-secondary)] mt-2">
-          Complete missões diárias e semanais para ganhar {vocab.currency.toLowerCase()}
-        </p>
-      </div>
+      <ReaderHeader
+        label="🎯 Missões"
+        title="Missões"
+        subtitle={`Complete missões diárias e semanais para ganhar ${vocab.currency.toLowerCase()}`}
+      />
 
       {/* Stats */}
       <div class="grid grid-cols-3 gap-4">
@@ -81,7 +81,7 @@ function MissionsContent() {
           { label: 'Completas', value: completedMissions.length, color: 'text-green-500' },
           { label: 'Total', value: filtered.length, color: 'text-[var(--color-text-primary)]' },
         ].map(stat => (
-          <div class="glass-card p-4 text-center">
+          <div class="reader-card p-4 text-center">
             <div class={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
             <div class="text-xs text-[var(--color-text-muted)] mt-1">{stat.label}</div>
           </div>
@@ -89,16 +89,12 @@ function MissionsContent() {
       </div>
 
       {/* Tabs */}
-      <div class="flex gap-2">
+      <div class="flex gap-2 flex-wrap">
         {(['daily', 'weekly'] as const).map(type => {
           const count = missions.filter(m => m.type === type && !m.is_completed).length
           return (
               <button key={type} onClick={() => setActiveTab(type)}
-                class={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  activeTab === type
-                    ? 'bg-[var(--color-accent)]/20 text-[var(--color-accent)] border border-[var(--color-accent)]/30'
-                    : 'bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] border border-[var(--color-bg-card-border)] hover:border-[var(--color-accent)]/30'
-                }`}
+                class={`reader-tab ${activeTab === type ? 'active' : ''}`}
             >
               {TYPE_ICONS[type]} {type === 'daily' ? 'Diárias' : 'Semanais'}
               {count > 0 && (
@@ -141,13 +137,13 @@ function MissionsContent() {
 
                     {/* Progress bar */}
                     <div class="flex items-center gap-3">
-                      <div class="flex-1 h-2 rounded-full bg-[var(--color-bg-card-border)] overflow-hidden">
-                        <div class="h-full rounded-full transition-all duration-500"
+                      <div class="reader-progress-track flex-1">
+                        <div class="reader-progress-fill"
                           style={{
                             width: `${Math.min(100, percent)}%`,
                             background: mission.is_completed
                               ? 'linear-gradient(90deg, #22c55e, #16a34a)'
-                              : 'linear-gradient(90deg, var(--color-accent), var(--color-accent-secondary))',
+                              : undefined,
                           }}
                         />
                       </div>
@@ -179,7 +175,7 @@ function MissionsContent() {
       )}
 
       {/* Tips */}
-      <div class="glass-card p-5 bg-gradient-to-br from-[var(--color-accent)]/5 to-[var(--color-accent-secondary)]/5 border-[var(--color-accent)]/10">
+      <div class="reader-card p-5">
         <h3 class="text-sm font-semibold text-[var(--color-text-primary)] mb-2">💡 Dicas</h3>
         <ul class="text-xs text-[var(--color-text-secondary)] space-y-1">
           <li>• Missões diárias renovam a cada 24 horas</li>

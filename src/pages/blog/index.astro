@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro'
+import PostBrowser from '../../components/PostBrowser'
 import ArticleCard from '../../components/ArticleCard.astro'
 import Pagination from '../../components/Pagination.astro'
 import SidebarWidgets from '../../components/SidebarWidgets.astro'
@@ -25,12 +26,7 @@ const { posts, pagination } = await getPosts(currentPage, 9, categorySlug || und
 ---
 
 <Base title="Blog — Artigo com Café" description="Artigos aprofundados sobre o universo do café: cultura, história, métodos e curiosidades." canonical="/blog/" breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Blog', slug: '/blog/' }]}>
-  {pagination.totalPages > 1 && currentPage < pagination.totalPages && (
-    <link rel="next" href={`/blog?page=${currentPage + 1}${categorySlug ? `&categoria=${categorySlug}` : ''}${search ? `&busca=${encodeURIComponent(search)}` : ''}${tagSlug ? `&tag=${tagSlug}` : ''}`} />
-  )}
-  {pagination.totalPages > 1 && currentPage > 1 && (
-    <link rel="prev" href={`/blog?page=${currentPage - 1}${categorySlug ? `&categoria=${categorySlug}` : ''}${search ? `&busca=${encodeURIComponent(search)}` : ''}${tagSlug ? `&tag=${tagSlug}` : ''}`} />
-  )}
+  {/* Paginação agora é client-side (island PostBrowser) — sem rel next/prev */}
   <section class="section blog-header">
     <div class="container">
       <div class="blog-header-content" data-scroll-reveal="fade">
@@ -41,44 +37,8 @@ const { posts, pagination } = await getPosts(currentPage, 9, categorySlug || und
         </p>
       </div>
 
-      <div class="blog-filters" data-scroll-reveal="fade" data-scroll-delay="100">
-        <form class="search-form" method="GET" action="/blog">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input
-            type="text"
-            name="busca"
-            value={search}
-            placeholder="Buscar artigos…"
-            class="search-input"
-            aria-label="Buscar artigos"
-          />
-          {categorySlug && <input type="hidden" name="categoria" value={categorySlug} />}
-          {tagSlug && <input type="hidden" name="tag" value={tagSlug} />}
-        </form>
-
-        <div class="categories-filter" data-stagger data-stagger-delay="60" data-stagger-start="0">
-          <a href="/blog" class={`cat-chip ${!categorySlug && !tagSlug ? 'active' : ''}`} data-stagger-item>Todos</a>
-          {categories.slice(0, 12).map(cat => (
-            <a
-              href={`/blog?categoria=${cat.slug}${search ? `&busca=${search}` : ''}${tagSlug ? `&tag=${tagSlug}` : ''}`}
-              class={`cat-chip ${categorySlug === cat.slug ? 'active' : ''}`}
-              data-stagger-item
-            >
-              {cat.name}
-              <span class="cat-count">{cat.articles_count}</span>
-            </a>
-          ))}
-        </div>
-        {tagSlug && (
-          <div class="tag-filter-bar" data-scroll-reveal="fade" data-scroll-delay="200">
-            <span>Filtrando por tag:</span>
-            <a href="/blog" class="tag-filter-chip">#{tagSlug}</a>
-          </div>
-        )}
-      </div>
+      {/* Busca + filtros + grade ficam no island PostBrowser (client-side).
+          O site é estático: query strings nunca re-renderizam no servidor. */}
     </div>
   </section>
 
@@ -86,66 +46,16 @@ const { posts, pagination } = await getPosts(currentPage, 9, categorySlug || und
     <div class="container">
       <div class="blog-layout">
         <div class="blog-main">
-          {posts.length === 0 && pagination.totalPages > 0 && currentPage > pagination.totalPages ? (
-            <div class="empty-state page-out-of-range" data-scroll-reveal="scale">
-              <div class="empty-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 4h16v16H4z" />
-                  <path d="M9 9h6v6H9z" />
-                </svg>
-              </div>
-              <h2 class="empty-title">Esta página ainda não existe</h2>
-              <p class="empty-desc">
-                O blog tem {pagination.totalPages} {pagination.totalPages === 1 ? 'página' : 'páginas'} de conteúdo no momento — você está na página {currentPage}.
-              </p>
-              <a href="/blog" class="btn-primary">← Voltar para a primeira página</a>
-            </div>
-          ) : posts.length > 0 ? (
+          {/* Navegador client-side: busca, categoria e tag funcionam no site
+              estático (cards SSG como estado inicial). */}
+          <PostBrowser client:load categories={categories} initialPosts={posts} initialPagination={pagination} />
+          {posts.length > 4 && (
             <>
-              <div class="articles-grid" data-stagger data-stagger-delay="80" data-stagger-start="100">
-                {posts.slice(0, 4).map((post, i) => (
-                  <ArticleCard post={post} index={i} />
-                ))}
-              </div>
-              {posts.length > 4 && (
-                <>
-                  {/* In-feed: anúncio nativo no meio da grade (após 4 artigos) */}
-                  <AdSterraNative lazy className="blog-feed-ad" label="Publicidade" />
-                  {/* Slot reservado para o Google AdSense (desabilitado até criar a unidade) */}
-                  <AdSenseSlot />
-                </>
-              )}
-              <div class="articles-grid" data-stagger data-stagger-delay="80" data-stagger-start="100">
-                {posts.slice(4).map((post, i) => (
-                  <ArticleCard post={post} index={i + 4} />
-                ))}
-              </div>
-              {pagination.totalPages > 1 && (
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={pagination.totalPages}
-                  basePath="/blog"
-                  queryParams={{
-                    ...(categorySlug ? { categoria: categorySlug } : {}),
-                    ...(search ? { busca: search } : {}),
-                  }}
-                />
-              )}
+              {/* In-feed: anúncio nativo após a grade */}
+              <AdSterraNative lazy className="blog-feed-ad" label="Publicidade" />
+              {/* Slot reservado para o Google AdSense */}
+              <AdSenseSlot />
             </>
-          ) : (
-            <div class="empty-state" data-scroll-reveal="scale">
-              <div class="empty-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-              </div>
-              <h2 class="empty-title">Nenhum artigo encontrado</h2>
-              <p class="empty-desc">
-                {search ? `Nenhum resultado para "${search}".` : 'Nenhum artigo publicado nesta categoria ainda.'}
-              </p>
-              <a href="/blog" class="btn-primary">Ver todos os artigos</a>
-            </div>
           )}
         </div>
 
@@ -158,6 +68,36 @@ const { posts, pagination } = await getPosts(currentPage, 9, categorySlug || und
           nativeAd={false}
         />
       </div>
+
+      {/* Fallback sem JavaScript: lista SSG da página 1. */}
+      <noscript>
+        <form class="blog-filters" method="GET" action="/blog">
+          <div class="search-form">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon" aria-hidden="true">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="text" name="busca" value={search} placeholder="Buscar artigos…" class="search-input" aria-label="Buscar artigos" />
+          </div>
+        </form>
+        {posts.length > 0 ? (
+          <>
+            <div class="articles-grid">
+              {posts.map((post, i) => (
+                <ArticleCard post={post} index={i} />
+              ))}
+            </div>
+            {pagination.totalPages > 1 && (
+              <Pagination currentPage={currentPage} totalPages={pagination.totalPages} basePath="/blog" />
+            )}
+          </>
+        ) : (
+          <div class="empty-state">
+            <h2 class="empty-title">Nenhum artigo encontrado</h2>
+            <p class="empty-desc">Ative o JavaScript para usar busca e filtros avançados.</p>
+          </div>
+        )}
+      </noscript>
     </div>
   </section>
 

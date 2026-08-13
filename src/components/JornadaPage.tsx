@@ -1,4 +1,5 @@
 import AuthPage from './AuthPage'
+import ReaderHeader from './ReaderHeader'
 import { useAuth } from '../lib/auth'
 import { api } from '../lib/api'
 import { useState, useEffect } from 'react'
@@ -57,12 +58,11 @@ function JornadaContent() {
 
   return (
     <div class="space-y-8">
-      <div class="text-center">
-        <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Sua Jornada</h1>
-        <p class="text-[var(--color-text-secondary)] mt-2">
-          Acompanhe sua evolução como leitor e conhecedor
-        </p>
-      </div>
+      <ReaderHeader
+        label="📊 Jornada"
+        title="Sua Jornada"
+        subtitle="Acompanhe sua evolução como leitor e conhecedor"
+      />
 
       {/* Profile summary */}
       <div class="flex items-center justify-between flex-wrap gap-4">
@@ -89,7 +89,7 @@ function JornadaContent() {
           { label: 'Categorias', value: s?.categories_explored || 0, icon: '🌍' },
           { label: 'Dias Seguidos', value: s?.daily_streak || 0, icon: '🔥' },
         ].map(stat => (
-          <div class="bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] rounded-2xl p-4 text-center">
+          <div class="reader-card p-4 text-center">
             <div class="text-2xl mb-1">{stat.icon}</div>
             <div class="text-2xl font-bold text-[var(--color-text-primary)]">{stat.value}</div>
             <div class="text-xs text-[var(--color-text-muted)]">{stat.label}</div>
@@ -99,7 +99,7 @@ function JornadaContent() {
 
       {/* Category progress */}
       {data?.category_progress && data.category_progress.length > 0 && (
-        <div class="bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] rounded-2xl p-6">
+        <div class="reader-card p-6">
           <h2 class="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Progresso por Categoria</h2>
           <div class="space-y-4">
             {data.category_progress.map(cat => (
@@ -108,13 +108,8 @@ function JornadaContent() {
                   <span class="text-sm font-medium text-[var(--color-text-primary)]">{cat.name}</span>
                   <span class="text-xs font-mono text-[var(--color-text-muted)]">{cat.articles_read}/{cat.total_articles}</span>
                 </div>
-                <div class="w-full h-2 rounded-full bg-[var(--color-bg-card-border)] overflow-hidden">
-                  <div class="h-full rounded-full transition-all duration-500"
-                    style={{
-                      width: `${cat.percent}%`,
-                      background: 'linear-gradient(90deg, var(--color-accent), var(--color-accent-secondary))',
-                    }}
-                  />
+                <div class="reader-progress-track">
+                  <div class="reader-progress-fill" style={{ width: `${cat.percent}%` }} />
                 </div>
               </div>
             ))}
@@ -124,7 +119,7 @@ function JornadaContent() {
 
       {/* Weekly activity */}
       {data?.weekly_activity && data.weekly_activity.length > 0 && (
-        <div class="bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] rounded-2xl p-6">
+        <div class="reader-card p-6">
           <h2 class="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Atividade da Semana</h2>
           <div class="grid grid-cols-7 gap-2">
             {data.weekly_activity.map((day, i) => (
@@ -141,7 +136,7 @@ function JornadaContent() {
       )}
 
       {/* Evolution index */}
-      <div class="bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] rounded-2xl p-6">
+      <div class="reader-card p-6">
         <h2 class="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Índice de Evolução</h2>
         <p class="text-[var(--color-text-secondary)]">
           Você já investiu <strong class="text-[var(--color-text-primary)]">{s?.reading_time_hours || 0} horas</strong> em aprendizado,

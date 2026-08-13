@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { api } from '../lib/api'
 import AuthPage from './AuthPage'
+import ReaderHeader from './ReaderHeader'
 import { getCurrentVocabulary } from '../lib/themes'
 
 interface Reward {
@@ -155,9 +156,11 @@ function RoasteryContent() {
   return (
     <div class="space-y-8">
       {/* Header */}
-      <div class="text-center">
-        <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">{vocab.roasting}</h1>          <p class="text-[var(--color-text-secondary)] mt-2">Transforme seus {vocab.currency.toLowerCase()} em recompensas exclusivas</p>
-      </div>
+      <ReaderHeader
+        label={`☕ ${vocab.roasting}`}
+        title={vocab.roasting}
+        subtitle={`Transforme seus ${vocab.currency.toLowerCase()} em recompensas exclusivas`}
+      />
 
       {/* Balance card */}
       <div class="glass-card p-6 text-center relative overflow-hidden">
@@ -196,11 +199,7 @@ function RoasteryContent() {
           const total = data.grouped[key as keyof typeof data.grouped]?.length || 0
           return (
             <button key={key} onClick={() => setActiveTab(key)}
-              class={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                activeTab === key
-                  ? 'bg-[var(--color-accent)]/20 text-[var(--color-accent)] border border-[var(--color-accent)]/30'
-                  : 'bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] border border-[var(--color-bg-card-border)] hover:border-[var(--color-accent)]/30'
-              }`}
+              class={`reader-tab ${activeTab === key ? 'active' : ''}`}
             >
               {label}
               <span class="ml-1.5 text-xs opacity-70">({count}/{total})</span>

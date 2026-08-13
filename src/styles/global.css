@@ -396,6 +396,41 @@ body {
   padding-right: 2.5rem;
 }
 
+/* ── Selects nativos: popup legível em AMBOS os temas ────────────────
+   Sem color-scheme, o popup nativo do <select> usa o tema do SISTEMA
+   (geralmente branco) enquanto o texto herda a cor do tema do site —
+   no tema escuro isso vira texto claro sobre fundo branco (ilegível).
+   Forçamos o color-scheme por tema e cores explícitas nas <option>. */
+select {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+select option:hover,
+select option:checked {
+  background-color: color-mix(in srgb, var(--color-accent) 22%, var(--color-bg-secondary));
+  color: var(--color-text-primary);
+}
+
+.light select {
+  color-scheme: light;
+}
+
+.light select option {
+  background-color: #fffdf9;
+  color: #4a3022;
+}
+
+.light select option:hover,
+.light select option:checked {
+  background-color: #f3e6d8;
+  color: #4a3022;
+}
+
 .form-label {
   display: block;
   font-size: 0.8125rem;
@@ -945,6 +980,797 @@ body {
   .contact-grid,
   .about-grid {
     contain-intrinsic-size: auto 480px;
+  }
+}
+
+/* ================================================================
+   NAVEGADOR DE RECEITAS (client-side) — estilos GLOBAIS para o
+   island RecipeBrowser. Sem isso, os cards/filtros renderizados
+   pelo React não recebem os estilos escopados da página SSG.
+   ================================================================ */
+
+.recipes-results-info {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  margin: 1.25rem 0 0.25rem;
+}
+
+.results-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--color-bg-card-border);
+  border-top-color: var(--color-accent);
+  animation: spin 0.7s linear infinite;
+}
+
+.recipes-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.recipes-main {
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .recipes-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
+  }
+}
+
+.recipes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.recipes-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.recipes-filters .search-form {
+  position: relative;
+  max-width: 400px;
+}
+
+.recipes-filters .search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.recipes-filters .search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-bg-card-border);
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+  font-family: var(--font-sans);
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.recipes-filters .search-input:focus {
+  border-color: var(--color-accent);
+}
+
+.recipes-filters .search-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.filters-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .filters-row {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+.categories-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.cat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 100px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-bg-card-border);
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.cat-chip:hover,
+.cat-chip.active {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.cat-count {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  font-family: var(--font-mono);
+}
+
+.quick-filters {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.filter-select {
+  padding: 0.5rem 2rem 0.5rem 0.85rem;
+  border-radius: 100px;
+  border: 1px solid var(--color-bg-card-border);
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23b8b0a3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  transition: all 0.3s;
+  min-width: 160px;
+}
+
+.filter-select:hover,
+.filter-select:focus {
+  border-color: var(--color-accent);
+  outline: none;
+}
+
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.75rem;
+  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 15%, transparent);
+  border-radius: var(--radius-card);
+}
+
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 100px;
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);
+  color: var(--color-accent);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.filter-tag .remove-filter {
+  margin-left: 0.35rem;
+  color: inherit;
+  opacity: 0.7;
+  font-size: 1.1rem;
+  line-height: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.filter-tag .remove-filter:hover {
+  opacity: 1;
+}
+
+.clear-filters {
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: var(--color-accent);
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-family: var(--font-sans);
+  padding: 0.25rem;
+}
+
+.clear-filters:hover {
+  opacity: 0.8;
+}
+
+/* Cards de receita (global — usados pelo island client-side) */
+.recipe-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+}
+
+.recipe-image-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.recipe-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.recipe-card:hover .recipe-image {
+  transform: scale(1.05);
+}
+
+.recipe-badge-difficulty {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 100px;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+.recipe-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.recipe-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+
+.recipe-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 500;
+}
+
+.recipe-date::before {
+  content: '·';
+  margin-right: 0.5rem;
+  color: var(--color-text-muted);
+}
+
+.recipe-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.recipe-excerpt {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.recipe-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.recipe-stats {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+
+.recipe-read-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  white-space: nowrap;
+  transition: gap 0.3s;
+}
+
+.recipe-card:hover .recipe-read-more {
+  gap: 0.6rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.empty-icon {
+  color: var(--color-text-muted);
+  margin-bottom: 1rem;
+}
+
+.empty-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.empty-desc {
+  color: var(--color-text-muted);
+  margin-bottom: 1.5rem;
+}
+
+/* Paginação (global — reutilizada pelo island) */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 3rem;
+  flex-wrap: wrap;
+}
+
+.page-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 8px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-bg-card-border);
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.page-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.page-numbers {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.page-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  background: none;
+  border: none;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.page-number:hover {
+  background: var(--color-bg-card);
+  color: var(--color-accent);
+}
+
+.page-number.active {
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary));
+  color: var(--color-btn-text);
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recipe-card:hover .recipe-image {
+    transform: none;
+  }
+}
+
+/* ================================================================
+   NAVEGADOR DE ARTIGOS (client-side) — estilos GLOBAIS para o
+   island PostBrowser (mesmo motivo do RecipeBrowser).
+   ================================================================ */
+
+.blog-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Caixa de busca genérica (receitas e blog) */
+.search-form {
+  position: relative;
+  max-width: 400px;
+}
+
+.search-form .search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.search-form .search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-bg-card-border);
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+  font-family: var(--font-sans);
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.search-form .search-input:focus {
+  border-color: var(--color-accent);
+}
+
+.search-form .search-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.tag-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+}
+
+.tag-filter-bar span {
+  color: var(--color-text-muted);
+}
+
+.tag-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 100px;
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);
+  color: var(--color-accent);
+  font-weight: 600;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.25s;
+}
+
+.tag-filter-chip:hover {
+  background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+
+/* Cards de artigo (global — usados pelo island client-side) */
+.article-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+  isolation: isolate;
+}
+
+.article-image-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+}
+
+.article-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.4s ease;
+}
+
+.image-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 50%, rgba(10, 8, 5, 0.4) 100%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.article-card:hover .article-image {
+  transform: scale(1.08);
+  filter: brightness(0.9);
+}
+
+.article-card:hover .image-overlay {
+  opacity: 1;
+}
+
+.article-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+  position: relative;
+  z-index: 2;
+}
+
+.article-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+
+.article-category {
+  padding: 0.2rem 0.65rem;
+  border-radius: 100px;
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+  font-weight: 500;
+  font-family: var(--font-sans);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.article-card:hover .article-category {
+  background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+  transform: translateY(-1px);
+}
+
+.article-date::before,
+.article-reading::before {
+  content: '·';
+  margin-right: 0.5rem;
+  color: var(--color-text-muted-dark);
+}
+
+.article-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--color-text-primary);
+  margin: 0;
+  transition: color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.article-card:hover .article-title {
+  color: var(--color-accent);
+}
+
+.article-excerpt {
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.article-read-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  margin-top: auto;
+  transition: gap 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s;
+}
+
+.article-card:hover .article-read-more {
+  gap: 0.7rem;
+  transform: translateX(2px);
+}
+
+.card-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(120% 120% at 50% 0%, color-mix(in srgb, var(--color-accent) 8%, transparent), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.article-card:hover .card-glow {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .article-image,
+  .image-overlay,
+  .article-category,
+  .article-title,
+  .article-read-more,
+  .card-glow {
+    transition: none !important;
+  }
+  .article-card:hover .article-image {
+    transform: none;
+  }
+}
+
+/* ================================================================
+   ÁREA DO LEITOR — páginas logadas (Jornada, Grãos, Torrefação,
+   Missões, Conquistas, Trilhas, Biblioteca) — design fluido igual
+   ao das Receitas: hero central com label + título gradiente,
+   cards com vidro e micro-interações consistentes.
+   ================================================================ */
+
+.reader-hero {
+  text-align: center;
+  padding: 0.5rem 0 1.25rem;
+}
+
+.reader-hero .section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.reader-title {
+  margin-bottom: 0.6rem;
+}
+
+.reader-subtitle {
+  margin: 0 auto;
+}
+
+/* Cards das páginas do leitor: fundo do tema + vidro + glow no hover.
+   Substitui o visual "chapado" de bg-card simples por um acabamento
+   consistente com os cards das Receitas. */
+.reader-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-bg-card-border);
+  border-radius: var(--radius-card);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+              background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.reader-card:hover {
+  background: var(--color-bg-card-hover);
+  border-color: color-mix(in srgb, var(--color-accent) 35%, var(--color-bg-card-border));
+  box-shadow: var(--shadow-glow), 0 8px 28px rgba(0, 0, 0, 0.18);
+  transform: translateY(-3px);
+}
+
+/* Barras de progresso das páginas do leitor */
+.reader-progress-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-bg-card-border);
+  overflow: hidden;
+}
+
+.reader-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-accent-secondary));
+  transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Chips/pills das páginas do leitor */
+.reader-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-bg-card-border);
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Tabs da área do leitor (Torrefação, Missões, Biblioteca) */
+.reader-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-bg-card-border);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.reader-tab:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-bg-card-border));
+  color: var(--color-accent);
+  transform: translateY(-1px);
+}
+
+.reader-tab.active {
+  background: color-mix(in srgb, var(--color-accent) 16%, transparent);
+  border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+  color: var(--color-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reader-card,
+  .reader-tab {
+    transition: none !important;
+  }
+  .reader-card:hover {
+    transform: none;
   }
 }
 

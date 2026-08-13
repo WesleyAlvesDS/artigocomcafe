@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro'
+import RecipeBrowser from '../../components/RecipeBrowser'
 import RecipeCard from '../../components/RecipeCard.astro'
 import Pagination from '../../components/Pagination.astro'
 import SidebarWidgets from '../../components/SidebarWidgets.astro'
@@ -33,12 +34,7 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
 ---
 
 <Base title="Receitas — Artigo com Café" description="Receitas deliciosas com café e para acompanhar seu café. Do café da manhã ao jantar, sobremesas e drinks." canonical="/receitas/" breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Receitas', slug: '/receitas/' }]}>
-  {pagination.totalPages > 1 && currentPage < pagination.totalPages && (
-    <link rel="next" href={`/receitas?page=${currentPage + 1}${categorySlug ? `&categoria=${categorySlug}` : ''}${search ? `&busca=${encodeURIComponent(search)}` : ''}${tagSlug ? `&tag=${tagSlug}` : ''}${difficulty ? `&dificuldade=${difficulty}` : ''}${timeMax ? `&tempo_max=${timeMax}` : ''}`} />
-  )}
-  {pagination.totalPages > 1 && currentPage > 1 && (
-    <link rel="prev" href={`/receitas?page=${currentPage - 1}${categorySlug ? `&categoria=${categorySlug}` : ''}${search ? `&busca=${encodeURIComponent(search)}` : ''}${tagSlug ? `&tag=${tagSlug}` : ''}${difficulty ? `&dificuldade=${difficulty}` : ''}${timeMax ? `&tempo_max=${timeMax}` : ''}`} />
-  )}
+  {/* Paginação agora é client-side (island RecipeBrowser) — sem rel next/prev */}
   
   <section class="section recipes-hero">
     <div class="container">
@@ -50,81 +46,9 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
         </p>
       </div>
       
-      {/* Form agrupa busca + filtros: os selects usam this.form.submit() e
-          precisam estar DENTRO do <form> (antes estavam fora → this.form era
-          null e os filtros de dificuldade/tempo nunca aplicavam). */}
-      <form class="recipes-filters" method="GET" action="/receitas" data-scroll-reveal="fade" data-scroll-delay="100">
-        <div class="search-form">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input
-            type="text"
-            name="busca"
-            value={search}
-            placeholder="Buscar receitas…"
-            class="search-input"
-            aria-label="Buscar receitas"
-          />
-        </div>
-        
-        <div class="filters-row">
-          <div class="categories-filter" data-stagger data-stagger-delay="60">
-            <a href="/receitas" class={`cat-chip ${!categorySlug && !tagSlug ? 'active' : ''}`}>Todas</a>
-            {categories.slice(0, 12).map(cat => (
-              <a
-                href={`/receitas?categoria=${cat.slug}${search ? `&busca=${search}` : ''}${tagSlug ? `&tag=${tagSlug}` : ''}${difficulty ? `&dificuldade=${difficulty}` : ''}${timeMax ? `&tempo_max=${timeMax}` : ''}`}
-                class={`cat-chip ${categorySlug === cat.slug ? 'active' : ''}`}
-              >
-                {cat.icon && <span aria-hidden="true">{cat.icon}</span>}
-                {cat.name}
-                <span class="cat-count">{cat.recipes_count}</span>
-              </a>
-            ))}
-          </div>
-          
-          <div class="quick-filters" data-stagger data-stagger-delay="60" data-stagger-start="200">
-            <select name="dificuldade" class="filter-select" aria-label="Filtrar por dificuldade" onchange="this.form.submit()">
-              <option value="">Todas as dificuldades</option>
-              <option value="facil" selected={difficulty === 'facil'}>Fácil</option>
-              <option value="media" selected={difficulty === 'media'}>Média</option>
-              <option value="dificil" selected={difficulty === 'dificil'}>Difícil</option>
-            </select>
-            <select name="tempo_max" class="filter-select" aria-label="Filtrar por tempo máximo" onchange="this.form.submit()">
-              <option value="">Qualquer tempo</option>
-              <option value="15" selected={timeMax === '15'}>Até 15 min</option>
-              <option value="30" selected={timeMax === '30'}>Até 30 min</option>
-              <option value="60" selected={timeMax === '60'}>Até 1 hora</option>
-              <option value="120" selected={timeMax === '120'}>Até 2 horas</option>
-            </select>
-          </div>
-        </div>
-        
-        {(tagSlug || difficulty || timeMax) && (
-          <div class="active-filters" data-scroll-reveal="fade">
-            {tagSlug && (
-              <span class="filter-tag">
-                Tag: #{tagSlug}
-                <a href="/receitas" class="remove-filter" aria-label="Remover filtro de tag">×</a>
-              </span>
-            )}
-            {difficulty && (
-              <span class="filter-tag">
-                Dificuldade: {difficulty === 'facil' ? 'Fácil' : difficulty === 'media' ? 'Média' : 'Difícil'}
-                <a href="/receitas" class="remove-filter" aria-label="Remover filtro de dificuldade">×</a>
-              </span>
-            )}
-            {timeMax && (
-              <span class="filter-tag">
-                Tempo: até {timeMax} min
-                <a href="/receitas" class="remove-filter" aria-label="Remover filtro de tempo">×</a>
-              </span>
-            )}
-            <a href="/receitas" class="clear-filters">Limpar todos</a>
-          </div>
-        )}
-      </form>
+      {/* O formulário de busca + filtros e a grade ficam no island
+          RecipeBrowser (client-side): o site é estático e filtros por
+          query string nunca re-renderizam no servidor. */}
     </div>
   </section>
 
@@ -132,69 +56,16 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
     <div class="container">
       <div class="recipes-layout">
         <div class="recipes-main">
-          {recipes.length === 0 && pagination.totalPages > 0 && currentPage > pagination.totalPages ? (
-            <div class="empty-state page-out-of-range" data-scroll-reveal="scale">
-              <div class="empty-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 4h16v16H4z" />
-                  <path d="M9 9h6v6H9z" />
-                </svg>
-              </div>
-              <h2 class="empty-title">Esta página ainda não existe</h2>
-              <p class="empty-desc">
-                Há {pagination.totalPages} {pagination.totalPages === 1 ? 'página' : 'páginas'} de receitas no momento — você está na página {currentPage}.
-              </p>
-              <a href="/receitas" class="btn-primary">← Voltar para a primeira página</a>
-            </div>
-          ) : recipes.length > 0 ? (
+          {/* Navegador client-side: busca, filtros e paginação funcionam no
+              site estático (os cards SSG entram como estado inicial). */}
+          <RecipeBrowser client:load categories={categories} initialRecipes={recipes} />
+          {recipes.length > 6 && (
             <>
-              <div class="recipes-grid" data-stagger data-stagger-delay="80" data-stagger-start="100">
-                {recipes.slice(0, 6).map((recipe, i) => (
-                  <RecipeCard recipe={recipe} index={i} />
-                ))}
-              </div>
-              {recipes.length > 6 && (
-                <>
-                  {/* In-feed: anúncio nativo no meio da grade (após 6 receitas) */}
-                  <AdSterraNative lazy className="recipes-feed-ad" label="Publicidade" />
-                  {/* Slot reservado para o Google AdSense (desabilitado até criar a unidade) */}
-                  <AdSenseSlot />
-                </>
-              )}
-              <div class="recipes-grid" data-stagger data-stagger-delay="80" data-stagger-start="100">
-                {recipes.slice(6).map((recipe, i) => (
-                  <RecipeCard recipe={recipe} index={i + 6} />
-                ))}
-              </div>
-              {pagination.totalPages > 1 && (
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={pagination.totalPages}
-                  basePath="/receitas"
-                  queryParams={{
-                    ...(categorySlug ? { categoria: categorySlug } : {}),
-                    ...(search ? { busca: search } : {}),
-                    ...(tagSlug ? { tag: tagSlug } : {}),
-                    ...(difficulty ? { dificuldade: difficulty } : {}),
-                    ...(timeMax ? { tempo_max: timeMax } : {}),
-                  }}
-                />
-              )}
+              {/* In-feed: anúncio nativo após a grade */}
+              <AdSterraNative lazy className="recipes-feed-ad" label="Publicidade" />
+              {/* Slot reservado para o Google AdSense */}
+              <AdSenseSlot />
             </>
-          ) : (
-            <div class="empty-state" data-scroll-reveal="scale">
-              <div class="empty-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
-                  <path d="M12 6v6l4 2" />
-                </svg>
-              </div>
-              <h2 class="empty-title">Nenhuma receita encontrada</h2>
-              <p class="empty-desc">
-                {search ? `Nenhum resultado para "${search}".` : 'Nenhuma receita publicada com estes filtros.'}
-              </p>
-              <a href="/receitas" class="btn-primary">Ver todas as receitas</a>
-            </div>
           )}
         </div>
 
@@ -207,6 +78,40 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
           nativeAd={false}
         />
       </div>
+
+      {/* Fallback sem JavaScript: lista SSG das receitas da página 1. */}
+      <noscript>
+        <form class="recipes-filters" method="GET" action="/receitas">
+          <div class="search-form">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon" aria-hidden="true">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="text" name="busca" value={search} placeholder="Buscar receitas…" class="search-input" aria-label="Buscar receitas" />
+          </div>
+        </form>
+        {recipes.length > 0 ? (
+          <>
+            <div class="recipes-grid">
+              {recipes.map((recipe, i) => (
+                <RecipeCard recipe={recipe} index={i} />
+              ))}
+            </div>
+            {pagination.totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={pagination.totalPages}
+                basePath="/receitas"
+              />
+            )}
+          </>
+        ) : (
+          <div class="empty-state">
+            <h2 class="empty-title">Nenhuma receita encontrada</h2>
+            <p class="empty-desc">Ative o JavaScript para usar busca e filtros avançados.</p>
+          </div>
+        )}
+      </noscript>
     </div>
   </section>
 
