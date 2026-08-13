@@ -1,5 +1,5 @@
 import { useState, useEffect, type ChangeEvent, type KeyboardEvent } from 'react'
-import { api } from '../lib/api'
+import { api, isAuthenticated } from '../lib/api'
 
 interface PostItem {
   id: number
@@ -22,6 +22,7 @@ export default function AIFloatingWidget() {
   const [postsLoading, setPostsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'chat' | 'tools' | 'posts'>('chat')
   const [showWelcome, setShowWelcome] = useState(false)
+  const isGuest = !isAuthenticated()
 
   useEffect(() => {
     api.get<{ data: { available: boolean; providers: Record<string, boolean> } }>('/ai/status')
@@ -59,8 +60,13 @@ export default function AIFloatingWidget() {
   const fetchUserPosts = async () => {
     setPostsLoading(true)
     try {
-      const res = await api.get<{ data: PostItem[] }>('/user/posts?per_page=50')
-      setPosts(res.data.data)
+      if (isAuthenticated()) {
+        const res = await api.get<{ data: PostItem[] }>('/user/posts?per_page=50')
+        setPosts(res.data.data)
+      } else {
+        const res = await api.get<{ data: PostItem[] }>('/articles?per_page=50')
+        setPosts(res.data.data)
+      }
     } catch {}
     finally { setPostsLoading(false) }
   }
@@ -236,7 +242,7 @@ export default function AIFloatingWidget() {
                     {postsLoading ? (
                       <div className="ai-loading">Carregando...</div>
                     ) : posts.length === 0 ? (
-                      <div className="ai-empty">Nenhum post. Crie em "Posts".</div>
+                      <div className="ai-empty">{isGuest ? 'Nenhum artigo disponível no momento.' : 'Nenhum post. Crie em "Posts".'}</div>
                     ) : (
                       <select
                         value={selectedPost?.id || ''}
@@ -291,7 +297,7 @@ export default function AIFloatingWidget() {
               {activeTab === 'posts' && (
                 <div className="ai-posts-panel">
                   <div className="ai-posts-header">
-                    <strong>Meus Artigos</strong>
+                    <strong>{isGuest ? 'Artigos' : 'Meus Artigos'}</strong>
                     <span className="ai-posts-count">{posts.length} posts</span>
                   </div>
                   {postsLoading ? (

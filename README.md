@@ -72,6 +72,9 @@ O `deploy.ps1` funciona tanto do PowerShell nativo quanto do git-bash
 > 🔐 **Segredos:** credenciais de servidor (FTP/SSH) ficam em `.env.server`
 > (raiz, **gitignored**). Nunca commitar credenciais nos docs — ver
 > [docs/ops/acessarserver.md](docs/ops/acessarserver.md).
+>
+> 🛡️ **Hook anti-credenciais:** `scripts/pre-commit` bloqueia commit de `.env*`,
+> senhas, API keys e tokens. Instale com `cp scripts/pre-commit .git/hooks/pre-commit`.
 
 ```powershell
 .\deploy.ps1 -All        # Backend (migrations) + frontend (build + upload)
@@ -103,6 +106,8 @@ Endpoints principais em `backend/routes/api.php`:
 - `GET /api/integrations/exchange-rate` — câmbio
 - `GET /api/integrations/headlines` — manchetes
 - `POST /api/auth/*` — login, cadastro, recuperação de senha
+- `GET /api/ai/ask` — assistente de IA (aberto a visitantes, com rate limit)
+- `GET /api/ai/status` — status dos provedores (Groq/Gemini)
 - `GET|POST /api/user/posts` e `PUT|DELETE /api/user/posts/{article}` — artigos do próprio usuário (painel do leitor)
 - Gamificação: `POST /api/articles/*/complete`, `POST /api/recipes/*/complete`,
   `GET /api/missions`, `POST /api/missions/{mission}/claim`…

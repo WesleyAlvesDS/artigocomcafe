@@ -47,6 +47,9 @@ Os serviços correspondentes no backend estão em `backend/app/Services/Integrat
 | Documento | Conteúdo |
 |-----------|----------|
 | [relatorios/sessao-2026-08-06.md](relatorios/sessao-2026-08-06.md) | Reorganização da documentação, segurança (credenciais) e auditorias 100% |
+| [relatorios/sessao-2026-08-12-navbar.md](relatorios/sessao-2026-08-12-navbar.md) | Navbar flexível/data-driven, bug do blog mal formatado e AdSterraNative |
+| [relatorios/sessao-2026-08-12-arealogada.md](relatorios/sessao-2026-08-12-arealogada.md) | Área logada: navegação/breadcrumbs, CSS do editor, UserMenu e SmartSidebar |
+| [relatorios/sessao-2026-08-13.md](relatorios/sessao-2026-08-13.md) | Cookies tudo por padrão, IA sem login, hero imersivo, deploy sincronizado |
 
 ## 🧪 Testes
 
@@ -70,7 +73,7 @@ node ../tests/playwright/a11y-audit.mjs     # Acessibilidade WCAG 2.1 AA (0 viol
 node ../tests/playwright/dash-login.mjs     # Login do dashboard Filament (8/8 ✓)
 node ../tests/playwright/dash-crud.mjs      # CRUD do dashboard (15/15 ✓)
 node ../tests/playwright/dash-central-editorial.mjs  # Central Editorial (6/6 ✓)
-node ../tests/playwright/dash-audit.mjs     # Dashboard do leitor (31/31 ✓)
+node ../tests/playwright/dash-audit.mjs     # Dashboard do leitor (49/49 ✓)
 ```
 
 > O runner unificado executa em sequência e imprime um **relatório consolidado**
@@ -122,15 +125,15 @@ node ../tests/playwright/dash-audit.mjs     # Dashboard do leitor (31/31 ✓)
 
 | Auditoria | Resultado |
 |-----------|-----------|
-| `full-audit.mjs` (site, desktop+mobile) | ✅ 88/88 (100%) |
+| `full-audit.mjs` (site, desktop+mobile) | ✅ 86/86 (100%) |
 | `receitas-audit.mjs` | ✅ 42/42 (100%) |
 | `a11y-audit.mjs` (WCAG 2.1 AA, 18 páginas) | ✅ 0 violações |
 | `dash-login.mjs` | ✅ 8/8 |
 | `dash-crud.mjs` | ✅ 15/15 |
 | `dash-central-editorial.mjs` | ✅ 6/6 |
 | `site-audit.mjs` | ✅ 44/44 |
-| `dash-audit.mjs` (`/dashboard/`) | ✅ 31/31 — painel do leitor no ar após deploy |
-| `npm run build` (Astro) | ✅ 37 páginas |
+| `dash-audit.mjs` (`/dashboard/`) | ✅ 49/49 — painel do leitor no ar após deploy |
+| `npm run build` (Astro) | ✅ 432 páginas |
 | `php -l` (backend) | ✅ sem erros de sintaxe |
 
 ### Pendências
@@ -162,7 +165,14 @@ node ../tests/playwright/dash-audit.mjs     # Dashboard do leitor (31/31 ✓)
   no DirectAdmin** (rotação) — ver [ops/acessarserver.md](ops/acessarserver.md).
 - 🔴 **Resolvido:** `scripts/secrets.sh` adicionado ao `.gitignore`; os 3 scripts de
   deploy que tinham a senha em texto puro agora carregam de lá (fonte única).
+- ✅ **Hook `pre-commit` anti-credenciais** — `scripts/pre-commit` bloqueia commit de
+  `.env*`, senhas, API keys e tokens (testado). Instale com `cp scripts/pre-commit .git/hooks/pre-commit`.
+- ✅ **IA liberada para visitantes (13/08/2026)** — rota `/api/ai/ask` sem `auth:sanctum`
+  (login opcional, mantém `throttle:10,1`); abas Ferramentas/Posts do widget de IA usam
+  `/articles` públicos quando deslogado. Deploy frontend + backend realizado no servidor.
 
 ---
 
-*Última atualização: agosto/2026 — reorganização de arquivos, unificação da documentação e auditoria completa (100%).*
+*Última atualização: agosto/2026 — reorganização de arquivos, unificação da documentação,
+auditoria completa (100%), cookies com tudo habilitado por padrão, IA funcional sem login
+e deploy sincronizado no servidor.*

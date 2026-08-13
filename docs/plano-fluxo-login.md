@@ -113,5 +113,6 @@ lógica** no grafo da jornada do usuário.
 
 ## 5. Pendências
 
-- Deploy do backend (rotas/controller) + frontend (build) no servidor.
-- Atualizar `docs/README.md` e `README.md` com o novo estado.
+- ✅ **Deploy realizado** (13/08/2026) — backend (rotas/controller) + frontend (build)
+  enviados ao servidor; caches do Laravel limpos; IA `/api/ai/ask` liberada para visitantes.
+- ✅ **Atualizar `docs/README.md` e `README.md` com o novo estado** — feito (ver `docs/README.md`).

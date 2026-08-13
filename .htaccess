@@ -8,6 +8,12 @@ DirectoryIndex index.html
 RewriteEngine On
 RewriteBase /
 
+# URLs legadas do WordPress (migração) — responder 410 Gone em vez de servir
+# a home como fallback. Sem isso o Google mantém páginas antigas (noindex/duplicadas)
+# no índice porque a URL "muda" retorna 200 com a home.
+RewriteCond %{QUERY_STRING} (^|&)(p|page_id|s|cat|tag|m|post_type|attachment_id|preview|name|author|s)= [NC]
+RewriteRule ^ - [R=410,L]
+
 # Se o arquivo/diretório existe, serve direto
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d

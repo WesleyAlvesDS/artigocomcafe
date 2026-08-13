@@ -1,0 +1,128 @@
+---
+interface Props {
+  current: string
+  crumb?: string
+}
+
+const { current, crumb } = Astro.props
+
+const areas = [
+  { label: 'Dashboard', href: '/dashboard', page: 'dashboard', icon: '▦' },
+  { label: 'Jornada', href: '/jornada', page: 'jornada', icon: '📊' },
+  { label: 'Missões', href: '/missoes', page: 'missoes', icon: '🎯' },
+  { label: 'Trilhas', href: '/trilhas', page: 'trilhas', icon: '🎓' },
+  { label: 'Conquistas', href: '/conquistas', page: 'conquistas', icon: '🏆' },
+  { label: 'Biblioteca', href: '/biblioteca', page: 'biblioteca', icon: '📚' },
+  { label: 'Mapa', href: '/mapa', page: 'mapa', icon: '🗺️' },
+  { label: 'Grãos', href: '/graos', page: 'graos', icon: '🫘' },
+  { label: 'Torrefação', href: '/torrefacao', page: 'torrefacao', icon: '☕' },
+  { label: 'Perfil', href: '/perfil', page: 'perfil', icon: '👤' },
+]
+---
+
+<nav class="logged-nav" aria-label="Navegação da área do leitor">
+  <div class="logged-breadcrumb" aria-label="Trilha de navegação">
+    <a href="/">Início</a>
+    <span class="crumb-sep" aria-hidden="true">›</span>
+    <a href="/dashboard">Área do leitor</a>
+    <span class="crumb-sep" aria-hidden="true">›</span>
+    <span class="crumb-current">{crumb || areas.find(a => a.page === current)?.label || 'Painel'}</span>
+  </div>
+
+  <div class="logged-chips" role="list">
+    {areas.map(area => (
+      <a
+        href={area.href}
+        class:list={['logged-chip', area.page === current && 'active']}
+        role="listitem"
+        aria-current={area.page === current ? 'page' : undefined}
+      >
+        <span class="logged-chip-icon" aria-hidden="true">{area.icon}</span>
+        {area.label}
+      </a>
+    ))}
+  </div>
+</nav>
+
+<style>
+  .logged-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .logged-breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+
+  .logged-breadcrumb a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .logged-breadcrumb a:hover {
+    color: var(--color-accent);
+  }
+
+  .crumb-sep {
+    color: var(--color-text-muted-dark);
+  }
+
+  .crumb-current {
+    color: var(--color-text-primary);
+    font-weight: 600;
+  }
+
+  .logged-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .logged-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .logged-chip:hover {
+    color: var(--color-accent);
+    border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .logged-chip.active {
+    color: var(--color-btn-text);
+    background: linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary));
+    border-color: transparent;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--color-accent) 30%, transparent);
+  }
+
+  .logged-chip-icon {
+    font-size: 0.9rem;
+    line-height: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .logged-chip {
+      transition: none;
+    }
+  }
+</style>

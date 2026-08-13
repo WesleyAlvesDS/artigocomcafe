@@ -19,7 +19,7 @@ const staggerDelay = index * 80
 <a href={`/blog/${post.slug}`} class="article-card glass-card tilt-card spotlight-card" 
    transition:name={cardTransitionName} 
    transition:animate={cardStaggerTransition}
-   style="--stagger-delay: #{staggerDelay}ms"
+   style={`--stagger-delay: ${staggerDelay}ms`}
    data-reveal={revealDelay || ''}>
   
   {post.featuredImage && (

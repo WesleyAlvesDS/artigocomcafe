@@ -35,39 +35,4 @@
     <priority>0.2</priority>
     <changefreq>monthly</changefreq>
   </url>
-  <url>
-    <loc>https://artigocomcafe.com/entrar/</loc>
-    <priority>0.3</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://artigocomcafe.com/cadastro/</loc>
-    <priority>0.3</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://artigocomcafe.com/biblioteca/</loc>
-    <priority>0.3</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://artigocomcafe.com/perfil/</loc>
-    <priority>0.3</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://artigocomcafe.com/conquistas/</loc>
-    <priority>0.3</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://artigocomcafe.com/graos/</loc>
-    <priority>0.3</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://artigocomcafe.com/trilhas/</loc>
-    <priority>0.3</priority>
-    <changefreq>monthly</changefreq>
-  </url>
 </urlset>

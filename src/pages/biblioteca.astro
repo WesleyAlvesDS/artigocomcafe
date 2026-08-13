@@ -1,11 +1,13 @@
 ---
 import Base from '../layouts/Base.astro'
+import LoggedAreaNav from '../components/LoggedAreaNav.astro'
 import LibraryPage from '../components/LibraryPage.tsx'
 ---
 
-<Base title="Minha Biblioteca — Artigo com Café" description="Descubra livros, organize coleções e acompanhe sua jornada de leitura." canonical="/biblioteca/">
+<Base title="Minha Biblioteca — Artigo com Café" description="Descubra livros, organize coleções e acompanhe sua jornada de leitura." canonical="/biblioteca/" breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Área do leitor', slug: '/dashboard/' }, { name: 'Biblioteca', slug: '/biblioteca/' }]}>
   <section class="min-h-screen py-16 px-4" aria-label="Minha biblioteca">
     <div class="max-w-6xl mx-auto">
+      <LoggedAreaNav current="biblioteca" crumb="Minha Biblioteca" />
       <LibraryPage client:load />
     </div>
   </section>

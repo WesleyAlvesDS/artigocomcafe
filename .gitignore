@@ -17,3 +17,4 @@ tests/playwright/debug-links.mjs
 tests/playwright/static-server.mjs
 tests/playwright/test-results/
 shots/
+docs/ops/

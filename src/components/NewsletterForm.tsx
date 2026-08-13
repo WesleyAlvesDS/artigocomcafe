@@ -7,11 +7,13 @@ interface Props {
 const inputGroupStyle: React.CSSProperties = {
   display: 'flex',
   gap: '0.5rem',
-  maxWidth: '400px'
+  maxWidth: '400px',
+  flexWrap: 'wrap'
 }
 
 const inputStyle: React.CSSProperties = {
-  flex: 1,
+  flex: '1 1 200px',
+  minWidth: 0,
   padding: '0.7rem 1rem',
   borderRadius: 'var(--radius-input)',
   border: '1px solid var(--color-bg-card-border)',
@@ -24,6 +26,7 @@ const inputStyle: React.CSSProperties = {
 }
 
 const btnStyle: React.CSSProperties = {
+  flex: '0 0 auto',
   padding: '0.7rem 1.25rem',
   borderRadius: 'var(--radius-button)',
   border: 'none',
@@ -78,8 +81,8 @@ export default function NewsletterForm({ variant = 'inline' }: Props) {
   const heroBtn = { ...btnStyle, ...(isHero ? { padding: '0.9rem 1.75rem', fontSize: '0.95rem' } : {}) }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div style={heroInputGroup}>
+    <form onSubmit={handleSubmit} className="newsletter-form">
+      <div className="newsletter-form-group" style={heroInputGroup}>
         <input
           type="email"
           value={email}

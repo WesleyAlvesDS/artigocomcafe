@@ -1,11 +1,13 @@
 ---
 import Base from '../layouts/Base.astro'
+import LoggedAreaNav from '../components/LoggedAreaNav.astro'
 import TrailsPage from '../components/TrailsPage.tsx'
 ---
 
-<Base title="Trilhas de Conhecimento — Artigo com Café" description="Trilhas de aprendizado" canonical="/trilhas/">
+<Base title="Trilhas de Conhecimento — Artigo com Café" description="Trilhas de aprendizado" canonical="/trilhas/" breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Área do leitor', slug: '/dashboard/' }, { name: 'Trilhas', slug: '/trilhas/' }]}>
   <section class="min-h-screen py-20 px-4" aria-label="Trilhas de conhecimento">
     <div class="max-w-4xl mx-auto">
+      <LoggedAreaNav current="trilhas" crumb="Trilhas de Conhecimento" />
       <TrailsPage client:load />
     </div>
   </section>

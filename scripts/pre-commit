@@ -1,0 +1,78 @@
+#!/bin/sh
+# =====================================================================
+# pre-commit — bloqueia commit de credenciais/tokens/senhas
+# Instalado em: .git/hooks/pre-commit
+# Fonte autoritativa: scripts/pre-commit (versionado) — copie com:
+#   cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+# =====================================================================
+set -e
+
+echo "== pre-commit: varredura anti-credenciais =="
+
+# Arquivos que NUNCA devem ser commitados (gitignore reforço)
+# Nota: .env e .env.* são bloqueados por nome completo (prefixo)
+FORBIDDEN_FILES="
+.env
+.env.server
+scripts/secrets.sh
+*dump.sql
+*.pem
+*.key
+*.p12
+id_rsa
+id_ed25519
+id_ed25519.pub
+"
+for f in $FORBIDDEN_FILES; do
+  if git diff --cached --name-only | grep -qE "(^|/)\Q$f\E($|\.|\$)"; then
+    echo "[!] BLOQUEADO: arquivo proibido no commit: $f"
+    exit 1
+  fi
+done
+
+# Bloqueio adicional para qualquer arquivo que comece com .env
+if git diff --cached --name-only | grep -qE '(^|/)\.env(\.|$)'; then
+  echo "[!] BLOQUEADO: arquivo .env* não pode ser commitado"
+  exit 1
+fi
+
+# Padrões de segredos (nunca versionar)
+PATTERNS='
+password\s*[:=]\s*["'"'"']?[^"'"'"' ]{6,}
+passwd\s*[:=]\s*["'"'"']?[^"'"'"' ]{6,}
+api[_-]?key\s*[:=]\s*["'"'"']?[A-Za-z0-9_-]{16,}
+secret\s*[:=]\s*["'"'"']?[^"'"'"' ]{12,}
+token\s*[:=]\s*["'"'"']?[A-Za-z0-9_-]{20,}
+client[_-]?secret\s*[:=]\s*["'"'"']?[^"'"'"' ]{10,}
+BEGIN (RSA|EC|OPENSSH|PGP) PRIVATE KEY
+AKIA[0-9A-Z]{16}
+gsk_[A-Za-z0-9]{20,}
+AIza[0-9A-Za-z_-]{30,}
+ghp_[A-Za-z0-9]{30,}
+xox[baprs]-[A-Za-z0-9-]{10,}
+sk_live_[A-Za-z0-9]{20,}
+pk_live_[A-Za-z0-9]{20,}
+FTP_PASS\s*[:=]\s*.+
+DB_PASSWORD\s*[:=]\s*.+
+'
+
+FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
+if [ -n "$FILES" ]; then
+  for f in $FILES; do
+    # Ignora docs de boas práticas e guias (sem segredo real)
+    case "$f" in
+      *.md|scripts/pre-commit) continue ;;
+    esac
+    HITS=$(echo "$PATTERNS" | grep -v '^$' | while read -r p; do
+      git show ":$f" 2>/dev/null | grep -nE "$p" || true
+    done)
+    if [ -n "$HITS" ]; then
+      echo "[!] BLOQUEADO: possível credencial em '$f':"
+      echo "$HITS" | sed 's/^/    /'
+      exit 1
+    fi
+  done
+fi
+
+echo "[OK] Nenhuma credencial detectada."

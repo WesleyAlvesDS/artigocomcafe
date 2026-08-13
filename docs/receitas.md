@@ -152,7 +152,7 @@ As receitas podem enriquecer a experiência usando as APIs de `docs/planoapi.md`
 - [x] Gamificação: conclusão de leitura de receita concede grãos (`POST /recipes/{recipe}/complete`), trilha "Barista Iniciante" (pivot `trail_recipe`), missões diárias/semanais de receitas (service `GamificationService`)
 - [x] Integrações: capa automática via Openverse (`OpenverseService` + ação "Sugerir capa" no Filament) e widget "Clima do Café" na home (sugere a bebida ideal pela temperatura)
 - [x] Testes Playwright específicos do módulo criados (`tests/playwright/receitas-audit.mjs`) — execução depende do deploy
-- [ ] Deploy do módulo (frontend + backend + seeds) — pendente
+- [x] Deploy do módulo (frontend + backend + seeds) — realizado (42/42 ✓)
 
 ---
 

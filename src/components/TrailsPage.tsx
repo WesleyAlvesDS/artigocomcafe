@@ -26,7 +26,7 @@ function TrailsContent() {
   return (
     <div class="space-y-6">
       <div class="text-center">
-        <h1 class="text-3xl font-bold text-foreground">Trilhas de Conhecimento</h1>
+        <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Trilhas de Conhecimento</h1>
         <p class="text-muted-foreground mt-2">Aprenda de forma estruturada</p>
       </div>
       {trails.length === 0 ? (
@@ -44,7 +44,7 @@ function TrailsContent() {
                   <div class="flex-1">
                     <div class="flex items-center gap-2 mb-1">
                       <span class="text-xl">{trail.icon || '📚'}</span>
-                      <h3 class="font-semibold text-foreground">{trail.title}</h3>
+                      <h3 class="font-semibold text-[var(--color-text-primary)]">{trail.title}</h3>
                       {trail.is_completed && <span class="text-green-500 text-sm">✓ Completa</span>}
                     </div>
                     <p class="text-sm text-muted-foreground mb-3">{trail.description}</p>

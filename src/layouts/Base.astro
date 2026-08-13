@@ -630,7 +630,8 @@ const organizationJsonLd = {
     </script>
 
     <script is:inline>
-      // ── Imersão no scroll: hero recua (zoom-out) e desvanece ao rolar ──
+      // ── Imersão no scroll: fundo do hero recua (zoom-out) e desvanece ao rolar ──
+      // Aplica-se SOMENTE a .hero-bg (imagem), nunca ao conteúdo (texto/newsletter).
       (function () {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
         var ticking = false
@@ -638,15 +639,17 @@ const organizationJsonLd = {
         function update() {
           var hero = document.querySelector('[data-hero]')
           if (!hero) { ticking = false; return }
+          var bg = hero.querySelector('.hero-bg')
+          if (!bg) { ticking = false; return }
           var y = window.pageYOffset
           var vh = window.innerHeight
           // Primeiros 60% da viewport de rolagem do hero
           var max = vh * 0.6
           var p = Math.min(1, y / max)
-          // Zoom-out + recuo + desvanecimento suave
-          hero.style.transform = 'scale(' + (1 - p * 0.06).toFixed(4) + ') translateY(' + (p * 40).toFixed(1) + 'px)'
-          hero.style.opacity = String(Math.max(0, 1 - p * 0.35))
-          hero.style.filter = p > 0 ? 'blur(' + (p * 2.5).toFixed(2) + 'px)' : ''
+          // Zoom-out + recuo + desvanecimento suave APENAS no fundo
+          bg.style.transform = 'scale(' + (1 - p * 0.06).toFixed(4) + ') translateY(' + (p * 40).toFixed(1) + 'px)'
+          bg.style.opacity = String(Math.max(0, 1 - p * 0.35))
+          bg.style.filter = p > 0 ? 'blur(' + (p * 2.5).toFixed(2) + 'px)' : ''
           ticking = false
         }
 

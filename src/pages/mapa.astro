@@ -1,11 +1,13 @@
 ---
 import Base from '../layouts/Base.astro'
+import LoggedAreaNav from '../components/LoggedAreaNav.astro'
 import KnowledgeMap from '../components/KnowledgeMap'
 ---
 
-<Base title="Mapa do Conhecimento — Artigo com Café" description="Visualize sua evolução no aprendizado com o Mapa do Conhecimento interativo" canonical="/mapa/" breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Mapa do Conhecimento', slug: '/mapa/' }]}>
+<Base title="Mapa do Conhecimento — Artigo com Café" description="Visualize sua evolução no aprendizado com o Mapa do Conhecimento interativo" canonical="/mapa/" breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Área do leitor', slug: '/dashboard/' }, { name: 'Mapa do Conhecimento', slug: '/mapa/' }]}>
   <section class="min-h-screen py-20 px-4" aria-label="Mapa do Conhecimento">
     <div class="max-w-5xl mx-auto">
+      <LoggedAreaNav current="mapa" crumb="Mapa do Conhecimento" />
       <KnowledgeMap client:load />
     </div>
   </section>

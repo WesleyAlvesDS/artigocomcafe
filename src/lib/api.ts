@@ -168,6 +168,10 @@ export function setToken(token: string | null) {
   } else {
     localStorage.removeItem('auth_token')
   }
+  // Avisa componentes (ex.: Header/menu mobile) para reavaliar o estado autenticado.
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('auth:changed', { detail: { authenticated: !!token } }))
+  }
 }
 
 export function isAuthenticated(): boolean {

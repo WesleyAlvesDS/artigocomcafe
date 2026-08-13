@@ -134,10 +134,8 @@ Route::prefix('integrations')->middleware('throttle:30,1')->group(function () {
 });
 
 // Assistente do Criador — AI (Groq + Gemini)
-// Rate limit para proteger as cotas gratuitas.
+// Aberto para visitantes (login opcional). Rate limit para proteger as cotas gratuitas.
 Route::prefix('ai')->middleware('throttle:10,1')->group(function () {
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/ask', [AiAssistantController::class, 'ask']);
-    });
+    Route::get('/ask', [AiAssistantController::class, 'ask']);
     Route::get('/status', [AiAssistantController::class, 'status']);
 });

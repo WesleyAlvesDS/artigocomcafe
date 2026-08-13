@@ -32,6 +32,7 @@ const {
 } = Astro.props
 
 const nativeSrc = src
+const nativeContainerId = containerId
 ---
 
 <div class={`adsterra-native ${className}`}>
@@ -39,9 +40,9 @@ const nativeSrc = src
   <div class="adsterra-native-slot">
     <div id={containerId} class="adsterra-native-container"></div>
     {lazy ? (
-      <script is:inline define:vars={{ nativeSrc }}>
+      <script is:inline define:vars={{ nativeSrc, nativeContainerId }}>
         (function () {
-          var slot = document.currentScript && document.currentScript.parentElement;
+          var slot = document.getElementById(nativeContainerId);
           if (!slot) return;
           var loaded = false;
           function load() {
@@ -51,7 +52,7 @@ const nativeSrc = src
             s.async = true;
             s.setAttribute('data-cfasync', 'false');
             s.src = nativeSrc;
-            slot.insertBefore(s, slot.firstChild);
+            slot.parentNode && slot.parentNode.insertBefore(s, slot);
             if (obs) obs.disconnect();
           }
           var obs = null;

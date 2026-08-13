@@ -20,7 +20,7 @@ function GrainsContent() {
   return (
     <div class="space-y-8">
       <div class="text-center">
-        <h1 class="text-3xl font-bold text-foreground">Meus {vocab.currency}</h1>
+        <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Meus {vocab.currency}</h1>
         <p class="text-muted-foreground mt-2">Quanto mais você {vocab.harvest.toLowerCase()}, mais {vocab.currency.toLowerCase()} recebe</p>
       </div>
       <div class="grid grid-cols-3 gap-4">
@@ -36,7 +36,7 @@ function GrainsContent() {
         ))}
       </div>
       <div class="bg-card border border-border rounded-2xl p-6">
-        <h2 class="font-semibold text-foreground mb-4">Histórico</h2>
+        <h2 class="font-semibold text-[var(--color-text-primary)] mb-4">Histórico</h2>
         {!data?.recent?.length ? (
           <p class="text-muted-foreground text-center py-8">Complete leituras para ganhar {vocab.currency.toLowerCase()}.</p>
         ) : (
@@ -44,7 +44,7 @@ function GrainsContent() {
             {data.recent.map(entry => (
               <div class="flex items-center justify-between py-2 border-b border-border last:border-0">
                 <div>
-                  <p class="text-sm text-foreground">{entry.description}</p>
+                  <p class="text-sm text-[var(--color-text-primary)]">{entry.description}</p>
                   <p class="text-xs text-muted-foreground">{new Date(entry.created_at).toLocaleDateString('pt-BR')}</p>
                 </div>
                 <span class={`font-bold text-sm ${entry.type === 'earned' ? 'text-green-500' : 'text-red-500'}`}>

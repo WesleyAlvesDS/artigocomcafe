@@ -360,7 +360,7 @@ ${POST_GENERATION_PROMPT}`
               <div className="w-full border-t border-[var(--color-bg-card-border)]" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-[var(--color-bg)] px-4 text-[var(--color-text-muted)]">OU</span>
+              <span className="bg-[var(--color-bg-primary)] px-4 text-[var(--color-text-muted)]">OU</span>
             </div>
           </div>
 

@@ -2,13 +2,32 @@
 import ThemeToggle from './ThemeToggle'
 import UserMenu from './UserMenu'
 import { getRecipeCategories } from '../lib/laravel'
+import { mainNav, mobileSections, activeMatchRules, type NavItem } from '../data/navItems'
 
 type RecipeCat = { slug: string; name: string; icon: string | null; color: string | null; recipes_count: number }
-// Cache no escopo do módulo: evita 1 request por página no build SSG (432+ páginas)
+
+// Cache no escopo do módulo: evita 1 request por página no build SSG (432+ páginas).
+// Sem window/globalThis duplicado no cliente — Astro re-gera o módulo por página no build.
 if (!globalThis.__recipeCats) {
-  globalThis.__recipeCats = getRecipeCategories().catch(() => [])
+  globalThis.__recipeCats = getRecipeCategories().catch((err) => {
+    if (import.meta.env.DEV) console.warn('[Header] falha ao carregar categorias de receitas:', err)
+    return []
+  })
 }
 const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(0, 8)
+
+// Estado ativo calculado no SSR (Astro.url) — o script no fim reavalia no SPA.
+const pathname = Astro.url.pathname
+function isActive(item: { href: string; page: string }): boolean {
+  if (pathname === '/' && item.href === '/') return true
+  if (pathname === item.href) return true
+  if (item.href !== '/') {
+    for (const rule of activeMatchRules) {
+      if (item.href === rule.parent && pathname.startsWith(rule.prefix)) return true
+    }
+  }
+  return false
+}
 ---
 
 <header class="header" transition:name="site-header" transition:animate="none">
@@ -28,47 +47,46 @@ const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(
     </a>
 
     <nav class="header-nav" aria-label="Navegação principal" transition:name="site-nav" transition:persist="site-nav">
-      <a href="/" class="nav-link" data-page="home">Início</a>
-      <a href="/blog" class="nav-link" data-page="blog">Blog</a>
-      <div class="nav-dropdown" data-dropdown="receitas">
-        <a href="/receitas" class="nav-link" data-page="receitas" aria-haspopup="true" aria-expanded="false">
-          Receitas
-          <svg class="nav-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
-        </a>
-        <div class="dropdown-panel glass-card" role="menu">
-          <div class="dropdown-head">
-            <span class="dropdown-title">Explore receitas</span>
-            <a href="/receitas" class="dropdown-all">Ver todas →</a>
-          </div>
-          <div class="dropdown-grid">
-            {recipeCategories.length > 0 ? recipeCategories.map(cat => (
-              <a href={`/receitas?categoria=${cat.slug}`} class="dropdown-item" role="menuitem" style={cat.color ? `--cat-color:${cat.color}` : ''}>
-                <span class="dropdown-item-icon" aria-hidden="true">{cat.icon || '🍽️'}</span>
-                <span class="dropdown-item-text">
-                  <span class="dropdown-item-name">{cat.name}</span>
-                  <span class="dropdown-item-count">{cat.recipes_count} receitas</span>
-                </span>
-              </a>
-            )) : (
-              <a href="/receitas" class="dropdown-item" role="menuitem">
-                <span class="dropdown-item-icon" aria-hidden="true">🍽️</span>
-                <span class="dropdown-item-text">
-                  <span class="dropdown-item-name">Todas as receitas</span>
-                  <span class="dropdown-item-count">Explore o acervo completo</span>
-                </span>
-              </a>
-            )}
-          </div>
-          <div class="dropdown-foot">
-            <a href="/receitas" class="dropdown-foot-link">🕐 Receita do Dia</a>
-            <a href="/receitas" class="dropdown-foot-link">🍳 Receitas para o café</a>
+      {mainNav.map(item => item.dropdown ? (
+        <div class="nav-dropdown" data-dropdown={item.page}>
+          <a href={item.href} class:list={['nav-link', { active: isActive(item) }]} data-page={item.page} aria-haspopup="true" aria-expanded="false" aria-controls={`dropdown-${item.page}`}>
+            {item.label}
+            <svg class="nav-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
+          </a>
+          <div class="dropdown-panel glass-card" id={`dropdown-${item.page}`} role="menu">
+            <div class="dropdown-head">
+              <span class="dropdown-title">{item.title}</span>
+              <a href={item.href} class="dropdown-all">{item.allLabel}</a>
+            </div>
+            <div class="dropdown-grid">
+              {recipeCategories.length > 0 ? recipeCategories.map(cat => (
+                <a href={`/receitas?categoria=${cat.slug}`} class="dropdown-item" role="menuitem" style={cat.color ? `--cat-color:${cat.color}` : ''}>
+                  <span class="dropdown-item-icon" aria-hidden="true">{cat.icon || item.fallback.icon}</span>
+                  <span class="dropdown-item-text">
+                    <span class="dropdown-item-name">{cat.name}</span>
+                    <span class="dropdown-item-count">{cat.recipes_count} receitas</span>
+                  </span>
+                </a>
+              )) : (
+                <a href={item.href} class="dropdown-item" role="menuitem">
+                  <span class="dropdown-item-icon" aria-hidden="true">{item.fallback.icon}</span>
+                  <span class="dropdown-item-text">
+                    <span class="dropdown-item-name">{item.fallback.name}</span>
+                    <span class="dropdown-item-count">{item.fallback.note}</span>
+                  </span>
+                </a>
+              )}
+            </div>
+            <div class="dropdown-foot">
+              {item.foot.map(f => (
+                <a href={item.href} class="dropdown-foot-link">{f.icon} {f.label}</a>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-      <a href="/mapa" class="nav-link" data-page="mapa">Mapa</a>
-      <a href="/jornada" class="nav-link" data-page="jornada">Jornada</a>
-      <a href="/sobre" class="nav-link" data-page="sobre">Sobre</a>
-      <a href="/contato" class="nav-link" data-page="contato">Contato</a>
+      ) : (
+        <a href={item.href} class:list={['nav-link', { active: isActive(item) }]} data-page={item.page}>{item.label}</a>
+      ))}
     </nav>
 
     <div class="header-actions">
@@ -101,23 +119,27 @@ const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(
       </button>
       <div class="mobile-theme"><ThemeToggle client:idle /></div>
     </div>
-    <a href="/" class="mobile-link" data-page="home">Início</a>
-    <a href="/blog" class="mobile-link" data-page="blog">Blog</a>
-    <a href="/receitas" class="mobile-link" data-page="receitas">🍳 Receitas</a>
-    <a href="/mapa" class="mobile-link" data-page="mapa">Mapa</a>
-    <a href="/sobre" class="mobile-link" data-page="sobre">Sobre</a>
-    <a href="/contato" class="mobile-link" data-page="contato">Contato</a>
+
+    {mobileSections.map((section, si) => (
+      <div class="mobile-section" data-mobile-section>
+        {section.label && (
+          <div class="mobile-section-head">
+            <span class="mobile-section-label">{section.label}</span>
+            <span class="mobile-section-lock" data-section-lock hidden>🔒</span>
+          </div>
+        )}
+        {section.items.map((link, i) => (
+          <a href={link.href} class:list={['mobile-link', { active: isActive(link) }]} data-page={link.page} data-user-only={link.userOnly || undefined}>{link.label}</a>
+        ))}
+        {section.label && (
+          <div class="mobile-login-hint" data-login-hint hidden>
+            <a href="/entrar" class="mobile-login-btn">Entrar para sincronizar sua jornada →</a>
+          </div>
+        )}
+      </div>
+    ))}
+
     <a href="/newsletter" class="mobile-link btn-primary btn-block">Newsletter</a>
-    <span class="mobile-section-label">Sua Jornada</span>
-    <a href="/jornada" class="mobile-link" data-page="jornada">📊 Jornada</a>
-    <a href="/missoes" class="mobile-link" data-page="missoes">🎯 Missões</a>
-    <a href="/trilhas" class="mobile-link" data-page="trilhas">🎓 Trilhas</a>
-    <a href="/conquistas" class="mobile-link" data-page="conquistas">🏆 Conquistas</a>
-    <span class="mobile-section-label">Personalizado</span>
-    <a href="/graos" class="mobile-link" data-page="graos">🫘 Grãos</a>
-    <a href="/torrefacao" class="mobile-link" data-page="torrefacao">☕ Torrefação</a>
-    <a href="/biblioteca" class="mobile-link" data-page="biblioteca">📚 Biblioteca</a>
-    <a href="/perfil" class="mobile-link" data-page="perfil">👤 Perfil</a>
   </nav>
 </header>
 
@@ -147,11 +169,11 @@ const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(
 
   .header-inner {
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 1rem;
-    height: 74px;
-    padding: 0 1.5rem;
+    gap: 0.75rem 1rem;
+    min-height: 74px;
+    padding: 0.6rem 1.5rem;
   }
 
   .header-logo {
@@ -187,13 +209,16 @@ const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.15rem;
+    flex-wrap: wrap;
+    gap: 0.15rem 0.1rem;
+    min-width: 0;
   }
 
   .header-actions {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex-shrink: 0;
   }
 
   .nav-link {
@@ -231,7 +256,7 @@ const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(
     transform: translateX(-50%) scaleX(1);
   }
 
-  /* ── Dropdown de Receitas ─────────────────────────── */
+  /* ── Dropdown (data-driven, acessível) ─────────────── */
   .nav-dropdown {
     position: relative;
     display: flex;
@@ -252,18 +277,18 @@ const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(
     position: absolute;
     top: calc(100% + 0.75rem);
     left: 50%;
-    transform: translateX(-50%) translateY(10px) scale(0.97);
     width: 340px;
     padding: 1rem;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
     z-index: 200;
-    transition:
-      opacity 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
-      transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
-      visibility 0.28s;
     transform-origin: top center;
+    transform: translateX(-50%) translateY(10px);
+    transition:
+      opacity 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+      transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+      visibility 0.22s;
   }
 
   .dropdown-panel::before {
@@ -286,7 +311,7 @@ const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-    transform: translateX(-50%) translateY(0) scale(1);
+    transform: translateX(-50%) translateY(0);
   }
 
   .dropdown-head {
@@ -535,6 +560,41 @@ const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(
     transform: translateY(0);
   }
 
+  .mobile-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .mobile-section-lock {
+    font-size: 0.75rem;
+    opacity: 0.7;
+  }
+
+  .mobile-login-hint {
+    padding: 0.5rem 0.5rem 0.25rem;
+  }
+
+  .mobile-login-btn {
+    display: block;
+    width: 100%;
+    padding: 0.65rem 1rem;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    border: 1px dashed color-mix(in srgb, var(--color-accent) 40%, transparent);
+    color: var(--color-accent);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.25s;
+  }
+
+  .mobile-login-btn:hover {
+    background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+  }
+
   .mobile-link {
     padding: 0.8rem 1rem;
     color: var(--color-text-secondary);
@@ -570,9 +630,21 @@ const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(
     color: var(--color-accent);
   }
 
+  /* Área do usuário logado fica "destravada" visualmente */
+  .mobile-menu.is-auth [data-user-only] {
+    opacity: 1;
+  }
+
+  @media (max-width: 1240px) {
+    .header-inner { gap: 0.5rem 0.75rem; }
+    .nav-link { padding: 0.5rem 0.7rem; font-size: 0.85rem; }
+    .header-actions .nav-cta { display: none; }
+    .dropdown-panel { width: 300px; }
+  }
+
   @media (max-width: 1000px) {
     .header-inner { gap: 0.5rem; }
-    .nav-link { padding: 0.5rem 0.65rem; font-size: 0.82rem; }
+    .nav-link { padding: 0.5rem 0.6rem; font-size: 0.8rem; }
     .header-actions .nav-cta { display: none; }
     .dropdown-panel { width: 300px; }
   }
@@ -613,6 +685,18 @@ const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(
   const hamburger = document.getElementById('hamburger')
   const mobileMenu = document.getElementById('mobile-menu')
 
+  // ── Estado de autenticação no menu mobile ──
+  function refreshAuthState() {
+    if (!mobileMenu) return
+    const isAuth = typeof window !== 'undefined' && !!localStorage.getItem('token')
+    mobileMenu.classList.toggle('is-auth', isAuth)
+    mobileMenu.querySelectorAll('[data-section-lock]').forEach(el => { el.hidden = isAuth })
+    mobileMenu.querySelectorAll('[data-login-hint]').forEach(el => { el.hidden = isAuth })
+  }
+  refreshAuthState()
+  document.addEventListener('auth:changed', refreshAuthState)
+  window.addEventListener('storage', refreshAuthState)
+
   if (hamburger && mobileMenu) {
     function closeMenu() {
       hamburger.classList.remove('active')
@@ -622,6 +706,7 @@ const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(
     }
 
     function openMenu() {
+      refreshAuthState()
       hamburger.classList.add('active')
       hamburger.setAttribute('aria-expanded', 'true')
       mobileMenu.setAttribute('aria-hidden', 'false')
@@ -658,21 +743,30 @@ const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(
     })
 
     document.addEventListener('astro:before-swap', closeMenu)
-    document.addEventListener('astro:after-swap', () => {
-      const path = window.location.pathname
-      const links = document.querySelectorAll('.header-nav .nav-link, .mobile-menu .mobile-link')
-      function match(href) {
-        if (path === '/' && href === '/') return true
-        if (path === href) return true
-        if (href !== '/' && path.indexOf(href + '/') === 0) return true
-        if (href === '/blog' && path.indexOf('/blog/') === 0) return true
-        return false
+    document.addEventListener('astro:after-swap', refreshAuthState)
+  }
+
+  // ── Estado ativo dos links (SPA) ──
+  function setActiveLinks() {
+    const path = window.location.pathname
+    const links = document.querySelectorAll('.header-nav .nav-link, .mobile-menu .mobile-link')
+    const rules = [
+      { parent: '/blog', prefix: '/blog/' },
+      { parent: '/receitas', prefix: '/receitas/' },
+    ]
+    function match(href) {
+      if (path === '/' && href === '/') return true
+      if (path === href) return true
+      if (href !== '/' && path.indexOf(href + '/') === 0) return true
+      for (const r of rules) {
+        if (href === r.parent && path.indexOf(r.prefix) === 0) return true
       }
-      links.forEach(function (a) {
-        a.classList.remove('active')
-        var href = a.getAttribute('href')
-        if (href && match(href)) a.classList.add('active')
-      })
+      return false
+    }
+    links.forEach(function (a) {
+      a.classList.remove('active')
+      const href = a.getAttribute('href')
+      if (href && match(href)) a.classList.add('active')
     })
   }
 
@@ -701,22 +795,8 @@ const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(
     requestTick();
   }, { passive: true });
 
-  (function () {
-    var path = window.location.pathname
-    var links = document.querySelectorAll('.header-nav .nav-link, .mobile-menu .mobile-link')
-    function match(href) {
-      if (path === '/' && href === '/') return true
-      if (path === href) return true
-      if (href !== '/' && path.indexOf(href + '/') === 0) return true
-      if (href === '/blog' && path.indexOf('/blog/') === 0) return true
-      return false
-    }
-    links.forEach(function (a) {
-      var href = a.getAttribute('href')
-      if (!href) return
-      if (match(href)) a.classList.add('active')
-    })
-  })()
+  document.addEventListener('astro:after-swap', setActiveLinks)
+  setActiveLinks()
 
   const searchToggle = document.getElementById('search-toggle')
   const searchToggleMobile = document.getElementById('search-toggle-mobile')
@@ -743,35 +823,53 @@ const recipeCategories = ((await globalThis.__recipeCats) as RecipeCat[]).slice(
     }
   })
 
-  // Dropdown de receitas: fechar ao clicar fora / navegar
-  const dropdown = document.querySelector('[data-dropdown="receitas"]')
-  const dropdownLink = dropdown?.querySelector('.nav-link')
+  // ── Dropdown acessível (hover + clique + Esc + clique fora) ──
+  const dropdowns = Array.prototype.slice.call(document.querySelectorAll('[data-dropdown]'))
 
-  function closeDropdown() {
-    dropdown?.classList.remove('open')
-    dropdownLink?.setAttribute('aria-expanded', 'false')
+  function closeDropdowns(except) {
+    dropdowns.forEach(dd => {
+      if (dd === except) return
+      dd.classList.remove('open')
+      const link = dd.querySelector('.nav-link')
+      link?.setAttribute('aria-expanded', 'false')
+    })
   }
 
-  dropdown?.addEventListener('mouseenter', () => {
-    dropdown.classList.add('open')
-    dropdownLink?.setAttribute('aria-expanded', 'true')
-  })
-  dropdown?.addEventListener('mouseleave', closeDropdown)
-
-  dropdownLink?.addEventListener('click', (e) => {
-    const isOpen = dropdown.classList.contains('open')
-    if (!isOpen) {
+  dropdowns.forEach(dd => {
+    const link = dd.querySelector('.nav-link')
+    dd.addEventListener('mouseenter', () => {
+      dd.classList.add('open')
+      link?.setAttribute('aria-expanded', 'true')
+    })
+    dd.addEventListener('mouseleave', () => {
+      closeDropdowns()
+    })
+    dd.addEventListener('focusin', () => {
+      dd.classList.add('open')
+      link?.setAttribute('aria-expanded', 'true')
+    })
+    dd.addEventListener('focusout', (e) => {
+      if (!dd.contains(e.relatedTarget)) closeDropdowns()
+    })
+    link?.addEventListener('click', (e) => {
       e.preventDefault()
-      dropdown.classList.add('open')
-      dropdownLink.setAttribute('aria-expanded', 'true')
-    }
+      const isOpen = dd.classList.contains('open')
+      closeDropdowns()
+      if (!isOpen) {
+        dd.classList.add('open')
+        link.setAttribute('aria-expanded', 'true')
+      }
+    })
   })
 
   document.addEventListener('click', (e) => {
-    if (dropdown && e.target instanceof Node && !dropdown.contains(e.target)) {
-      closeDropdown()
-    }
+    const target = e.target
+    if (target instanceof Node && !target.closest('[data-dropdown]')) closeDropdowns()
   })
 
-  document.addEventListener('astro:before-swap', closeDropdown)
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDropdowns()
+  })
+
+  document.addEventListener('astro:before-swap', () => closeDropdowns())
 </script>

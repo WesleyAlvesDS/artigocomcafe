@@ -5,6 +5,19 @@ import NewsletterForm from './NewsletterForm'
 <section class="hero" transition:name="hero-section" transition:animate="none" data-hero>
   <!-- Camadas de fundo (parallax em velocidades diferentes) -->
   <div class="hero-bg" aria-hidden="true">
+    <!-- Imagem imersiva: cobre a lateral direita, ancorada ao topo (paralela ao texto) -->
+    <img
+      src="/images/artigo-com-cafe-hero-background.webp"
+      alt=""
+      width="1200"
+      height="1072"
+      loading="eager"
+      fetchpriority="high"
+      decoding="async"
+      class="hero-bg-img"
+    />
+    <!-- Scrim de legibilidade (transição do fundo para a imagem) -->
+    <div class="hero-bg-scrim"></div>
     <div class="hero-aurora aurora-1"></div>
     <div class="hero-aurora aurora-2"></div>
     <div class="hero-beans" data-parallax="0.06">
@@ -21,7 +34,6 @@ import NewsletterForm from './NewsletterForm'
   </div>
 
   <div class="hero-content container">
-    <!-- Coluna esquerda: texto -->
     <div class="hero-text" data-parallax="0.1">
       <div class="hero-eyebrow">
         <span class="eyebrow-rule" aria-hidden="true"></span>
@@ -54,22 +66,6 @@ import NewsletterForm from './NewsletterForm'
         <NewsletterForm variant="hero" client:load />
       </div>
     </div>
-
-    <!-- Coluna direita: ilustração -->
-    <div class="hero-art" data-parallax="-0.12">
-      <div class="hero-art-frame">
-        <img
-          src="/images/artigo-com-cafe-hero-background.webp"
-          alt="Ilustração literária com xícara de café, livro aberto e caneta-tinteiro"
-          width="1200"
-          height="1072"
-          loading="eager"
-          fetchpriority="high"
-          class="hero-art-img"
-        />
-        <div class="hero-art-glow" aria-hidden="true"></div>
-      </div>
-    </div>
   </div>
 
   <div class="hero-scroll-indicator" aria-hidden="true">
@@ -98,6 +94,34 @@ import NewsletterForm from './NewsletterForm'
     inset: 0;
     pointer-events: none;
     z-index: 0;
+    will-change: transform, opacity, filter;
+  }
+
+  /* Imagem imersiva: ancorada ao topo, cobrindo a lateral direita */
+  .hero-bg-img {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: min(66%, 960px);
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    z-index: 0;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 30%, #000 100%);
+    mask-image: linear-gradient(90deg, transparent 0%, #000 30%, #000 100%);
+  }
+
+  /* Scrim de legibilidade: fundo sólido à esquerda → transparente à direita */
+  .hero-bg-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+      90deg,
+      var(--color-bg-primary) 0%,
+      color-mix(in srgb, var(--color-bg-primary) 72%, transparent) 36%,
+      transparent 66%
+    );
   }
 
   /* Auroras suaves na paleta café */
@@ -106,6 +130,7 @@ import NewsletterForm from './NewsletterForm'
     border-radius: 50%;
     filter: blur(90px);
     opacity: 0.55;
+    z-index: 1;
   }
 
   .aurora-1 {
@@ -128,6 +153,7 @@ import NewsletterForm from './NewsletterForm'
   .hero-beans {
     position: absolute;
     inset: 0;
+    z-index: 1;
   }
 
   .bean {
@@ -162,10 +188,8 @@ import NewsletterForm from './NewsletterForm'
     position: relative;
     z-index: 10;
     width: 100%;
-    display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    display: flex;
     align-items: center;
-    gap: 3rem;
     padding-top: 2rem;
     padding-bottom: 6rem;
   }
@@ -173,7 +197,7 @@ import NewsletterForm from './NewsletterForm'
   /* ── Coluna de texto ── */
   .hero-text {
     max-width: 640px;
-    justify-self: start;
+    width: 100%;
   }
 
   .hero-eyebrow {
@@ -267,48 +291,6 @@ import NewsletterForm from './NewsletterForm'
     margin-bottom: 0.75rem;
   }
 
-  /* ── Coluna da ilustração ── */
-  .hero-art {
-    position: relative;
-    justify-self: end;
-    width: 100%;
-    max-width: 560px;
-  }
-
-  .hero-art-frame {
-    position: relative;
-    animation: hero-art-in 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s both;
-  }
-
-  .hero-art-img {
-    width: 100%;
-    height: auto;
-    display: block;
-    border-radius: var(--radius-card-lg);
-    box-shadow:
-      0 30px 80px color-mix(in srgb, var(--coffee-dark) 22%, transparent),
-      0 8px 24px color-mix(in srgb, var(--coffee-dark) 12%, transparent);
-    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-
-  .hero-art-frame:hover .hero-art-img {
-    transform: scale(1.015);
-  }
-
-  .hero-art-glow {
-    position: absolute;
-    inset: -14%;
-    background: radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--coffee-gold) 26%, transparent), transparent 65%);
-    filter: blur(36px);
-    z-index: -1;
-    pointer-events: none;
-  }
-
-  @keyframes hero-art-in {
-    from { opacity: 0; transform: translateY(26px) scale(0.97); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-  }
-
   .hero-scroll-indicator {
     position: absolute;
     bottom: 2.2rem;
@@ -355,11 +337,27 @@ import NewsletterForm from './NewsletterForm'
     transition: opacity 0s;
   }
 
-  /* ── Tablet ── */
+  /* ── Notebook / tablet (<= 1280) ── */
+  @media (max-width: 1280px) {
+    .hero-bg-img {
+      width: min(72%, 900px);
+      -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 38%, #000 100%);
+      mask-image: linear-gradient(90deg, transparent 0%, #000 38%, #000 100%);
+    }
+    .hero-bg-scrim {
+      background: linear-gradient(
+        90deg,
+        var(--color-bg-primary) 0%,
+        color-mix(in srgb, var(--color-bg-primary) 78%, transparent) 44%,
+        transparent 72%
+      );
+    }
+  }
+
+  /* ── Tablet (<= 1024): imagem vira fundo suave de tela cheia ── */
   @media (max-width: 1024px) {
     .hero-content {
-      grid-template-columns: 1fr;
-      gap: 2.5rem;
+      justify-content: center;
       padding-bottom: 5rem;
     }
     .hero-text {
@@ -370,19 +368,33 @@ import NewsletterForm from './NewsletterForm'
     .hero-eyebrow { justify-content: center; }
     .hero-actions { justify-content: center; }
     .hero-subtitle { margin-left: auto; margin-right: auto; }
-    .hero-art {
-      justify-self: center;
-      max-width: 520px;
+
+    .hero-bg-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      opacity: 0.4;
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+    .hero-bg-scrim {
+      background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--color-bg-primary) 82%, transparent) 0%,
+        color-mix(in srgb, var(--color-bg-primary) 55%, transparent) 55%,
+        var(--color-bg-primary) 100%
+      );
     }
   }
 
-  /* ── Mobile ── */
+  /* ── Mobile (<= 768) ── */
   @media (max-width: 768px) {
     .hero { padding-top: 4.5rem; }
     .hero-content { padding-bottom: 4.5rem; gap: 2rem; }
     .hero-title { font-size: clamp(2.6rem, 11vw, 3.6rem); }
     .hero-subtitle { font-size: 1rem; }
-    .hero-art { max-width: 420px; }
+    .hero-bg-img { opacity: 0.32; }
     .hero-scroll-indicator { display: none; }
   }
 
@@ -395,11 +407,12 @@ import NewsletterForm from './NewsletterForm'
     .hero-subtitle,
     .hero-actions,
     .hero-newsletter,
-    .hero-art-frame,
-    .hero-art-img {
+    .hero-bg-img,
+    .hero-bg {
       animation: none !important;
       opacity: 1 !important;
       transform: none !important;
+      transition: none !important;
     }
     .bean { display: none; }
   }

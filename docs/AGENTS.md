@@ -44,6 +44,7 @@ works correctly in production builds.
 npm run build       # Build for production
 npm run dev         # Start dev server
 node tests/playwright/dash-audit.mjs  # Dashboard audit (mock auth, 49 tests)
+node tests/playwright/logged-nav-audit.mjs  # Área logada: navegação/breadcrumbs/chips/UserMenu/CSS (78 checks)
 node tests/playwright/prod-test.mjs   # Production test (real creds, 17 tests)
 node tests/playwright/full-audit.mjs  # Full site audit
 ```
