@@ -257,7 +257,7 @@ const { posts, pagination } = await getPosts(currentPage, 9, categorySlug || und
   }
 
   /* Grade editorial em 3 colunas (queixa: blocos muito grandes).
-     Em telas médias vira 2 colunas; no celular, 1. */
+     Em telas médias e NO CELULAR vira 2 colunas (pedido: 2 blocos no mobile). */
   .articles-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -273,7 +273,8 @@ const { posts, pagination } = await getPosts(currentPage, 9, categorySlug || und
 
   @media (max-width: 640px) {
     .articles-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.85rem;
     }
   }
 

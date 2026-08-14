@@ -28,7 +28,9 @@ interface Collection {
 interface OpenLibraryBook {
   key: string | null
   title: string
+  title_pt?: string | null
   subtitle?: string | null
+  subtitle_pt?: string | null
   authors: string[]
   first_publish_year?: number | null
   subjects: string[]
@@ -84,18 +86,21 @@ function BookCard({ book, onOpen, savedShelf }: {
 }) {
   const cover = bookCover(book)
   const [imgOk, setImgOk] = useState(true)
+  // Prefere o título traduzido (backend devolve *_pt quando o original não é pt)
+  const title = book.title_pt || book.title
+  const subtitle = book.subtitle_pt || book.subtitle
   return (
     <button
       type="button"
       onClick={() => onOpen(book)}
       class="book-card glass-card group"
-      aria-label={`Ver detalhes de ${book.title}`}
+      aria-label={`Ver detalhes de ${title}`}
     >
       <div class="book-cover">
         {cover && imgOk ? (
           <img
             src={cover}
-            alt={`Capa de ${book.title}`}
+            alt={`Capa de ${title}`}
             width="180"
             height="270"
             loading="lazy"
@@ -115,8 +120,8 @@ function BookCard({ book, onOpen, savedShelf }: {
         )}
       </div>
       <div class="book-info">
-        <h3 class="book-title">{book.title}</h3>
-        {book.subtitle && <p class="book-subtitle">{book.subtitle}</p>}
+        <h3 class="book-title">{title}</h3>
+        {subtitle && <p class="book-subtitle">{subtitle}</p>}
         <p class="book-authors">{(book.authors || []).slice(0, 2).join(', ') || 'Autor desconhecido'}</p>
         <div class="book-meta">
           {book.first_publish_year && <span class="meta-chip">{book.first_publish_year}</span>}
@@ -137,7 +142,9 @@ function BookModal({ book, onClose, savedShelf, onShelfChange, savingShelf }: {
   savingShelf?: boolean
 }) {
   const cover = bookCover(book)
-  const [details, setDetails] = useState<{ description?: string | null; subjects?: string[] } | null>(null)
+  const title = book.title_pt || book.title
+  const subtitle = book.subtitle_pt || book.subtitle
+  const [details, setDetails] = useState<{ description?: string | null; description_pt?: string | null; subjects?: string[] } | null>(null)
   const [loadingDetails, setLoadingDetails] = useState(false)
   // A OpenLibrary retorna chaves como "/works/OL1234567W" — extraímos o ID
   const rawKey = book.key?.replace(/^\//, '') || ''
@@ -146,7 +153,7 @@ function BookModal({ book, onClose, savedShelf, onShelfChange, savingShelf }: {
   useEffect(() => {
     if (!key) return
     setLoadingDetails(true)
-    api.get<{ data: { description?: string | null; subjects?: string[] } }>(`/integrations/library/books/${encodeURIComponent(key)}`)
+    api.get<{ data: { description?: string | null; description_pt?: string | null; subjects?: string[] } }>(`/integrations/library/books/${encodeURIComponent(key)}`)
       .then(d => setDetails(d.data))
       .catch(() => setDetails(null))
       .finally(() => setLoadingDetails(false))
@@ -165,7 +172,7 @@ function BookModal({ book, onClose, savedShelf, onShelfChange, savingShelf }: {
   const subjects = details?.subjects?.length ? details.subjects : book.subjects
 
   return (
-    <div class="book-modal-overlay" role="dialog" aria-modal="true" aria-label={`Detalhes de ${book.title}`} onClick={onClose}>
+    <div class="book-modal-overlay" role="dialog" aria-modal="true" aria-label={`Detalhes de ${title}`} onClick={onClose}>
       <div class="book-modal" onClick={e => e.stopPropagation()}>
         <button type="button" class="modal-close" onClick={onClose} aria-label="Fechar">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
@@ -173,21 +180,21 @@ function BookModal({ book, onClose, savedShelf, onShelfChange, savingShelf }: {
         <div class="modal-grid">
           <div class="modal-cover">
             {cover ? (
-              <img src={cover} alt={`Capa de ${book.title}`} width="320" height="480" decoding="async" />
+              <img src={cover} alt={`Capa de ${title}`} width="320" height="480" decoding="async" />
             ) : (
               <div class="book-cover-fallback large"><span aria-hidden="true">📖</span></div>
             )}
           </div>
           <div class="modal-body">
             <span class="modal-kicker">OpenLibrary</span>
-            <h2 class="modal-title">{book.title}</h2>
-            {book.subtitle && <p class="modal-subtitle">{book.subtitle}</p>}
+            <h2 class="modal-title">{title}</h2>
+            {subtitle && <p class="modal-subtitle">{subtitle}</p>}
             <p class="modal-authors">{(book.authors || []).join(', ') || 'Autor desconhecido'}</p>
 
             {loadingDetails ? (
               <div class="modal-skeleton" aria-hidden="true" />
-            ) : details?.description ? (
-              <p class="modal-description">{String(details.description).substring(0, 600)}</p>
+            ) : details?.description_pt || details?.description ? (
+              <p class="modal-description">{(String(details.description_pt || details.description)).substring(0, 600)}</p>
             ) : null}
 
             {subjects && subjects.length > 0 && (

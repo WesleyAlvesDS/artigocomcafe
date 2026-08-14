@@ -38,17 +38,23 @@ if (book) {
   }
 }
 
+// Tradução automática: o backend devolve *_pt quando o texto original não
+// é português. Preferimos a versão traduzida, mantendo a original visível.
+const displayTitle = book?.title_pt || book?.title || ''
+const displaySubtitle = book?.subtitle_pt || book?.subtitle || null
+const hasTranslation = Boolean(book?.title_pt)
+const descriptionText = book?.description_pt
+  ? String(book.description_pt)
+  : (book?.description ? (typeof book.description === 'string' ? book.description : String(book.description)) : '')
+
 const cover = book ? bookCover(book, 'L') : null
 const year = book?.first_publish_year ? String(book.first_publish_year).match(/\d{4}/)?.[0] : null
-const descriptionText = book?.description
-  ? (typeof book.description === 'string' ? book.description : String(book.description))
-  : ''
 
 const schemaBook = book ? {
   '@context': 'https://schema.org',
   '@type': 'Book',
-  'name': book.title,
-  'alternateName': book.subtitle || undefined,
+  'name': displayTitle,
+  'alternateName': displaySubtitle || book.subtitle || undefined,
   'description': descriptionText.substring(0, 500) || undefined,
   'image': cover || undefined,
   'author': (book.authors || []).map(a => ({ '@type': 'Person', 'name': a })),
@@ -72,15 +78,14 @@ const schemaBook = book ? {
   </Base>
 ) : (
   <Base
-    title={`${book.title} — Livro | Artigo com Café`}
-    description={descriptionText.substring(0, 160) || `${book.title} — conheça este livro na biblioteca do Artigo com Café.`}
+    title={`${displayTitle} — Livro | Artigo com Café`}
+    description={descriptionText.substring(0, 160) || `${displayTitle} — conheça este livro na biblioteca do Artigo com Café.`}
     image={cover || '/images/og-default.svg'}
     type="book"
     canonical={`/livro/${book.key}/`}
     breadcrumbs={[
-      { name: 'Início', slug: '/' },
-      { name: 'Biblioteca', slug: '/biblioteca/' },
-      { name: book.title, slug: `/livro/${book.key}/` }
+      { name: 'Início', slug: '/' },      {name: 'Biblioteca', slug: '/biblioteca/' },
+      { name: displayTitle, slug: `/livro/${book.key}/` }
     ]}
   >
     {schemaBook && (
@@ -97,10 +102,13 @@ const schemaBook = book ? {
           <div class="book-header" data-scroll-reveal="slide-up">
             <div class="book-meta">
               <span class="book-kicker">📚 Biblioteca Digital</span>
-              <span class="book-source">via OpenLibrary</span>
+              <span class="book-source">via OpenLibrary{hasTranslation ? ' · traduzido' : ''}</span>
             </div>
-            <h1 class="book-title-page">{book.title}</h1>
-            {book.subtitle && <p class="book-subtitle-page">{book.subtitle}</p>}
+            <h1 class="book-title-page">{displayTitle}</h1>
+            {hasTranslation && book.title && (
+              <p class="book-original-title">Título original: {book.title}</p>
+            )}
+            {displaySubtitle && <p class="book-subtitle-page">{displaySubtitle}</p>}
             <p class="book-authors-page">
               {(book.authors || []).join(', ') || 'Autor desconhecido'}
             </p>
@@ -136,7 +144,7 @@ const schemaBook = book ? {
                 <div class="book-cover-large" data-scroll-reveal="fade">
                   <img
                     src={cover}
-                    alt={`Capa de ${book.title}`}
+                    alt={`Capa de ${displayTitle}`}
                     width="480"
                     height="720"
                     loading="eager"
@@ -157,7 +165,7 @@ const schemaBook = book ? {
                   <>
                     <h2>Sobre este livro</h2>
                     <p>
-                      {book.title} é uma obra {book.subtitle ? `com o subtítulo "${book.subtitle}"` : 'relevante para quem busca conhecimento'}.
+                      {displayTitle} é uma obra {displaySubtitle ? `com o subtítulo "${displaySubtitle}"` : 'relevante para quem busca conhecimento'}.
                       {book.authors && book.authors.length > 0 ? ` Escrito por ${book.authors.join(', ')}.` : ''}
                       {year ? ` Publicado pela primeira vez em ${year}.` : ''}
                       Descubra este e outros títulos na biblioteca do Artigo com Café.
@@ -341,6 +349,12 @@ const schemaBook = book ? {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  .book-original-title {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin-bottom: 0.6rem;
   }
 
   .book-subtitle-page {

@@ -62,19 +62,22 @@ function BookCardView({ book }: { book: OpenLibraryBook }) {
   const cover = bookCover(book)
   const key = normKey(book.key)
   const href = key ? `/livro/${key}/` : null
+  // Prefere o título traduzido (backend devolve *_pt quando o original não é pt)
+  const title = book.title_pt || book.title
+  const subtitle = book.subtitle_pt || book.subtitle
   const inner = (
     <>
       <div class="book-cover">
         {cover ? (
-          <img src={cover} alt={`Capa de ${book.title}`} width="180" height="270" loading="lazy" decoding="async" />
+          <img src={cover} alt={`Capa de ${title}`} width="180" height="270" loading="lazy" decoding="async" />
         ) : (
           <div class="book-cover-fallback"><span aria-hidden="true">📖</span></div>
         )}
         <div class="book-cover-shine" aria-hidden="true" />
       </div>
       <div class="book-info">
-        <h2 class="book-title">{book.title}</h2>
-        {book.subtitle && <p class="book-subtitle">{book.subtitle}</p>}
+        <h2 class="book-title">{title}</h2>
+        {subtitle && <p class="book-subtitle">{subtitle}</p>}
         <p class="book-authors">{(book.authors || []).slice(0, 2).join(', ') || 'Autor desconhecido'}</p>
         <div class="book-meta">
           {book.first_publish_year && <span class="meta-chip">{book.first_publish_year}</span>}

@@ -2,6 +2,7 @@
 
 namespace App\Services\Integrations;
 
+use App\Services\TranslationService;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -152,11 +153,21 @@ class OpenLibraryService extends ApiClient
 
         $coverId = $data['covers'][0] ?? null;
 
+        // Tradução automática p/ pt-BR (opcional — nunca quebra se falhar):
+        // o site é em português e a OpenLibrary devolve tudo em inglês.
+        $translator = app(TranslationService::class);
+        $titlePt = $translator->toPortuguese($data['title'] ?? null);
+        $subtitlePt = $translator->toPortuguese($data['subtitle'] ?? null);
+        $descriptionPt = $translator->toPortuguese($description);
+
         return [
             'key' => $data['key'] ?? null,
             'title' => $data['title'] ?? null,
+            'title_pt' => $titlePt,
             'subtitle' => $data['subtitle'] ?? null,
+            'subtitle_pt' => $subtitlePt,
             'description' => $description,
+            'description_pt' => $descriptionPt,
             'first_publish_year' => $data['first_publish_date'] ?? null,
             'authors' => $data['authors'] ?? [],
             'subjects' => $data['subjects'] ?? [],
@@ -182,10 +193,17 @@ class OpenLibraryService extends ApiClient
         $coverId = $doc['cover_i'] ?? null;
         $isbn = $doc['isbn'] ?? [];
 
+        // Tradução automática do título/subtítulo (cards e listagens).
+        $translator = app(TranslationService::class);
+        $titlePt = $translator->toPortuguese($doc['title'] ?? null);
+        $subtitlePt = $translator->toPortuguese($doc['subtitle'] ?? null);
+
         return [
             'key' => $key,
             'title' => $doc['title'] ?? '',
+            'title_pt' => $titlePt,
             'subtitle' => $doc['subtitle'] ?? null,
+            'subtitle_pt' => $subtitlePt,
             'authors' => $doc['author_name'] ?? [],
             'first_publish_year' => $doc['first_publish_year'] ?? null,
             'subjects' => array_slice($doc['subject'] ?? [], 0, 8),

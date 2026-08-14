@@ -131,7 +131,10 @@ export interface RecipeCategory {
 export interface OpenLibraryBook {
   key: string | null
   title: string
+  /** Título traduzido para pt-BR (auto-tradução no backend; null se já era pt). */
+  title_pt?: string | null
   subtitle?: string | null
+  subtitle_pt?: string | null
   authors: string[]
   first_publish_year?: number | null
   subjects: string[]
@@ -148,8 +151,11 @@ export interface OpenLibraryBook {
 export interface OpenLibraryWork {
   key: string | null
   title: string
+  title_pt?: string | null
   subtitle?: string | null
+  subtitle_pt?: string | null
   description?: string | null
+  description_pt?: string | null
   first_publish_year?: number | string | null
   authors: string[]
   subjects: string[]
