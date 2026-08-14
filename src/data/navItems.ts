@@ -40,6 +40,8 @@ export const mainNav: NavItem[] = [
     foot: [
       { icon: '🕐', label: 'Receita do Dia' },
       { icon: '🍳', label: 'Receitas para o café' },
+      { icon: '🥐', label: 'Café da manhã' },
+      { icon: '🥤', label: 'Bebidas' },
     ],
   },
   { label: 'Mapa', href: '/mapa', page: 'mapa' },

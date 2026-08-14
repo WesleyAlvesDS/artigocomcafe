@@ -282,7 +282,9 @@ const schemaBook = book ? {
             </div>
 
             <aside class="book-sidebar">
-              <AdSterraNative className="ad-book-sidebar" lazy />
+              {/* Sem AdSterraNative aqui: a página já tem o nativo no conteúdo
+                  (ad-book-inline) e o containerId é fixo por unidade — 2 na
+                  mesma página faz o 2º nunca preencher (regra do MAPA-DE-ANUNCIOS). */}
               <div class="sidebar-card glass-card" data-scroll-reveal="fade">
                 <h3 class="sidebar-title">Sobre a biblioteca</h3>
                 <p class="sidebar-text">
@@ -757,6 +759,17 @@ const schemaBook = book ? {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 1.25rem;
+  }
+
+  /* Relacionados no celular: 2 colunas, igual à grade do /livros e do blog */
+  @media (max-width: 640px) {
+    .books-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.85rem;
+    }
+    .books-grid .book-info {
+      padding: 0.7rem 0.75rem 0.85rem;
+    }
   }
 
   @media (max-width: 960px) {

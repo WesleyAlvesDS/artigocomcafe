@@ -279,4 +279,42 @@ não funciona.
 | Receitas listagem | 1 (in-feed após 6ª) | banner 728×90, smartlink sidebar |
 | Sobre | 0 | banner meio, smartlink sidebar |
 | Contato | 1 (após o grid) | smartlink link |
-| Newsletter | 0 | banner 728×90 |
+| Newsletter | 0 | banner 728×90 (desktop) + 320×50 (mobile) |
+| **Livro `livro/[key]`** | **1 (inline no conteúdo)** | smartlink |
+
+---
+
+## 9. Responsividade por dispositivo (correção agosto/2026) — "propaganda que não aparece"
+
+> Queixa: *"algumas propagandas não aparecem no computador, e algumas não aparecem no
+> celular"*. Causa-raiz: cada chave Adsterra é um banner de **tamanho fixo**
+> (`atOptions` width/height). Quando o slot é maior que a viewport, o iframe é
+> cortado pelo `overflow: hidden` (ou a rede não entrega criativo) → parece que o
+> anúncio sumiu.
+
+**Regra adotada: cada banner só renderiza onde o tamanho cabe.**
+
+O componente `AdSterraBanner` agora adiciona a classe `bw-{width}` e o `global.css`
+controla a visibilidade por viewport:
+
+| Classe | Formato | Aparece em | Oculta em |
+|---|---|---|---|
+| `bw-728` | leaderboard 728×90 | ≥ 768px | ≤ 767px (mobile) |
+| `bw-468` | 468×60 | ≥ 480px | ≤ 479px (celular pequeno) |
+| `bw-320` | 320×50 (unidade mobile) | ≤ 767px | ≥ 768px (desktop) |
+| `bw-160` | skyscraper 160×300 (sidebar) | ≥ 768px | ≤ 767px (mobile) |
+
+- O slot permanece no DOM com `display: none` — o layout não quebra e a densidade
+  por dispositivo fica correta (nenhuma página com banner cortado).
+- O banner 320×50 da newsletter foi **adicionado** (a página só tinha o 728×90,
+  que some no mobile).
+
+**Bug corrigido na mesma auditoria:** `livro/[key]` tinha **2 `<AdSterraNative>`**
+na mesma página (inline + sidebar) com o mesmo `containerId` — o `getElementById`
+preenchia só o 1º e o 2º **nunca aparecia** (em nenhum dispositivo). Removido o
+nativo do sidebar; a página mantém 1 nativo (inline) + smartlink.
+
+> **Importante:** a entrega final do criativo depende da rede Adsterra (não testável
+> em localhost). Estas correções garantem que o slot seja **elegível** no dispositivo
+> certo — antes, o layout forçava tamanhos impossíveis e o anúncio nunca preenchia.
+> Auditoria: `node tests/playwright/ad-placement-check.mjs` (novo).

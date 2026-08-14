@@ -66,6 +66,14 @@ import AdSenseSlot from '../components/AdSenseSlot.astro'
         label="Publicidade"
         lazy
       />
+      {/* No mobile o leaderboard 728×90 é oculto (não cabe) — entra o banner 320×50 */}
+      <AdSterraBanner
+        key="36c0e766cf3f9f800adf45b24d6e2815"
+        width={320}
+        height={50}
+        label="Publicidade"
+        lazy
+      />
       {/* Slot reservado para o Google AdSense (desabilitado até criar a unidade) */}
       <AdSenseSlot />
     </div>

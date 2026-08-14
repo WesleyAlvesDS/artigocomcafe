@@ -27,7 +27,7 @@ const atOptionsCode = `atOptions = { 'key': '${key}', 'format': 'iframe', 'heigh
 const bannerSrc = `https://www.highperformanceformat.com/${key}/invoke.js`
 ---
 
-<div class={`adsterra-banner ${className}`}>
+<div class={`adsterra-banner bw-${width} ${className}`}>
   {label && <span class="adsterra-banner-label">{label}</span>}
   <div class="adsterra-banner-slot" style={`min-height: ${height}px;`}>
     {lazy ? (

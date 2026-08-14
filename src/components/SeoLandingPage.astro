@@ -17,6 +17,12 @@ const canonical = `/${data.slug}/`
         <span class="section-label">Guia do Café</span>
         <h1 class="seo-title">{data.h1}</h1>
         <p class="seo-intro">{data.intro}</p>
+        {data.symbologyNote && (
+          <div class="seo-symbology-banner" data-reveal="delay-1">
+            <span class="seo-symbology-icon" aria-hidden="true">☕</span>
+            <span class="seo-symbology-text">{data.symbologyNote}</span>
+          </div>
+        )}
         <div class="seo-cta-row">
           <a href="/blog" class="btn-primary ripple">Ler artigos</a>
           <a href="/receitas" class="btn-ghost ripple">Ver receitas</a>
@@ -142,6 +148,30 @@ const canonical = `/${data.slug}/`
     line-height: 1.75;
     color: var(--color-text-secondary);
     max-width: 640px;
+  }
+
+  .seo-symbology-banner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 1.25rem;
+    padding: 0.7rem 1.1rem;
+    border-radius: var(--radius-card);
+    background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 18%, transparent);
+    color: var(--color-text-secondary);
+    font-size: 0.88rem;
+    line-height: 1.55;
+    max-width: 640px;
+  }
+
+  .seo-symbology-icon {
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+
+  .seo-symbology-text {
+    font-weight: 500;
   }
 
   .seo-cta-row {

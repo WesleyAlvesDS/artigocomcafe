@@ -141,12 +141,12 @@ export default function ClimaDoCafe() {
 
   if (loading) {
     return (
-      <div class="glass-card p-6" style={{ minHeight: '104px' }}>
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-[var(--color-accent)]/20 animate-pulse" />
-          <div class="flex-1 space-y-2">
-            <div class="h-4 bg-[var(--color-accent)]/30 rounded w-1/3 animate-pulse" />
-            <div class="h-3 bg-[var(--color-bg-card-border)] rounded w-2/3 animate-pulse" />
+      <div class="glass-card p-6 animate-scale-in" style={{ minHeight: '120px' }}>
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-[var(--color-bg-card-border)] skeleton flex-shrink-0" />
+          <div class="flex-1 space-y-3">
+            <div class="h-4 bg-[var(--color-accent)]/30 rounded w-1/3 skeleton" />
+            <div class="h-3 bg-[var(--color-bg-card-border)] rounded w-2/3 skeleton" />
           </div>
         </div>
         <span class="sr-only">Clima do Café</span>
@@ -156,23 +156,27 @@ export default function ClimaDoCafe() {
 
   if (error || !weather || weather.temperature_c == null) {
     return (
-      <div class="glass-card p-6">
+      <div class="glass-card p-6 animate-scale-in">
+        <div class="absolute -top-6 -right-6 w-24 h-24 bg-sky-500/8 rounded-full blur-3xl" />
         <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-sky-500/10 flex items-center justify-center flex-shrink-0">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500/15 to-sky-600/10 flex items-center justify-center flex-shrink-0 ring-1 ring-sky-500/20">
             <span class="text-2xl" aria-hidden="true">🌤️</span>
           </div>
           <div class="flex-1 min-w-0">
             <div class="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-accent)] mb-0.5">
               Clima do Café
             </div>
-            <p class="text-sm text-[var(--color-text-muted)]">
-              Indisponível no momento
+            <p class="text-sm text-[var(--color-text-secondary)]">
+              Não foi possível carregar o clima no momento
+            </p>
+            <p class="text-xs text-[var(--color-text-muted)] mt-0.5">
+              Verifique sua conexão e tente novamente
             </p>
           </div>
           <button
             onClick={() => { const pref = getLocationPref(); loadWeather(queryFor(pref)) }}
             disabled={loading}
-            class="px-3 py-1.5 text-xs font-medium text-[var(--color-accent)] border border-[var(--color-accent)]/30 rounded-lg hover:bg-[var(--color-accent)]/10 transition-colors disabled:opacity-50"
+            class="px-3 py-1.5 text-xs font-semibold text-[var(--color-btn-text)] bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-secondary)] rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex-shrink-0"
           >
             Tentar
           </button>
@@ -187,23 +191,23 @@ export default function ClimaDoCafe() {
   return (
     <a
       href={suggestion.href}
-      class="glass-card p-6 group block relative overflow-hidden transition-all hover:scale-[1.01] hover:shadow-lg hover:shadow-sky-500/5"
+      class="glass-card p-6 group block relative overflow-hidden animate-scale-in transition-all hover:scale-[1.01] hover:shadow-lg hover:shadow-sky-500/5"
     >
-      {/* Gradient accent top */}
       <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-400 via-sky-300 to-amber-300" />
+      <div class="absolute -top-6 -right-6 w-28 h-28 bg-sky-500/8 rounded-full blur-3xl group-hover:bg-sky-500/12 transition-colors duration-500" />
+      <div class="absolute -bottom-4 -left-4 w-20 h-20 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-amber-500/8 transition-colors duration-500" />
 
       <div class="flex items-start gap-4">
-        {/* Temperature */}
-        <div class="w-12 h-12 rounded-xl bg-sky-500/10 flex items-center justify-center flex-shrink-0">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500/15 to-sky-600/10 flex items-center justify-center flex-shrink-0 ring-1 ring-sky-500/20 group-hover:ring-sky-500/30 group-hover:scale-105 transition-all">
           {weather.icon_url ? (
             <img src={weather.icon_url} alt="" width="36" height="36" loading="lazy" decoding="async" />
           ) : (
-            <span class="text-2xl">🌤️</span>
+            <span class="text-2xl" aria-hidden="true">🌤️</span>
           )}
         </div>
 
         <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 mb-1">
+          <div class="flex items-center gap-2 mb-1.5">
             <span class="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
               Clima do Café
             </span>
@@ -221,14 +225,14 @@ export default function ClimaDoCafe() {
                 <circle cx="12" cy="10" r="3" />
               </svg>
               {weather.city}{weather.region ? `, ${weather.region}` : ''}
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" class={`transition-transform ${panelOpen ? 'rotate-180' : ''}`}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" class={`transition-transform duration-200 ${panelOpen ? 'rotate-180' : ''}`}>
                 <polyline points="6 9 12 15 18 9" />
               </svg>
             </button>
           </div>
 
-          <div class="flex items-center gap-3 mb-1">
-            <span class="text-2xl font-bold text-[var(--color-text-primary)] tabular-nums">
+          <div class="flex items-baseline gap-3 mb-1">
+            <span class="text-3xl font-bold text-[var(--color-text-primary)] tabular-nums bg-gradient-to-r from-sky-300 to-amber-200 bg-clip-text text-transparent">
               {Math.round(temp)}°C
             </span>
             {weather.description && (
@@ -242,7 +246,7 @@ export default function ClimaDoCafe() {
           <div class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
             <span class="text-base">{suggestion.emoji}</span>
             <span class="font-medium text-[var(--color-text-primary)]">{suggestion.title}</span>
-            <span class="flex items-center gap-1 group-hover:gap-2 transition-all ml-auto text-xs text-[var(--color-accent)]">
+            <span class="flex items-center gap-1 group-hover:gap-2 transition-all ml-auto text-xs text-[var(--color-accent)] font-medium">
               Ver receitas
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="5" y1="12" x2="19" y2="12" />
@@ -253,29 +257,29 @@ export default function ClimaDoCafe() {
 
           {panelOpen && (
             <div
-              class="mt-3 pt-3 border-t border-[var(--color-bg-card-border)] text-left"
+              class="mt-4 pt-4 border-t border-[var(--color-bg-card-border)] text-left animate-fade-in"
               onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
             >
-              <p class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-2">
+              <p class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-2.5">
                 Trocar localização
               </p>
               <button
                 type="button"
                 onClick={useGeolocation}
                 disabled={locating}
-                class="w-full mb-2 px-3 py-2 text-xs font-semibold text-[var(--color-accent)] bg-[var(--color-accent)]/8 border border-[var(--color-accent)]/25 rounded-lg hover:bg-[var(--color-accent)]/15 transition-colors disabled:opacity-60"
+                class="w-full mb-3 px-3 py-2.5 text-xs font-semibold text-[var(--color-accent)] bg-[var(--color-accent)]/8 border border-[var(--color-accent)]/25 rounded-lg hover:bg-[var(--color-accent)]/15 transition-colors disabled:opacity-60"
               >
                 {locating ? 'Buscando localização…' : '📍 Usar minha localização'}
               </button>
-              <div class="flex flex-wrap gap-1.5 mb-2">
+              <div class="flex flex-wrap gap-1.5 mb-2.5">
                 {QUICK_CITIES.map(city => (
                   <button
                     key={city}
                     type="button"
                     onClick={() => applyCity(city)}
-                    class={`px-2.5 py-1 text-[11px] font-medium rounded-full border transition-colors ${
+                    class={`px-2.5 py-1.5 text-[11px] font-medium rounded-full border transition-all ${
                       weather.city === city
-                        ? 'bg-[var(--color-accent)]/12 border-[var(--color-accent)] text-[var(--color-accent)]'
+                        ? 'bg-[var(--color-accent)]/12 border-[var(--color-accent)] text-[var(--color-accent)] shadow-sm shadow-[var(--color-accent)]/10'
                         : 'bg-[var(--color-bg-card)] border-[var(--color-bg-card-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]'
                     }`}
                   >
@@ -290,7 +294,7 @@ export default function ClimaDoCafe() {
                   onChange={e => setCustomCity(e.target.value)}
                   placeholder="Outra cidade…"
                   aria-label="Outra cidade"
-                  class="flex-1 min-w-0 px-3 py-1.5 text-xs bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] rounded-lg text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)]"
+                  class="flex-1 min-w-0 px-3 py-2 text-xs bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] rounded-lg text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_var(--color-accent-glow)] transition-all"
                 />
                 <button
                   type="submit"

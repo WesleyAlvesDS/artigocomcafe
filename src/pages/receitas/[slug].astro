@@ -1009,8 +1009,14 @@ const schemaRecipe = recipe ? {
     padding: 3rem 0 1rem;
   }
 
+  /* Imagem da receita MENOR e centralizada (pedido: "não precisa ficar exagerado
+     de tomar a tela de uma ponta a outra") — moldura editorial de ~880px, em vez
+     de esticar por toda a largura do container (1200px). */
   .cover-frame {
     position: relative;
+    width: 100%;
+    max-width: 880px;
+    margin-inline: auto;
     border-radius: var(--radius-card-lg);
     overflow: hidden;
     box-shadow: var(--shadow-card);

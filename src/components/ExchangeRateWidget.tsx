@@ -136,7 +136,10 @@ export default function ExchangeRateWidget({ compact = false, maxRates = 6 }: { 
     }`
 
   return (
-    <div className="glass-card p-6">
+    <div className="glass-card p-6 animate-scale-in">
+      <div className="absolute -top-4 -right-4 w-24 h-24 bg-[var(--color-accent)]/8 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-[var(--color-accent-secondary)]/5 rounded-full blur-2xl pointer-events-none" />
+
       <div className="flex items-center justify-between mb-4">
         <div>
           <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
@@ -173,17 +176,20 @@ export default function ExchangeRateWidget({ compact = false, maxRates = 6 }: { 
       {loading ? (
         <div className="space-y-2.5">
           {[...Array(maxRates)].map((_, i) => (
-            <div key={i} className="flex justify-between">
-              <div className="h-4 w-10 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
-              <div className="h-4 w-16 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
+            <div key={i} className="flex justify-between items-center">
+              <div className="h-4 w-10 bg-[var(--color-bg-card-border)] rounded skeleton" />
+              <div className="h-4 w-16 bg-[var(--color-bg-card-border)] rounded skeleton" />
             </div>
           ))}
         </div>
       ) : error ? (
         <div className="flex items-center gap-3">
           <span className="text-2xl" aria-hidden="true">💱</span>
-          <span className="text-sm text-[var(--color-text-muted)]">Indisponível</span>
-          <button onClick={fetchExchange} className="text-xs font-medium text-[var(--color-accent)] hover:underline">
+          <div className="flex-1 min-w-0">
+            <span className="text-sm text-[var(--color-text-secondary)] block">Indisponível no momento</span>
+            <span className="text-xs text-[var(--color-text-muted)]">Verifique sua conexão</span>
+          </div>
+          <button onClick={fetchExchange} className="text-xs font-semibold text-[var(--color-accent)] hover:underline flex-shrink-0">
             Tentar
           </button>
         </div>
@@ -196,14 +202,14 @@ export default function ExchangeRateWidget({ compact = false, maxRates = 6 }: { 
         <>
           <div className="divide-y divide-[var(--color-bg-card-border)]">
             {rates.rates.slice(0, maxRates).map(r => (
-              <div key={r.code} className="flex items-center justify-between py-2.5 first:pt-0 last:pb-0">
+              <div key={r.code} className="flex items-center justify-between py-2.5 first:pt-0 last:pb-0 group/item hover:bg-[var(--color-bg-card-hover)] -mx-2 px-2 rounded-lg transition-colors">
                 <div className="flex items-center gap-2.5">
-                  <span className="text-xs font-mono bg-[var(--color-bg-card-border)]/30 px-2 py-1 rounded text-[var(--color-text-primary)]">
+                  <span className="text-xs font-mono bg-[var(--color-bg-card-border)]/30 px-2 py-1 rounded text-[var(--color-text-primary)] group-hover/item:bg-[var(--color-accent)]/10 group-hover/item:text-[var(--color-accent)] transition-colors">
                     {r.code}
                   </span>
                   <span className="text-xs text-[var(--color-text-muted)] hidden sm:inline">{CURRENCY_NAMES[r.code] || r.code}</span>
                 </div>
-                <span className="text-sm font-semibold text-[var(--color-text-primary)] tabular-nums">
+                <span className="text-sm font-semibold text-[var(--color-text-primary)] tabular-nums group-hover/item:text-[var(--color-accent)] transition-colors">
                   {r.rate.toFixed(4)}
                 </span>
               </div>
@@ -229,7 +235,7 @@ export default function ExchangeRateWidget({ compact = false, maxRates = 6 }: { 
               step="any"
               value={amount}
               onChange={e => setAmount(e.target.value)}
-              className="w-full px-3 py-2 text-lg font-bold tabular-nums bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] rounded-lg text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)]"
+              className="w-full px-3 py-2 text-lg font-bold tabular-nums bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] rounded-lg text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_var(--color-accent-glow)] transition-all"
               placeholder="100"
             />
           </div>
@@ -248,7 +254,7 @@ export default function ExchangeRateWidget({ compact = false, maxRates = 6 }: { 
             <button
               type="button"
               onClick={swap}
-              className="mt-5 flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)] transition-colors"
+              className="mt-5 flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)] transition-all hover:rotate-180 duration-300"
               aria-label="Trocar moedas"
               title="Trocar moedas"
             >
@@ -269,21 +275,22 @@ export default function ExchangeRateWidget({ compact = false, maxRates = 6 }: { 
             </div>
           </div>
 
-          <div className="rounded-xl p-4 bg-[var(--color-accent)]/8 border border-[var(--color-accent)]/20">
-            <p className="text-xs text-[var(--color-text-secondary)] mb-1">
+          <div className="rounded-xl p-4 bg-gradient-to-br from-[var(--color-accent)]/10 to-[var(--color-accent-secondary)]/8 border border-[var(--color-accent)]/20 relative overflow-hidden">
+            <div className="absolute inset-0 bg-[var(--color-accent)]/5 opacity-0 hover:opacity-100 transition-opacity" />
+            <p className="text-xs text-[var(--color-text-secondary)] mb-1 relative">
               {from && to ? `${amount || '0'} ${from} =` : ''}
             </p>
             {conversion ? (
               <>
-                <p className="text-xl font-bold text-[var(--color-text-primary)] tabular-nums break-all">
+                <p className="text-xl font-bold text-[var(--color-text-primary)] tabular-nums break-all relative">
                   {formatCurrency(to, conversion.value)}
                 </p>
-                <p className="text-[11px] text-[var(--color-text-muted)] mt-1">
+                <p className="text-[11px] text-[var(--color-text-muted)] mt-1 relative">
                   1 {from} = {conversion.unit.toFixed(4)} {to} · {rates.source}
                 </p>
               </>
             ) : (
-              <p className="text-sm text-[var(--color-text-muted)]">Informe um valor válido</p>
+              <p className="text-sm text-[var(--color-text-muted)] relative">Informe um valor válido</p>
             )}
           </div>
         </div>

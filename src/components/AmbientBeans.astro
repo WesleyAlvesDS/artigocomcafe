@@ -1,0 +1,105 @@
+---
+// AmbientBeans.astro — grãos de café flutuando no fundo da página.
+// Versão reutilizável do efeito do Hero (home): posições pseudo-aleatórias
+// DETERMINÍSTICAS por página (seed = pathname), para que cada rota tenha uma
+// composição própria e estável entre builds/reloads. Animações com duração e
+// delay aleatórios por grão ("deixe em animações aleatórias" — pedido do rascunho).
+// Uso: <AmbientBeans /> logo após <Base> ... </Base> (ou em qualquer página).
+
+const pathname = Astro.url.pathname
+
+// Hash simples e determinístico a partir do pathname + índice.
+function seed(n: number): number {
+  let h = 2166136261
+  const s = pathname + ':' + n
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return ((h >>> 0) % 1000) / 1000 // 0..0.999
+}
+
+// 12 grãos: posição %, tamanho, duração e delay aleatórios (mas estáveis por página).
+const beans = Array.from({ length: 12 }, (_, i) => {
+  const r = seed(i)
+  const r2 = seed(i + 50)
+  const r3 = seed(i + 100)
+  return {
+    x: (4 + r * 92).toFixed(1),            // 4%..96%
+    y: (4 + r2 * 92).toFixed(1),           // 4%..96%
+    s: Math.round(13 + r3 * 15),           // 13px..28px
+    dur: (8 + r * 7).toFixed(1),           // 8s..15s
+    delay: (-(r2 * 9)).toFixed(2),         // começa em fases diferentes (negativo = já em curso)
+  }
+})
+---
+
+<div class="ambient-beans" aria-hidden="true">
+  {beans.map(b => (
+    <span
+      class="ambient-bean"
+      style={`--bean-x: ${b.x}%; --bean-y: ${b.y}%; --s: ${b.s}px; --dur: ${b.dur}s; --delay: ${b.delay}s;`}
+    ></span>
+  ))}
+</div>
+
+<style>
+  /* Camada fixa atrás de TODO o conteúdo (z-index -1, acima da aurora -2).
+     pointer-events: none para nunca bloquear cliques. */
+  .ambient-beans {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .ambient-bean {
+    position: absolute;
+    left: var(--bean-x);
+    top: var(--bean-y);
+    width: var(--s);
+    height: calc(var(--s) * 1.35);
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    background: linear-gradient(135deg, var(--coffee-gold), var(--coffee-primary));
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--coffee-primary) 30%, transparent);
+    opacity: 0.1;
+    transform: rotate(24deg);
+    animation: ambient-bean-float var(--dur) ease-in-out infinite;
+    animation-delay: var(--delay);
+  }
+
+  .ambient-bean::after {
+    content: '';
+    position: absolute;
+    inset: 18% 40%;
+    border-radius: 50%;
+    border: 1.5px solid color-mix(in srgb, var(--coffee-dark) 25%, transparent);
+  }
+
+  @keyframes ambient-bean-float {
+    0%, 100% { transform: rotate(24deg) translateY(0); }
+    50% { transform: rotate(24deg) translateY(-16px); }
+  }
+
+  /* Tema claro: grãos mais suaves (o fundo claro já é quente) */
+  .light .ambient-bean {
+    opacity: 0.07;
+  }
+
+  /* Mobile: metade dos grãos, menores e quase invisíveis (não poluir telas pequenas) */
+  @media (max-width: 768px) {
+    .ambient-bean:nth-child(odd) {
+      display: none;
+    }
+    .ambient-bean {
+      opacity: 0.06;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ambient-beans {
+      display: none;
+    }
+  }
+</style>

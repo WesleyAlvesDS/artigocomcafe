@@ -67,7 +67,6 @@ function MissionsContent() {
 
   return (
     <div class="space-y-8">
-      {/* Header */}
       <ReaderHeader
         label="🎯 Missões"
         title="Missões"
@@ -75,21 +74,21 @@ function MissionsContent() {
       />
 
       {/* Stats */}
-      <div class="grid grid-cols-3 gap-4">
+      <div class="grid grid-cols-3 gap-4 data-reveal">
         {[
-          { label: 'Disponíveis', value: filtered.filter(m => !m.is_completed).length, color: 'text-blue-500' },
-          { label: 'Completas', value: completedMissions.length, color: 'text-green-500' },
-          { label: 'Total', value: filtered.length, color: 'text-[var(--color-text-primary)]' },
+          { label: 'Disponíveis', value: filtered.filter(m => !m.is_completed).length, color: 'text-blue-400' },
+          { label: 'Completas', value: completedMissions.length, color: 'text-green-400' },
+          { label: 'Total', value: filtered.length, color: 'text-[var(--color-accent)]' },
         ].map(stat => (
-          <div class="reader-card p-4 text-center">
-            <div class={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
-            <div class="text-xs text-[var(--color-text-muted)] mt-1">{stat.label}</div>
+          <div key={stat.label} class="reader-card p-5 text-center group">
+            <div class={`text-3xl font-bold tabular-nums ${stat.color} group-hover:scale-110 transition-transform duration-300`}>{stat.value}</div>
+            <div class="text-xs text-[var(--color-text-muted)] mt-2 font-medium uppercase tracking-wider">{stat.label}</div>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div class="flex gap-2 flex-wrap">
+      <div class="flex gap-2 flex-wrap data-reveal">
         {(['daily', 'weekly'] as const).map(type => {
           const count = missions.filter(m => m.type === type && !m.is_completed).length
           return (
@@ -98,7 +97,7 @@ function MissionsContent() {
             >
               {TYPE_ICONS[type]} {type === 'daily' ? 'Diárias' : 'Semanais'}
               {count > 0 && (
-                <span class="ml-1.5 px-1.5 py-0.5 text-[10px] bg-amber-500/20 text-amber-500 rounded-full">{count}</span>
+                <span class="ml-1.5 px-1.5 py-0.5 text-[10px] bg-[var(--color-accent)]/20 text-[var(--color-accent)] rounded-full font-bold">{count}</span>
               )}
             </button>
           )
@@ -107,13 +106,13 @@ function MissionsContent() {
 
       {/* Missions list */}
       {filtered.length === 0 ? (
-        <div class="text-center py-12 text-[var(--color-text-muted)]">
-          <p class="text-4xl mb-3">🎯</p>
-          <p>Nenhuma missão disponível no momento.</p>
-          <p class="text-sm mt-1">Volte mais tarde para novas missões!</p>
+        <div class="empty-state data-reveal">
+          <div class="empty-icon text-5xl mb-4">🎯</div>
+          <h3 class="empty-title">Nenhuma missão disponível</h3>
+          <p class="empty-desc">Volte mais tarde para novas missões e continue sua jornada!</p>
         </div>
       ) : (
-        <div class="space-y-3">
+        <div class="space-y-3 animate-stagger">
           {filtered.map(mission => {
             const percent = mission.target > 0 ? Math.round((mission.progress / mission.target) * 100) : 0
             return (
@@ -123,46 +122,39 @@ function MissionsContent() {
                 }`}
               >
                 <div class="flex items-start gap-4">
-                  <div class={`text-3xl ${mission.is_completed ? '' : 'opacity-70'}`}>{mission.icon}</div>
+                  <div class={`text-3xl transition-all duration-300 ${mission.is_completed ? '' : 'opacity-70 group-hover:opacity-100'}`}>{mission.icon}</div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between mb-1">
-                      <h3 class={`font-semibold text-[var(--color-text-primary)] ${mission.is_completed ? 'line-through text-green-400' : ''}`}>
+                      <h3 class={`font-bold text-[var(--color-text-primary)] ${mission.is_completed ? 'line-through text-green-400' : ''}`}>
                         {mission.title}
                       </h3>
-                      <span class="text-xs font-medium text-[var(--color-accent)] whitespace-nowrap">
+                      <span class="text-xs font-bold text-[var(--color-accent)] whitespace-nowrap bg-[var(--color-accent)]/10 px-2 py-1 rounded-lg">
                         +{mission.grain_reward} {vocab.currency_icon}
                       </span>
                     </div>
                     <p class="text-sm text-[var(--color-text-secondary)] mb-3">{mission.description}</p>
 
-                    {/* Progress bar */}
                     <div class="flex items-center gap-3">
                       <div class="reader-progress-track flex-1">
-                        <div class="reader-progress-fill"
-                          style={{
-                            width: `${Math.min(100, percent)}%`,
-                            background: mission.is_completed
-                              ? 'linear-gradient(90deg, #22c55e, #16a34a)'
-                              : undefined,
-                          }}
-                        />
+                        <div class="reader-progress-fill relative" style={{ width: `${Math.min(100, percent)}%` }}>
+                          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse opacity-60" />
+                        </div>
                       </div>
-                      <span class="text-xs font-mono text-[var(--color-text-muted)] whitespace-nowrap">
+                      <span class="text-xs font-mono text-[var(--color-text-muted)] whitespace-nowrap tabular-nums">
                         {mission.progress}/{mission.target}
                       </span>
                     </div>
                   </div>
 
-                  {/* Action button */}
                   <div class="flex-shrink-0">
                     {mission.is_completed ? (
                       <button onClick={() => handleClaim(mission)}
-                        class="px-4 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-green-600 to-emerald-500 text-white hover:from-green-500 hover:to-emerald-400 transition-all hover:scale-105"
+                        class="px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-green-600 to-emerald-500 text-white hover:from-green-500 hover:to-emerald-400 transition-all hover:scale-105 shadow-lg shadow-green-500/25"
                       >
                         Resgatar 🎉
                       </button>
                     ) : (
-                      <div class="px-4 py-2 text-xs font-medium rounded-lg bg-[var(--color-bg-card)] text-[var(--color-text-muted)] border border-[var(--color-bg-card-border)]">
+                      <div class="px-4 py-2 text-xs font-bold rounded-xl bg-[var(--color-bg-card)] text-[var(--color-text-muted)] border border-[var(--color-bg-card-border)] tabular-nums">
                         {percent}%
                       </div>
                     )}
@@ -175,12 +167,24 @@ function MissionsContent() {
       )}
 
       {/* Tips */}
-      <div class="reader-card p-5">
-        <h3 class="text-sm font-semibold text-[var(--color-text-primary)] mb-2">💡 Dicas</h3>
-        <ul class="text-xs text-[var(--color-text-secondary)] space-y-1">
-          <li>• Missões diárias renovam a cada 24 horas</li>
-          <li>• Missões semanais oferecem mais {vocab.currency.toLowerCase()}</li>
-          <li>• Complete leituras e explore categorias para progredir</li>
+      <div class="glass-card p-5 data-reveal relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-[var(--color-accent)]/5 to-transparent rounded-full blur-xl" />
+        <h3 class="text-sm font-bold text-[var(--color-text-primary)] mb-3 flex items-center gap-2">
+          <span class="text-lg">💡</span> Dicas
+        </h3>
+        <ul class="text-xs text-[var(--color-text-secondary)] space-y-2">
+          <li class="flex items-start gap-2">
+            <span class="text-[var(--color-accent)] mt-0.5">▸</span>
+            Missões diárias renovam a cada 24 horas
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-[var(--color-accent)] mt-0.5">▸</span>
+            Missões semanais oferecem mais {vocab.currency.toLowerCase()}
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-[var(--color-accent)] mt-0.5">▸</span>
+            Complete leituras e explore categorias para progredir
+          </li>
         </ul>
       </div>
     </div>

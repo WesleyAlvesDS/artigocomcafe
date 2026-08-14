@@ -146,6 +146,12 @@ function isActive(item: { href: string; page: string }): boolean {
     <a href="/newsletter" class="mobile-link btn-primary btn-block">Newsletter</a>
   </nav>
 
+  {/* Overlay de foco: quando um dropdown da navbar abre, o fundo da página
+      inteira desfoca e escurece levemente, dando foco às opções (o usuário
+      pediu: "desfocar não é a navbar, é o fundo todo"). Fica ABAIXO do header
+      (z 100) e do menu mobile (z 99), então navbar e painel continuam nítidos. */}
+  <div class="dropdown-overlay" id="dropdown-overlay" aria-hidden="true"></div>
+
 <style>
   .header {
     position: fixed;
@@ -297,14 +303,15 @@ function isActive(item: { href: string; page: string }): boolean {
 
   /* Painel OPACO com blur: o glass-card padrão é quase transparente (7%) e
      sem backdrop-filter, deixando o conteúdo do dropdown ilegível sobre o
-     fundo da página. Aqui usamos o fundo do tema quase sólido + blur. */
+     fundo da página. Aqui usamos o fundo do tema quase sólido (97%) + blur,
+     como pedido: "mais opaco para melhorar a leitura". */
   .dropdown-panel {
     position: absolute;
     top: calc(100% + 0.75rem);
     left: 50%;
     width: 340px;
     padding: 1rem;
-    background: color-mix(in srgb, var(--color-bg-primary) 92%, transparent);
+    background: color-mix(in srgb, var(--color-bg-primary) 97%, transparent);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     border: 1px solid var(--color-glass-border);
@@ -332,10 +339,36 @@ function isActive(item: { href: string; page: string }): boolean {
     transform: translateX(-50%) rotate(45deg);
     width: 16px;
     height: 16px;
-    background: color-mix(in srgb, var(--color-bg-primary) 92%, transparent);
+    background: color-mix(in srgb, var(--color-bg-primary) 97%, transparent);
     border-left: 1px solid var(--color-glass-border);
     border-top: 1px solid var(--color-glass-border);
     border-radius: 3px;
+  }
+
+  /* ── Overlay de foco do dropdown ───────────────────────
+     Desfoca + escurece o fundo da página inteira enquanto um dropdown está
+     aberto. Fica abaixo do header/menu mobile para não interferir neles. */
+  .dropdown-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: color-mix(in srgb, var(--color-bg-primary) 30%, transparent);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+      visibility 0s 0.28s;
+  }
+
+  .dropdown-overlay.show {
+    opacity: 1;
+    visibility: visible;
+    transition:
+      opacity 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+      visibility 0s 0s;
   }
 
   .nav-dropdown:hover .dropdown-panel,
@@ -705,7 +738,8 @@ function isActive(item: { href: string; page: string }): boolean {
     .mobile-menu > *,
     .mobile-link,
     .header-logo-img,
-    .nav-icon-btn {
+    .nav-icon-btn,
+    .dropdown-overlay {
       transition: none !important;
       animation: none !important;
     }
@@ -788,6 +822,19 @@ function isActive(item: { href: string; page: string }): boolean {
         var link = dd.querySelector('.nav-link')
         if (link) link.setAttribute('aria-expanded', 'false')
       })
+      syncOverlay()
+    }
+
+    // Mostra/esconde o overlay de foco conforme exista dropdown aberto.
+    function syncOverlay() {
+      var overlay = document.getElementById('dropdown-overlay')
+      if (!overlay) return
+      var anyOpen = Array.prototype.some.call(
+        document.querySelectorAll('[data-dropdown]'),
+        function (dd) { return dd.classList.contains('open') }
+      )
+      overlay.classList.toggle('show', anyOpen)
+      overlay.setAttribute('aria-hidden', anyOpen ? 'false' : 'true')
     }
 
     function openSearch() {
@@ -804,15 +851,14 @@ function isActive(item: { href: string; page: string }): boolean {
       var dropdowns = Array.prototype.slice.call(document.querySelectorAll('[data-dropdown]'))
       dropdowns.forEach(function (dd) {
         var link = dd.querySelector('.nav-link')
-        dd.addEventListener('mouseenter', function () {
+        function openDd() {
           dd.classList.add('open')
           if (link) link.setAttribute('aria-expanded', 'true')
-        })
+          syncOverlay()
+        }
+        dd.addEventListener('mouseenter', openDd)
         dd.addEventListener('mouseleave', function () { closeDropdowns() })
-        dd.addEventListener('focusin', function () {
-          dd.classList.add('open')
-          if (link) link.setAttribute('aria-expanded', 'true')
-        })
+        dd.addEventListener('focusin', openDd)
         dd.addEventListener('focusout', function (e) {
           if (!dd.contains(e.relatedTarget)) closeDropdowns()
         })
@@ -850,6 +896,7 @@ function isActive(item: { href: string; page: string }): boolean {
           if (!isOpen) {
             dd.classList.add('open')
             link.setAttribute('aria-expanded', 'true')
+            syncOverlay()
           }
         }
         return
@@ -891,7 +938,13 @@ function isActive(item: { href: string; page: string }): boolean {
     // re-execução do bundle em navegação SPA).
     if (!window.__headerLifecycleBound) {
       window.__headerLifecycleBound = true
-      document.addEventListener('click', onDocumentClick)
+      // FASE DE CAPTURA: o ClientRouter do Astro escuta cliques no document
+      // (fase de bolha) e navega via SPA quando o evento não está prevenido.
+      // Como ele é registrado ANTES deste script, chegaria primeiro na bolha e
+      // navegaria para /receitas ao clicar no link "Receitas" — em vez de só
+      // abrir o dropdown (pedido: "deixe clicável como o Perfil"). Interceptando
+      // na captura, o preventDefault abaixo já vale quando a bolha rodar.
+      document.addEventListener('click', onDocumentClick, true)
       document.addEventListener('click', onMobileLinkClick)
       document.addEventListener('keydown', onKeyDown)
       document.addEventListener('astro:page-load', initAll)

@@ -25,6 +25,7 @@ export interface SeoLanding {
   ctaText: string
   ctaHref: string
   ctaLabel: string
+  symbologyNote?: string
 }
 
 export const seoLandings: SeoLanding[] = [
@@ -76,7 +77,8 @@ export const seoLandings: SeoLanding[] = [
     ctaTitle: 'Coloque em prática',
     ctaText: 'Teste os métodos com receitas passo a passo e descubra novos sabores no seu dia a dia.',
     ctaHref: '/receitas/',
-    ctaLabel: 'Ver todas as receitas'
+    ctaLabel: 'Ver todas as receitas',
+    symbologyNote: 'O café aqui é uma simbologia: a ideia é criar um ambiente agradável, resgatar a manhã e o momento de pausa do leitor. Use essas informações como curiosidade e inspiração.'
   },
   {
     slug: 'tipos-de-graos',
@@ -116,7 +118,8 @@ export const seoLandings: SeoLanding[] = [
     ctaTitle: 'Do grão à xícara',
     ctaText: 'Aprofunde seus conhecimentos com artigos do blog e experimente receitas que valorizam cada tipo de grão.',
     ctaHref: '/blog',
-    ctaLabel: 'Ler artigos do blog'
+    ctaLabel: 'Ler artigos do blog',
+    symbologyNote: 'O café aqui é uma simbologia: a ideia é criar um ambiente agradável, resgatar a manhã e o momento de pausa do leitor. Use essas informações como curiosidade e inspiração.'
   },
   {
     slug: 'como-fazer-cafe',
@@ -216,7 +219,8 @@ export const seoLandings: SeoLanding[] = [
     ctaTitle: 'Do terroir à xícara',
     ctaText: 'Valorize os grãos brasileiros com preparos que realçam cada perfil de sabor.',
     ctaHref: '/receitas/',
-    ctaLabel: 'Ver receitas com café'
+    ctaLabel: 'Ver receitas com café',
+    symbologyNote: 'O café aqui é uma simbologia: a ideia é criar um ambiente agradável, resgatar a manhã e o momento de pausa do leitor. Use essas informações como curiosidade e inspiração.'
   },
   {
     slug: 'glossario-do-cafe',
@@ -261,6 +265,7 @@ export const seoLandings: SeoLanding[] = [
     ctaTitle: 'Aprender na prática',
     ctaText: 'Vocabulário novo pede prática: leia nossos artigos e prepare receitas para sentir cada termo na xícara.',
     ctaHref: '/blog',
-    ctaLabel: 'Ler artigos do blog'
+    ctaLabel: 'Ler artigos do blog',
+    symbologyNote: 'O café aqui é uma simbologia: a ideia é criar um ambiente agradável, resgatar a manhã e o momento de pausa do leitor. Use essas informações como curiosidade e inspiração.'
   }
 ]
