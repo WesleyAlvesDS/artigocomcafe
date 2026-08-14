@@ -160,6 +160,14 @@ class OpenLibraryService extends ApiClient
         $subtitlePt = $translator->toPortuguese($data['subtitle'] ?? null);
         $descriptionPt = $translator->toPortuguese($description);
 
+        // Edições/versões da obra (pode falhar — nunca derruba a página).
+        $editions = null;
+        try {
+            $editions = $this->editions($clean, $fresh);
+        } catch (\Throwable $e) {
+            $editions = null;
+        }
+
         return [
             'key' => $data['key'] ?? null,
             'title' => $data['title'] ?? null,
@@ -181,6 +189,85 @@ class OpenLibraryService extends ApiClient
                 'M' => "https://covers.openlibrary.org/b/id/{$coverId}-M.jpg",
                 'L' => "https://covers.openlibrary.org/b/id/{$coverId}-L.jpg",
             ] : null,
+            'editions_count' => $editions['count'] ?? null,
+            'editions' => $editions['editions'] ?? [],
+        ];
+    }
+
+    /**
+     * Edições/versões de uma work.
+     *
+     * Ex.: /works/OL1234567W/editions.json
+     *
+     * @return array{count: int, editions: array}|null
+     */
+    public function editions(string $key, bool $fresh = false): ?array
+    {
+        $clean = trim($key, '/');
+        $cacheKey = 'openlibrary.editions.'.md5($clean);
+
+        $data = $this->cachedGet($cacheKey, function () use ($clean) {
+            return Http::timeout($this->requestTimeout())
+                ->get(self::BASE_URL.'/works/'.$clean.'/editions.json', [
+                    'limit' => 20,
+                ]);
+        }, fresh: $fresh);
+
+        if (! $data || ! isset($data['entries'])) {
+            return null;
+        }
+
+        $count = (int) ($data['size'] ?? count($data['entries'] ?? []));
+
+        $editions = collect($data['entries'] ?? [])
+            ->filter(fn (array $e) => ! empty($e['key']))
+            ->map(function (array $e) {
+                $publishDate = $e['publish_date'] ?? null;
+                $year = null;
+                if (is_string($publishDate) && preg_match('/(\d{4})/', $publishDate, $m)) {
+                    $year = (int) $m[1];
+                }
+
+                $publishers = $e['publishers'] ?? [];
+                if (is_string($publishers)) {
+                    $publishers = [$publishers];
+                }
+
+                $languages = $e['languages'] ?? [];
+                $langCodes = [];
+                foreach ($languages as $lang) {
+                    $code = is_array($lang) ? ($lang['key'] ?? '') : $lang;
+                    if (is_string($code) && preg_match('#/languages/([a-z]{2,3})#', $code, $m)) {
+                        $langCodes[] = $m[1];
+                    }
+                }
+
+                $isbn = array_merge(
+                    $e['isbn_13'] ?? [],
+                    $e['isbn_10'] ?? [],
+                );
+
+                return [
+                    'key' => $e['key'] ?? null,
+                    'edition_name' => $e['edition_name'] ?? null,
+                    'publish_date' => $publishDate,
+                    'year' => $year,
+                    'publishers' => array_slice(array_values(array_unique(array_filter($publishers))), 0, 3),
+                    'physical_format' => $e['physical_format'] ?? null,
+                    'number_of_pages' => isset($e['number_of_pages']) ? (int) $e['number_of_pages'] : null,
+                    'languages' => array_slice($langCodes, 0, 3),
+                    'isbn' => array_slice(array_values(array_unique(array_filter($isbn))), 0, 3),
+                    'cover_id' => $e['covers'][0] ?? null,
+                ];
+            })
+            ->sortByDesc('year')
+            ->values()
+            ->take(12)
+            ->all();
+
+        return [
+            'count' => $count,
+            'editions' => $editions,
         ];
     }
 

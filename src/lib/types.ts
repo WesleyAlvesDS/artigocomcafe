@@ -147,6 +147,20 @@ export interface OpenLibraryBook {
   languages?: string[]
 }
 
+/** Uma edição/versão de uma work da OpenLibrary (via backend). */
+export interface OpenLibraryEdition {
+  key: string | null
+  edition_name?: string | null
+  publish_date?: string | null
+  year?: number | null
+  publishers?: string[]
+  physical_format?: string | null
+  number_of_pages?: number | null
+  languages?: string[]
+  isbn?: string[]
+  cover_id?: number | null
+}
+
 /** Detalhes completos de uma work da OpenLibrary (via backend). */
 export interface OpenLibraryWork {
   key: string | null
@@ -165,4 +179,6 @@ export interface OpenLibraryWork {
   links?: Array<{ title?: string; url?: string }>
   cover_id?: number | null
   covers?: { S?: string; M?: string; L?: string } | null
+  editions_count?: number | null
+  editions?: OpenLibraryEdition[]
 }

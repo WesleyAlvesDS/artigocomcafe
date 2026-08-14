@@ -50,17 +50,61 @@ const descriptionText = book?.description_pt
 const cover = book ? bookCover(book, 'L') : null
 const year = book?.first_publish_year ? String(book.first_publish_year).match(/\d{4}/)?.[0] : null
 
+// ── Descrição rica de fallback ────────────────────────────────
+// Quando a OpenLibrary não traz descrição, montamos um texto informativo
+// com o que sabemos: autores, tema, ano, edições, línguas e assuntos.
+const editions = book?.editions || []
+const editionsCount = book?.editions_count ?? editions.length
+const editionYears = editions.map(e => e.year).filter(Boolean) as number[]
+const latestEditionYear = editionYears.length ? Math.max(...editionYears) : null
+const earliestEditionYear = editionYears.length ? Math.min(...editionYears) : null
+const languages = editions.flatMap(e => e.languages || []).filter(Boolean)
+const hasLanguages = languages.length > 0
+
+const fallbackDescription = book ? (() => {
+  const parts: string[] = []
+  parts.push(`${displayTitle} é uma obra ${displaySubtitle ? `com o subtítulo "${displaySubtitle}"` : 'relevante para quem busca conhecimento e aprofundamento'}${(book.authors || []).length ? `, escrita por ${book.authors.join(', ')}` : ''}.`)
+  if ((book.subjects || []).length) {
+    const subj = book.subjects!.slice(0, 5).join(', ')
+    parts.push(`A obra aborda ${subj.toLowerCase()}.`)
+  }
+  if (year) {
+    parts.push(`Publicada pela primeira vez em ${year}.`)
+  } else if (earliestEditionYear) {
+    parts.push(`Registrada pela primeira vez em ${earliestEditionYear}.`)
+  }
+  if (editionsCount && editionsCount > 0) {
+    const range = latestEditionYear && earliestEditionYear && latestEditionYear !== earliestEditionYear
+      ? ` entre ${earliestEditionYear} e ${latestEditionYear}`
+      : ''
+    parts.push(`Ao todo, são ${editionsCount} ${editionsCount === 1 ? 'edição conhecida' : 'edições conhecidas'}${range}.`)
+  }
+  if (hasLanguages) {
+    const unique = [...new Set(languages)].slice(0, 4).map(l => l.toUpperCase()).join(', ')
+    parts.push(`Publicada em ${unique}.`)
+  }
+  parts.push('Encontre este e outros títulos na biblioteca do Artigo com Café.')
+  return parts.join(' ')
+})() : ''
+
+const effectiveDescription = descriptionText || fallbackDescription
+
+// Formata a lista de línguas de uma edição (ex.: ["eng","por"] -> "EN, PT")
+const langLabel = (codes: string[] = []): string =>
+  [...new Set(codes)].slice(0, 3).map(c => c.toUpperCase()).join(', ')
+
 const schemaBook = book ? {
   '@context': 'https://schema.org',
   '@type': 'Book',
   'name': displayTitle,
   'alternateName': displaySubtitle || book.subtitle || undefined,
-  'description': descriptionText.substring(0, 500) || undefined,
+  'description': effectiveDescription.substring(0, 500) || undefined,
   'image': cover || undefined,
   'author': (book.authors || []).map(a => ({ '@type': 'Person', 'name': a })),
   'datePublished': year ? `${year}` : undefined,
   'inLanguage': 'pt-BR',
   'publisher': { '@type': 'Organization', 'name': 'Open Library' },
+  'numberOfEditions': editionsCount && editionsCount > 0 ? editionsCount : undefined,
 } : null
 ---
 
@@ -79,7 +123,7 @@ const schemaBook = book ? {
 ) : (
   <Base
     title={`${displayTitle} — Livro | Artigo com Café`}
-    description={descriptionText.substring(0, 160) || `${displayTitle} — conheça este livro na biblioteca do Artigo com Café.`}
+    description={effectiveDescription.substring(0, 160) || `${displayTitle} — conheça este livro na biblioteca do Artigo com Café.`}
     image={cover || '/images/og-default.svg'}
     type="book"
     canonical={`/livro/${book.key}/`}
@@ -156,21 +200,12 @@ const schemaBook = book ? {
               )}
 
               <div class="book-description prose" data-scroll-reveal="fade">
-                {descriptionText ? (
-                  <>
-                    <h2>Sobre este livro</h2>
-                    <p>{descriptionText}</p>
-                  </>
-                ) : (
-                  <>
-                    <h2>Sobre este livro</h2>
-                    <p>
-                      {displayTitle} é uma obra {displaySubtitle ? `com o subtítulo "${displaySubtitle}"` : 'relevante para quem busca conhecimento'}.
-                      {book.authors && book.authors.length > 0 ? ` Escrito por ${book.authors.join(', ')}.` : ''}
-                      {year ? ` Publicado pela primeira vez em ${year}.` : ''}
-                      Descubra este e outros títulos na biblioteca do Artigo com Café.
-                    </p>
-                  </>
+                <h2>Sobre este livro</h2>
+                <p>{effectiveDescription}</p>
+                {!descriptionText && (
+                  <p class="book-desc-note">
+                    <em>Resumo gerado automaticamente a partir dos dados da OpenLibrary.</em>
+                  </p>
                 )}
               </div>
 
@@ -180,6 +215,42 @@ const schemaBook = book ? {
                   <div class="subject-chips">
                     {book.subjects!.slice(0, 12).map(s => (
                       <a href={`/livros?busca=${encodeURIComponent(s)}`} class="subject-chip">{s}</a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {editions.length > 0 && (
+                <div class="book-editions" data-scroll-reveal="fade">
+                  <div class="editions-head">
+                    <h2>Edições e Versões</h2>
+                    <span class="editions-count">{editionsCount} {editionsCount === 1 ? 'edição' : 'edições'} na OpenLibrary</span>
+                  </div>
+                  <div class="editions-list">
+                    {editions.slice(0, 8).map((ed, i) => (
+                      <div class="edition-card" data-stagger-item>
+                        <div class="edition-year">
+                          {ed.year ? ed.year : (ed.publish_date || '—')}
+                        </div>
+                        <div class="edition-body">
+                          <div class="edition-top">
+                            <span class="edition-name">
+                              {ed.edition_name || `${displayTitle}${ed.year ? ` (${ed.year})` : ''}`}
+                            </span>
+                            {ed.physical_format && <span class="edition-format">{ed.physical_format}</span>}
+                          </div>
+                          <div class="edition-meta">
+                            {ed.publishers && ed.publishers.length > 0 && (
+                              <span>{ed.publishers.join(', ')}</span>
+                            )}
+                            {ed.number_of_pages && <span>{ed.number_of_pages} págs.</span>}
+                            {ed.languages && ed.languages.length > 0 && <span>{langLabel(ed.languages)}</span>}
+                            {ed.isbn && ed.isbn.length > 0 && (
+                              <span class="edition-isbn">ISBN {ed.isbn[0]}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -454,6 +525,128 @@ const schemaBook = book ? {
 
   .book-subjects {
     margin-bottom: 2rem;
+  }
+
+  .book-desc-note {
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+  }
+
+  /* ── Edições e Versões ─────────────────────────── */
+  .book-editions {
+    margin-bottom: 2.5rem;
+  }
+
+  .editions-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+
+  .editions-head h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin: 0;
+    scroll-margin-top: 90px;
+  }
+
+  .editions-count {
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
+    color: var(--color-text-muted);
+    padding: 0.3rem 0.75rem;
+    border-radius: 100px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+  }
+
+  .editions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .edition-card {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 1rem 1.1rem;
+    border-radius: 14px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+  }
+
+  .edition-card:hover {
+    border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .edition-year {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 64px;
+    padding: 0.4rem 0.6rem;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .edition-body {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .edition-top {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .edition-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+
+  .edition-format {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    padding: 0.15rem 0.5rem;
+    border-radius: 100px;
+    background: var(--color-bg-card-border);
+  }
+
+  .edition-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+
+  .edition-isbn {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
   }
 
   .subject-chips {
