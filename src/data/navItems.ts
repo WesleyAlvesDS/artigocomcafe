@@ -43,6 +43,7 @@ export const mainNav: NavItem[] = [
     ],
   },
   { label: 'Mapa', href: '/mapa', page: 'mapa' },
+  { label: 'Livros', href: '/livros', page: 'livros' },
   { label: 'Jornada', href: '/jornada', page: 'jornada' },
   { label: 'Sobre', href: '/sobre', page: 'sobre' },
   { label: 'Contato', href: '/contato', page: 'contato' },
@@ -55,6 +56,7 @@ export const mobileSections: MobileSection[] = [
       { label: 'Início', href: '/', page: 'home' },
       { label: 'Blog', href: '/blog', page: 'blog' },
       { label: '🍳 Receitas', href: '/receitas', page: 'receitas' },
+      { label: '📚 Livros', href: '/livros', page: 'livros' },
       { label: 'Mapa', href: '/mapa', page: 'mapa' },
       { label: 'Sobre', href: '/sobre', page: 'sobre' },
       { label: 'Contato', href: '/contato', page: 'contato' },
@@ -87,4 +89,5 @@ export const blogActivePages = ['blog']
 export const activeMatchRules: { parent: string; prefix: string }[] = [
   { parent: '/blog', prefix: '/blog/' },
   { parent: '/receitas', prefix: '/receitas/' },
+  { parent: '/livros', prefix: '/livro/' },
 ]

@@ -126,3 +126,37 @@ export interface RecipeCategory {
   color: string | null
   recipes_count: number
 }
+
+/** Livro vindo da busca da OpenLibrary (via backend). */
+export interface OpenLibraryBook {
+  key: string | null
+  title: string
+  subtitle?: string | null
+  authors: string[]
+  first_publish_year?: number | null
+  subjects: string[]
+  isbn?: string[]
+  cover_id?: number | null
+  covers?: { S?: string; M?: string; L?: string } | null
+  rating_avg?: number | null
+  rating_count?: number | null
+  edition_count?: number | null
+  languages?: string[]
+}
+
+/** Detalhes completos de uma work da OpenLibrary (via backend). */
+export interface OpenLibraryWork {
+  key: string | null
+  title: string
+  subtitle?: string | null
+  description?: string | null
+  first_publish_year?: number | string | null
+  authors: string[]
+  subjects: string[]
+  subject_places?: string[]
+  subject_people?: string[]
+  excerpts?: unknown[]
+  links?: Array<{ title?: string; url?: string }>
+  cover_id?: number | null
+  covers?: { S?: string; M?: string; L?: string } | null
+}

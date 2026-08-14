@@ -1,0 +1,150 @@
+---
+import Base from '../../layouts/Base.astro'
+import BookBrowser from '../../components/BookBrowser'
+import BookCard from '../../components/BookCard.astro'
+import Pagination from '../../components/Pagination.astro'
+import SidebarWidgets from '../../components/SidebarWidgets.astro'
+import ScrollAnimations from '../../components/ScrollAnimations.astro'
+import AdSterraBanner from '../../components/AdSterraBanner.astro'
+import AdSterraNative from '../../components/AdSterraNative.astro'
+import AdSenseSlot from '../../components/AdSenseSlot.astro'
+import { getLibraryExplore } from '../../lib/books'
+
+// Curadoria + temas da OpenLibrary no build SSG (estado inicial do island —
+// sem flash). Se a API oscilar, vem vazio e a página segue funcional.
+const { books: initialBooks, themes: initialThemes } = await getLibraryExplore(30)
+const currentPage = 1
+const perPage = 24
+const totalPages = Math.max(1, Math.ceil(initialBooks.length / perPage))
+const pageBooks = initialBooks.slice(0, perPage)
+---
+
+<Base title="Livros — Artigo com Café" description="Descubra livros sobre café, conhecimento e literatura. Busque milhões de títulos pela OpenLibrary e conheça sua próxima leitura." canonical="/livros/" breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Livros', slug: '/livros/' }]}>
+  <section class="section books-hero">
+    <div class="container">
+      <div class="hero-content" data-scroll-reveal="slide-up">
+        <span class="section-label">📚 Livros</span>
+        <h1 class="section-title">Explore os Livros</h1>
+        <p class="section-subtitle">
+          Títulos sobre café, conhecimento e literatura — busque por título, autor ou tema e
+          descubra sua próxima leitura.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section books-listing-section">
+    <div class="container">
+      <div class="books-layout">
+        <div class="books-main">
+          {/* Navegador client-side: busca com debounce na OpenLibrary + chips
+              de tema + paginação — funciona no site estático (cards SSG como
+              estado inicial). */}
+          <BookBrowser client:visible initialBooks={initialBooks} initialThemes={initialThemes} />
+          {pageBooks.length > 6 && (
+            <>
+              <AdSterraNative lazy className="books-feed-ad" label="Publicidade" />
+              <AdSenseSlot />
+            </>
+          )}
+        </div>
+
+        <SidebarWidgets
+          cafeDoDia={false}
+          receitaDoDia={true}
+          newsletter={true}
+          clima={true}
+          cambio={true}
+          nativeAd={false}
+        />
+      </div>
+
+      {/* Fallback sem JavaScript: lista SSG da curadoria. */}
+      <noscript>
+        {pageBooks.length > 0 ? (
+          <>
+            <div class="books-grid">
+              {pageBooks.map((book, i) => (
+                <BookCard book={book} revealDelay={`delay-${(i % 4) + 1}`} />
+              ))}
+            </div>
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                basePath="/livros"
+              />
+            )}
+          </>
+        ) : (
+          <div class="empty-state">
+            <h2 class="empty-title">Nenhum livro disponível</h2>
+            <p class="empty-desc">Ative o JavaScript para usar a busca da biblioteca.</p>
+          </div>
+        )}
+      </noscript>
+    </div>
+  </section>
+
+  <section class="section books-leaderboard" data-scroll-reveal="fade">
+    <div class="container" style="max-width: 760px;">
+      <AdSterraBanner key="a2885857c5978b578e5340115924dbb1" width={728} height={90} lazy />
+    </div>
+  </section>
+
+  <ScrollAnimations />
+</Base>
+
+<style>
+  .books-hero {
+    padding-bottom: 1rem;
+  }
+
+  .hero-content {
+    margin-bottom: 2rem;
+  }
+
+  .hero-content .section-subtitle {
+    margin: 0;
+  }
+
+  .books-listing-section {
+    padding-top: 0.5rem;
+  }
+
+  .books-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  .books-main {
+    min-width: 0;
+  }
+
+  .books-feed-ad {
+    max-width: 720px;
+    margin: 2.5rem auto;
+  }
+
+  @media (max-width: 1100px) {
+    .books-layout {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 2.5rem;
+    }
+    .sidebar-widgets {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+  }
+
+  .books-leaderboard {
+    padding-top: 0.5rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+  }
+</style>

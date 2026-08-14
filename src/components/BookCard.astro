@@ -1,0 +1,219 @@
+---
+import type { OpenLibraryBook } from '../lib/types'
+import { bookCover } from '../lib/books'
+
+export interface Props {
+  book: OpenLibraryBook
+  revealDelay?: string
+}
+
+const { book, revealDelay } = Astro.props
+const cover = bookCover(book, 'M')
+const href = book.key ? `/livro/${book.key}/` : null
+---
+
+{href ? (
+  <a href={href} class="book-card glass-card" data-reveal={revealDelay || ''}>
+    <div class="book-cover">
+      {cover ? (
+        <img
+          src={cover}
+          alt={`Capa de ${book.title}`}
+          width="180"
+          height="270"
+          loading="lazy"
+          decoding="async"
+        />
+      ) : (
+        <div class="book-cover-fallback"><span aria-hidden="true">📖</span></div>
+      )}
+      <div class="book-cover-shine" aria-hidden="true" />
+    </div>
+    <div class="book-info">
+      <h2 class="book-title">{book.title}</h2>
+      {book.subtitle && <p class="book-subtitle">{book.subtitle}</p>}
+      <p class="book-authors">{(book.authors || []).slice(0, 2).join(', ') || 'Autor desconhecido'}</p>
+      <div class="book-meta">
+        {book.first_publish_year && <span class="meta-chip">{book.first_publish_year}</span>}
+        {book.rating_avg != null && book.rating_count != null && book.rating_count > 0 && (
+          <span class="meta-chip rating">★ {Number(book.rating_avg).toFixed(1)}</span>
+        )}
+      </div>
+      <span class="book-read-more">
+        Conhecer livro
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="5" y1="12" x2="19" y2="12" />
+          <polyline points="12 5 19 12 12 19" />
+        </svg>
+      </span>
+    </div>
+  </a>
+) : (
+  <div class="book-card glass-card" data-reveal={revealDelay || ''}>
+    <div class="book-cover">
+      {cover ? (
+        <img src={cover} alt={`Capa de ${book.title}`} width="180" height="270" loading="lazy" decoding="async" />
+      ) : (
+        <div class="book-cover-fallback"><span aria-hidden="true">📖</span></div>
+      )}
+      <div class="book-cover-shine" aria-hidden="true" />
+    </div>
+    <div class="book-info">
+      <h2 class="book-title">{book.title}</h2>
+      {book.subtitle && <p class="book-subtitle">{book.subtitle}</p>}
+      <p class="book-authors">{(book.authors || []).slice(0, 2).join(', ') || 'Autor desconhecido'}</p>
+      <div class="book-meta">
+        {book.first_publish_year && <span class="meta-chip">{book.first_publish_year}</span>}
+        {book.rating_avg != null && book.rating_count != null && book.rating_count > 0 && (
+          <span class="meta-chip rating">★ {Number(book.rating_avg).toFixed(1)}</span>
+        )}
+      </div>
+    </div>
+  </div>
+)}
+
+<style>
+  .book-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    padding: 0;
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+                box-shadow 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+                border-color 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .book-card:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .book-cover {
+    position: relative;
+    aspect-ratio: 2 / 3;
+    overflow: hidden;
+    background: var(--color-bg-secondary);
+  }
+
+  .book-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.4s ease;
+  }
+
+  .book-card:hover .book-cover img {
+    transform: scale(0.97);
+    filter: brightness(0.92);
+  }
+
+  .book-cover-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 2.4rem;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 12%, var(--color-bg-secondary)), var(--color-bg-secondary));
+  }
+
+  .book-cover-shine {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 45%, color-mix(in srgb, white 7%, transparent) 50%, transparent 60%);
+    background-size: 200% 200%;
+    animation: gradient-shift 10s ease infinite;
+    pointer-events: none;
+  }
+
+  .book-info {
+    padding: 1rem 1.1rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    flex: 1;
+  }
+
+  .book-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    line-height: 1.35;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .book-subtitle {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .book-authors {
+    font-size: 0.78rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .book-meta {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-top: 0.15rem;
+  }
+
+  .meta-chip {
+    font-size: 0.68rem;
+    font-family: var(--font-mono);
+    color: var(--color-text-muted);
+    padding: 0.15rem 0.5rem;
+    border-radius: 100px;
+    background: var(--color-bg-card-border);
+  }
+
+  .meta-chip.rating {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.12);
+  }
+
+  .book-read-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: auto;
+    padding-top: 0.6rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    transition: gap 0.3s;
+  }
+
+  .book-card:hover .book-read-more {
+    gap: 0.6rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .book-card,
+    .book-cover img,
+    .book-read-more {
+      transition: none !important;
+    }
+    .book-card:hover .book-cover img {
+      transform: none;
+    }
+  }
+</style>

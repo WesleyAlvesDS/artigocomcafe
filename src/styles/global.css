@@ -1505,6 +1505,39 @@ select option:checked {
   background: color-mix(in srgb, var(--color-accent) 20%, transparent);
 }
 
+/* Grade padrão dos artigos — GLOBAL porque o island PostBrowser renderiza
+   .articles-grid sem o atributo de escopo do Astro; regras escopadas da
+   página não alcançam o conteúdo do island (por isso os cards empilhavam
+   em largura total no /blog). 3 colunas no desktop, 2 em telas médias,
+   1 no celular. */
+.articles-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  align-items: stretch;
+}
+
+@media (max-width: 1100px) {
+  .articles-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .articles-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Cards mais compactos dentro da grade de 3 colunas do blog (island) */
+.blog-main .articles-grid .article-body {
+  padding: 1.15rem;
+}
+
+.blog-main .articles-grid .article-title {
+  font-size: 1.02rem;
+}
+
 /* Cards de artigo (global — usados pelo island client-side) */
 .article-card {
   display: flex;
@@ -1522,13 +1555,29 @@ select option:checked {
   aspect-ratio: 16 / 9;
   overflow: hidden;
   border-radius: var(--radius-card) var(--radius-card) 0 0;
+  background: var(--color-bg-secondary);
 }
 
 .article-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.4s ease;
+}
+
+/* Moldura interna no hover: imagem "assenta" (diminui em vez de dar zoom) */
+.article-image-wrapper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 28%, transparent),
+    inset 0 0 28px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
 }
 
 .image-overlay {
@@ -1541,10 +1590,11 @@ select option:checked {
 }
 
 .article-card:hover .article-image {
-  transform: scale(1.08);
-  filter: brightness(0.9);
+  transform: scale(0.97);
+  filter: brightness(0.92);
 }
 
+.article-card:hover .article-image-wrapper::after,
 .article-card:hover .image-overlay {
   opacity: 1;
 }
@@ -1649,6 +1699,7 @@ select option:checked {
 @media (prefers-reduced-motion: reduce) {
   .article-image,
   .image-overlay,
+  .article-image-wrapper::after,
   .article-category,
   .article-title,
   .article-read-more,
@@ -1656,6 +1707,174 @@ select option:checked {
     transition: none !important;
   }
   .article-card:hover .article-image {
+    transform: none;
+  }
+}
+
+/* ================================================================
+   NAVEGADOR DE LIVROS (client-side) — estilos GLOBAIS para o
+   island BookBrowser (mesmo motivo do RecipeBrowser): os cards e
+   filtros renderizados pelo React não recebem os estilos escopados
+   da página SSG. Reutiliza .recipes-filters/.cat-chip/.pagination
+   (acima) e define aqui a grade + cards de livro.
+   ================================================================ */
+
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.25rem;
+}
+
+.book-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  padding: 0;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+              border-color 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.book-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+  box-shadow: var(--shadow-glow);
+}
+
+.book-cover {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  background: var(--color-bg-secondary);
+}
+
+.book-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.4s ease;
+}
+
+.book-card:hover .book-cover img {
+  transform: scale(0.97);
+  filter: brightness(0.92);
+}
+
+.book-cover-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 2.4rem;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 12%, var(--color-bg-secondary)), var(--color-bg-secondary));
+}
+
+.book-cover-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 45%, color-mix(in srgb, white 7%, transparent) 50%, transparent 60%);
+  background-size: 200% 200%;
+  animation: gradient-shift 10s ease infinite;
+  pointer-events: none;
+}
+
+.book-info {
+  padding: 1rem 1.1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1;
+}
+
+.book-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.35;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.book-subtitle {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.book-authors {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.book-meta {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.15rem;
+}
+
+.meta-chip {
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  padding: 0.15rem 0.5rem;
+  border-radius: 100px;
+  background: var(--color-bg-card-border);
+}
+
+.meta-chip.rating {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.book-read-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: auto;
+  padding-top: 0.6rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  transition: gap 0.3s;
+}
+
+.book-card:hover .book-read-more {
+  gap: 0.6rem;
+}
+
+.search-error {
+  color: #ef4444;
+  font-size: 0.85rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  margin: 1rem 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .book-card,
+  .book-cover img,
+  .book-read-more {
+    transition: none !important;
+  }
+  .book-card:hover .book-cover img {
     transform: none;
   }
 }

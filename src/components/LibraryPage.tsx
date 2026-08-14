@@ -236,13 +236,18 @@ function BookModal({ book, onClose, savedShelf, onShelfChange, savingShelf }: {
             )}
 
             {key && (
-              <a
-                class="modal-link"
-                href={`https://openlibrary.org/works/${key}`}
-                target="_blank" rel="noopener noreferrer"
-              >
-                Ver na OpenLibrary →
-              </a>
+              <div class="modal-links">
+                <a class="modal-link" href={`/livro/${key}/`}>
+                  📖 Página do livro
+                </a>
+                <a
+                  class="modal-link external"
+                  href={`https://openlibrary.org/works/${key}`}
+                  target="_blank" rel="noopener noreferrer"
+                >
+                  Ver na OpenLibrary →
+                </a>
+              </div>
             )}
           </div>
         </div>

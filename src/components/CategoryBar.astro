@@ -51,17 +51,37 @@ const CATEGORIES = [
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     overflow-x: auto;
-    scrollbar-width: thin;
+    overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
+    /* Sem barra de rolagem visível: o swipe continua funcionando e o visual
+       fica limpo (queixa: "barra de rolagem não muito legal"). */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
   .category-bar-inner::-webkit-scrollbar {
-    height: 4px;
+    display: none;
+    width: 0;
+    height: 0;
   }
 
-  .category-bar-inner::-webkit-scrollbar-thumb {
-    background: var(--color-bg-card-border);
-    border-radius: 4px;
+  /* Máscara lateral: esmaece as bordas quando há overflow (dica de swipe) */
+  .category-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 56px;
+    background: linear-gradient(90deg, transparent, var(--color-bg-primary));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: 0 var(--radius-card-lg) var(--radius-card-lg) 0;
+  }
+
+  .category-bar.has-overflow::after {
+    opacity: 0.85;
   }
 
   .category-item {
@@ -134,3 +154,20 @@ const CATEGORIES = [
     }
   }
 </style>
+
+<script>
+  // Mostra a máscara lateral apenas quando a barra realmente tem overflow
+  (function () {
+    function refresh() {
+      const bar = document.querySelector('.category-bar')
+      if (!bar) return
+      const inner = bar.querySelector('.category-bar-inner')
+      if (!inner) return
+      bar.classList.toggle('has-overflow', inner.scrollWidth > inner.clientWidth + 4)
+    }
+    window.addEventListener('astro:page-load', refresh)
+    window.addEventListener('resize', refresh)
+    document.addEventListener('DOMContentLoaded', refresh)
+    refresh()
+  })()
+</script>

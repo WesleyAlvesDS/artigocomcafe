@@ -539,6 +539,12 @@ import LibraryPage from '../components/LibraryPage.tsx'
     margin-bottom: 1rem;
   }
 
+  .modal-links {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
   .modal-link {
     font-size: 0.88rem;
     font-weight: 600;
@@ -548,6 +554,10 @@ import LibraryPage from '../components/LibraryPage.tsx'
 
   .modal-link:hover {
     text-decoration: underline;
+  }
+
+  .modal-link.external {
+    color: var(--color-text-secondary);
   }
 
   /* Prateleiras */

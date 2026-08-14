@@ -95,8 +95,9 @@ function isActive(item: { href: string; page: string }): boolean {
         </svg>
       </button>
       <ThemeToggle client:idle />
+      {/* O CTA de Newsletter saiu da navbar (já existe no rodapé e no hero) —
+          evita duplicatas. O "Entrar" assume o papel de ação primária. */}
       <UserMenu client:idle />
-      <a href="/newsletter" class="nav-cta btn-primary">Newsletter</a>
     </div>
 
     <button class="hamburger" id="hamburger" aria-label="Abrir menu" aria-expanded="false">
@@ -281,6 +282,19 @@ function isActive(item: { href: string; page: string }): boolean {
     transform: rotate(180deg);
   }
 
+  /* Ponte invisível entre o link e o painel: cobre o gap de 0.75rem para o
+     dropdown NÃO fechar quando o mouse sai do link a caminho do painel
+     (queixa: "as opções somem rápido ao passar o mouse"). */
+  .nav-dropdown::before {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: -0.5rem;
+    right: -0.5rem;
+    height: 1.15rem;
+    z-index: 199;
+  }
+
   /* Painel OPACO com blur: o glass-card padrão é quase transparente (7%) e
      sem backdrop-filter, deixando o conteúdo do dropdown ilegível sobre o
      fundo da página. Aqui usamos o fundo do tema quase sólido + blur. */
@@ -305,7 +319,9 @@ function isActive(item: { href: string; page: string }): boolean {
     transition:
       opacity 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
       transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
-      visibility 0.22s;
+      /* Ao fechar, a visibilidade só some depois de 0.28s — dá tempo do
+         mouse atravessar o vão sem derrubar o menu. */
+      visibility 0s 0.28s;
   }
 
   .dropdown-panel::before {
@@ -329,6 +345,10 @@ function isActive(item: { href: string; page: string }): boolean {
     visibility: visible;
     pointer-events: auto;
     transform: translateX(-50%) translateY(0);
+    transition:
+      opacity 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+      transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+      visibility 0s 0s;
   }
 
   .dropdown-head {
@@ -655,14 +675,12 @@ function isActive(item: { href: string; page: string }): boolean {
   @media (max-width: 1240px) {
     .header-inner { gap: 0.5rem 0.75rem; }
     .nav-link { padding: 0.5rem 0.7rem; font-size: 0.85rem; }
-    .header-actions .nav-cta { display: none; }
     .dropdown-panel { width: 300px; }
   }
 
   @media (max-width: 1000px) {
     .header-inner { gap: 0.5rem; }
     .nav-link { padding: 0.5rem 0.6rem; font-size: 0.8rem; }
-    .header-actions .nav-cta { display: none; }
     .dropdown-panel { width: 300px; }
   }
 
@@ -721,6 +739,7 @@ function isActive(item: { href: string; page: string }): boolean {
       var rules = [
         { parent: '/blog', prefix: '/blog/' },
         { parent: '/receitas', prefix: '/receitas/' },
+        { parent: '/livros', prefix: '/livro/' },
       ]
       function match(href) {
         if (path === '/' && href === '/') return true

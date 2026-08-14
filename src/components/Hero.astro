@@ -68,12 +68,12 @@ import NewsletterForm from './NewsletterForm'
     </div>
   </div>
 
-  <div class="hero-scroll-indicator" aria-hidden="true">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <a href="#home-experience" class="hero-scroll-indicator" aria-label="Explorar conteúdo da página">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M12 5v14M19 12l-7 7-7-7" />
     </svg>
     <span>Explore</span>
-  </div>
+  </a>
 </section>
 
 <style>
@@ -306,6 +306,17 @@ import NewsletterForm from './NewsletterForm'
     text-transform: uppercase;
     letter-spacing: 0.14em;
     z-index: 10;
+    text-decoration: none;
+    padding: 0.4rem 1rem;
+    border-radius: 100px;
+    transition: color 0.25s, background 0.25s, transform 0.25s;
+    cursor: pointer;
+  }
+
+  .hero-scroll-indicator:hover {
+    color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+    transform: translateX(-50%) translateY(-3px);
   }
 
   .hero-scroll-indicator svg {
@@ -415,6 +426,9 @@ import NewsletterForm from './NewsletterForm'
       transition: none !important;
     }
     .bean { display: none; }
+    .hero-scroll-indicator:hover {
+      transform: translateX(-50%);
+    }
   }
 </style>
 
