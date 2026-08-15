@@ -3,6 +3,7 @@
 namespace App\Services\Integrations;
 
 use App\Models\Setting;
+use App\Services\TranslationService;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -41,22 +42,29 @@ class GNewsService extends ApiClient
     }
 
     /**
-     * Retorna as notícias já normalizadas para exibição.
+     * Retorna as notícias já normalizadas para exibição, com tradução
+     * automática pt-BR via TranslationService.
      */
     public function headlines(?string $q = null, int $limit = 8, bool $fresh = false): array
     {
         $data = $this->search($q, $limit, $fresh);
 
         $articles = $data['articles'] ?? [];
+        $translator = app(TranslationService::class);
 
-        $items = array_map(function (array $item) {
+        $items = array_map(function (array $item) use ($translator) {
+            $title = $item['title'] ?? 'Sem título';
+            $excerpt = $item['description'] ?? null;
+
             return [
-                'title' => $item['title'] ?? 'Sem título',
+                'title' => $title,
+                'title_pt' => $translator->toPortuguese($title),
                 'url' => $item['url'] ?? null,
                 'section' => $item['source']['name'] ?? null,
                 'published_at' => $item['publishedAt'] ?? null,
                 'thumbnail' => $item['image'] ?? null,
-                'excerpt' => $item['description'] ?? null,
+                'excerpt' => $excerpt,
+                'excerpt_pt' => $translator->toPortuguese($excerpt),
                 'author' => $item['source']['name'] ?? null,
                 'source' => 'GNews',
             ];

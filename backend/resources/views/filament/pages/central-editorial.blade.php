@@ -71,12 +71,12 @@
                                 </div>
 
                                 <h4 class="mt-2 text-sm font-semibold leading-snug text-gray-950 dark:text-white">
-                                    {{ $item['title'] ?? 'Sem título' }}
+                                    {{ $item['title_pt'] ?? $item['title'] ?? 'Sem título' }}
                                 </h4>
 
-                                @if (filled($item['excerpt'] ?? null))
+                                @if (filled($item['excerpt_pt'] ?? $item['excerpt'] ?? null))
                                     <p class="mt-1 line-clamp-3 text-sm text-gray-500 dark:text-gray-400">
-                                        {{ $item['excerpt'] }}
+                                        {{ $item['excerpt_pt'] ?? $item['excerpt'] }}
                                     </p>
                                 @endif
                             </div>

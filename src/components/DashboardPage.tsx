@@ -59,11 +59,13 @@ interface ExchangeData {
 
 interface HeadlineItem {
   title: string
+  title_pt?: string | null
   url: string | null
   section: string | null
   published_at: string | null
   thumbnail: string | null
   excerpt: string | null
+  excerpt_pt?: string | null
   author: string | null
   source: string
 }
@@ -524,13 +526,13 @@ function HeadlinesWidget() {
                 rel={h.url ? 'noopener noreferrer' : undefined}
                 class="block text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
               >
-                <span class="font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors line-clamp-2">
-                  {h.title}
-                </span>
-                <div class="flex items-center gap-2 mt-0.5 text-[10px] text-[var(--color-text-muted-dark)]">
-                  <span class="font-medium">{h.source || '—'}</span>
-                  {h.excerpt && <span>·</span>}
-                  {h.excerpt && <span class="truncate">{h.excerpt}</span>}
+                 <span class="font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors line-clamp-2">
+                   {h.title_pt || h.title}
+                 </span>
+                 <div class="flex items-center gap-2 mt-0.5 text-[10px] text-[var(--color-text-muted-dark)]">
+                   <span class="font-medium">{h.source || '—'}</span>
+                   {h.excerpt_pt && <span>·</span>}
+                   {h.excerpt_pt && <span class="truncate">{h.excerpt_pt}</span>}
                 </div>
               </a>
             </li>

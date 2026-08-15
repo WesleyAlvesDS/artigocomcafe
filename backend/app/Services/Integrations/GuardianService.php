@@ -3,6 +3,7 @@
 namespace App\Services\Integrations;
 
 use App\Models\Setting;
+use App\Services\TranslationService;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -40,24 +41,30 @@ class GuardianService extends ApiClient
     }
 
     /**
-     * Retorna as notícias já normalizadas para exibição.
+     * Retorna as notícias já normalizadas para exibição, com tradução
+     * automática pt-BR via TranslationService (nunca quebra se a API falhar).
      */
     public function headlines(?string $q = null, int $limit = 8, bool $fresh = false): array
     {
         $data = $this->search($q, $limit, $fresh);
 
         $results = $data['response']['results'] ?? [];
+        $translator = app(TranslationService::class);
 
-        $items = array_map(function (array $item) {
+        $items = array_map(function (array $item) use ($translator) {
             $fields = $item['fields'] ?? [];
+            $title = $item['webTitle'] ?? 'Sem título';
+            $excerpt = $fields['trailText'] ?? null;
 
             return [
-                'title' => $item['webTitle'] ?? 'Sem título',
+                'title' => $title,
+                'title_pt' => $translator->toPortuguese($title),
                 'url' => $item['webUrl'] ?? null,
                 'section' => $item['sectionName'] ?? null,
                 'published_at' => $item['webPublicationDate'] ?? null,
                 'thumbnail' => $fields['thumbnail'] ?? null,
-                'excerpt' => $fields['trailText'] ?? null,
+                'excerpt' => $excerpt,
+                'excerpt_pt' => $translator->toPortuguese($excerpt),
                 'author' => $fields['byline'] ?? null,
                 'source' => 'Guardian',
             ];

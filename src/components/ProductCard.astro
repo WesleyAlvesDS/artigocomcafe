@@ -1,0 +1,61 @@
+---
+const { product, index, revealDelay } = Astro.props
+const { slug, name, description, price, originalPrice, image, category, type, badge, specs } = product
+
+const typeLabels = {
+  dropshipping: 'Produto de parceiro',
+  pod: 'Produção sob demanda',
+  combo: 'Kit especial',
+}
+
+const typeIcons = {
+  dropshipping: '📦',
+  pod: '🏷️',
+  combo: '🎁',
+}
+---
+
+<a href={`/loja/${slug}/`} class="product-card glass-card" data-reveal={revealDelay || ''} data-category={category}>
+  {badge && <span class="product-badge">{badge}</span>}
+  <div class="product-image-wrapper">
+    {image ? (
+      <img
+        src={image}
+        alt={name}
+        class="product-image"
+        width="400"
+        height="400"
+        loading="lazy"
+        decoding="async"
+      />
+    ) : (
+      <div class="product-image-fallback" aria-hidden="true">☕</div>
+    )}
+    <span class="product-type-badge">
+      {typeIcons[type] || '📦'} {typeLabels[type] || type}
+    </span>
+  </div>
+  <div class="product-body">
+    <span class="product-category">{category.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+    <h2 class="product-title">{name}</h2>
+    <p class="product-desc">{description}</p>
+    <div class="product-price-row">
+      <span class="product-price">R$ {price.toFixed(2).replace('.', ',')}</span>
+      {originalPrice && <span class="product-original-price">R$ {originalPrice.toFixed(2).replace('.', ',')}</span>}
+    </div>
+    <span class="product-type">
+      <strong>Tipo:</strong> {typeLabels[type] || type}
+    </span>
+  </div>
+</a>
+
+<style>
+  /* Estilos já estão no loja.astro como globais para SSR.
+     Este arquivo existe para satisfazer a importação do Astro.
+     Os estilos reais estão em loja.astro <style is:global>. */
+</style>
+
+<script>
+  // O filtro de categoria é gerenciado pelo script em loja.astro
+  // Este componente é passivo (link <a>) para SSR/SEO
+</script>

@@ -778,6 +778,97 @@ const schemaRecipe = recipe ? {
         document.querySelectorAll('[data-sub-close]').forEach(btn => {
           btn.addEventListener('click', () => closeMenus())
         })
+
+        // 8. Active step detection on scroll + progress line
+        const stepItems = document.querySelectorAll('.step-item')
+        const stepsList = document.querySelector('.steps-list')
+
+        function updateActiveStep() {
+          let activeIndex = -1
+          const viewportCenter = window.innerHeight * 0.45
+
+          stepItems.forEach((item, idx) => {
+            const rect = item.getBoundingClientRect()
+            const itemCenter = rect.top + rect.height / 2
+
+            // Remove previous state classes
+            item.classList.remove('active', 'pending')
+            item.style.setProperty('--step-index', String(idx))
+
+            if (itemCenter < viewportCenter && rect.bottom > 0) {
+              activeIndex = idx
+            }
+          })
+
+          // Marcar passos anteriores ao ativo como "pending" (visualmente diferentes)
+          stepItems.forEach((item, idx) => {
+            if (idx < activeIndex && !item.classList.contains('done')) {
+              item.classList.add('pending')
+            }
+          })
+
+          // Destacar o passo ativo
+          if (activeIndex >= 0) {
+            const activeItem = stepItems[activeIndex]
+            if (!activeItem.classList.contains('done')) {
+              activeItem.classList.add('active')
+            }
+          }
+
+          // Atualizar linha de progresso baseada em passos concluídos
+          if (stepsList) {
+            const doneSteps = document.querySelectorAll('.step-item.done').length
+            const totalSteps = stepItems.length
+            const progressPct = totalSteps > 0 ? (doneSteps / totalSteps) * 100 : 0
+            stepsList.style.setProperty('--steps-progress', `${progressPct}%`)
+          }
+        }
+
+        // IntersectionObserver para detecção mais precisa
+        const stepObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            const item = entry.target
+            const idx = Number(item.dataset.step)
+
+            if (entry.isIntersecting && entry.intersectionRatio > 0.4) {
+              item.classList.add('visible')
+            }
+          })
+        }, { threshold: [0.3, 0.5, 0.7], rootMargin: '-20% 0px -60% 0px' })
+
+        stepItems.forEach(item => stepObserver.observe(item))
+
+        // Atualizar no scroll (throttled)
+        let scrollTicking = false
+        function onScroll() {
+          if (!scrollTicking) {
+            requestAnimationFrame(() => {
+              updateActiveStep()
+              scrollTicking = false
+            })
+            scrollTicking = true
+          }
+        }
+
+        window.addEventListener('scroll', onScroll, { passive: true })
+        window.addEventListener('resize', onScroll, { passive: true })
+
+        // Inicialização
+        updateActiveStep()
+        stepItems.forEach((item, idx) => {
+          item.style.setProperty('--step-index', String(idx))
+        })
+
+        // Re-executar após navegação SPA
+        document.addEventListener('astro:after-swap', () => {
+          setTimeout(() => {
+            const newItems = document.querySelectorAll('.step-item')
+            newItems.forEach((item, idx) => {
+              item.style.setProperty('--step-index', String(idx))
+            })
+            updateActiveStep()
+          }, 100)
+        })
       })();
     </script>
   </Base>
@@ -1351,7 +1442,7 @@ const schemaRecipe = recipe ? {
     border: 1px solid var(--color-bg-card-border);
   }
 
-  .steps-list {
+.steps-list {
     list-style: none;
     padding: 0;
     margin: 0;
@@ -1362,33 +1453,63 @@ const schemaRecipe = recipe ? {
     position: relative;
   }
 
-  /* Linha conectora vertical da timeline — alinhada ao centro do número (1.25rem de padding + 17px de metade do número) */
+  /* Linha conectora vertical da timeline — passa pelo centro do número */
   .steps-list::before {
     content: '';
     position: absolute;
     left: calc(1.25rem + 17px);
-    top: 18px;
-    bottom: 18px;
+    top: 0;
+    bottom: 0;
     width: 2px;
-    background: linear-gradient(180deg, var(--color-bg-card-border), color-mix(in srgb, var(--color-accent) 35%, transparent));
+    background: linear-gradient(180deg, 
+      var(--color-bg-card-border) 0%,
+      color-mix(in srgb, var(--color-accent) 25%, transparent) 30%,
+      color-mix(in srgb, var(--color-accent) 45%, transparent) 60%,
+      color-mix(in srgb, var(--color-accent-secondary) 35%, transparent) 100%
+    );
     border-radius: 2px;
-    opacity: 0.8;
+    opacity: 0.6;
     transform: translateX(-1px);
+    z-index: 0;
+  }
+
+  /* Segmento da linha progressiva (preenchido conforme passos concluídos) */
+  .steps-list::after {
+    content: '';
+    position: absolute;
+    left: calc(1.25rem + 17px);
+    top: 0;
+    width: 2px;
+    height: var(--steps-progress, 0%);
+    background: linear-gradient(180deg, var(--color-accent), var(--color-accent-secondary));
+    border-radius: 2px;
+    opacity: 0.85;
+    transform: translateX(-1px);
+    z-index: 1;
+    transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .step-item {
     display: flex;
     gap: 1rem;
     align-items: flex-start;
-    padding: 1.1rem 1.25rem;
+    padding: 1.25rem 1.25rem;
     border-radius: 14px;
     background: var(--color-bg-card);
     border: 1px solid var(--color-bg-card-border);
     transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1rem;
     scroll-margin-top: 90px;
+    opacity: 0;
+    animation: step-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    animation-delay: calc(var(--step-index, 0) * 80ms);
+  }
+
+  @keyframes step-in {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
   }
 
   .step-item:last-child {
@@ -1405,34 +1526,77 @@ const schemaRecipe = recipe ? {
     background: linear-gradient(180deg, var(--color-accent), var(--color-accent-secondary));
     opacity: 0;
     transition: opacity 0.35s;
+    z-index: 2;
   }
 
   .step-item:hover {
     border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
-    transform: translateX(3px);
+    transform: translateX(4px);
     box-shadow: var(--shadow-card);
+    z-index: 3;
   }
 
   .step-item:hover::before {
     opacity: 1;
   }
 
-  .step-item.done {
-    border-color: color-mix(in srgb, #22c55e 35%, transparent);
+  /* Estado: passos futuros (pendentes) - mais sutis */
+  .step-item.pending {
+    background: color-mix(in srgb, var(--color-bg-card) 95%, var(--color-bg-primary));
   }
 
+  .step-item.pending .step-number {
+    background: var(--color-bg-card);
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-bg-card-border);
+    box-shadow: none;
+  }
+
+  /* Estado: passo atual (ativo durante leitura) */
+  .step-item.active {
+    border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+    background: color-mix(in srgb, var(--color-accent) 3%, var(--color-bg-card));
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-accent) 20%, transparent);
+  }
+
+  .step-item.active .step-number {
+    animation: pulse-ring 2s ease-out infinite;
+  }
+
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 40%, transparent); }
+    70% { box-shadow: 0 0 0 12px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
+
+  /* Estado: passo concluído */
   .step-item.done {
+    border-color: color-mix(in srgb, #22c55e 35%, transparent);
     background: color-mix(in srgb, #22c55e 4%, var(--color-bg-card));
   }
 
   .step-item.done .step-text {
-    opacity: 0.55;
+    opacity: 0.5;
     text-decoration: line-through;
   }
 
   .step-item.done .step-number {
     background: linear-gradient(135deg, #22c55e, #16a34a);
-    box-shadow: 0 4px 14px rgba(34, 197, 94, 0.3);
+    box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35);
+  }
+
+  .step-item.done .step-number::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 12px;
+    border: 2px solid #22c55e;
+    animation: check-pulse 1.5s ease-out infinite;
+  }
+
+  @keyframes check-pulse {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.25); opacity: 0; }
   }
 
   .step-number {
@@ -1448,33 +1612,62 @@ const schemaRecipe = recipe ? {
     font-weight: 700;
     font-size: 0.9rem;
     box-shadow: 0 4px 14px color-mix(in srgb, var(--color-accent) 30%, transparent);
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Anel de progresso no número do passo */
+  .step-number::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 12px;
+    border: 2px solid var(--color-bg-card-border);
+    opacity: 0.3;
+    transition: all 0.3s;
+  }
+
+  .step-item.done .step-number::before {
+    border-color: #22c55e;
+    opacity: 0.5;
   }
 
   .step-content {
     flex: 1;
     min-width: 0;
+    padding-top: 0.15rem;
   }
 
   .step-text {
     font-size: 0.95rem;
-    line-height: 1.7;
+    line-height: 1.75;
     color: var(--color-text-secondary);
-    margin: 0;
-    transition: opacity 0.3s;
+    margin: 0 0 0.5rem;
+    transition: opacity 0.3s, text-decoration 0.3s;
   }
 
   .step-time {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
-    margin-top: 0.5rem;
-    font-size: 0.72rem;
+    gap: 0.35rem;
+    margin-top: 0.4rem;
+    font-size: 0.7rem;
     font-family: var(--font-mono);
+    font-weight: 600;
     color: var(--color-accent);
     background: color-mix(in srgb, var(--color-accent) 8%, transparent);
     border: 1px solid color-mix(in srgb, var(--color-accent) 18%, transparent);
-    padding: 0.2rem 0.6rem;
+    padding: 0.25rem 0.7rem;
     border-radius: 100px;
+    transition: all 0.3s;
+  }
+
+  .step-item.active .step-time,
+  .step-item:hover .step-time {
+    background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+    border-color: var(--color-accent);
+    transform: translateX(2px);
   }
 
   .step-done {
@@ -1504,6 +1697,7 @@ const schemaRecipe = recipe ? {
   .step-done:hover .step-done-icon {
     border-color: var(--color-accent);
     color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+    transform: scale(1.05);
   }
 
   .step-done input:checked + .step-done-icon {

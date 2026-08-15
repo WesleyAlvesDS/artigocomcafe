@@ -106,12 +106,12 @@ class CentralEditorial extends Page
             return;
         }
 
-        $title = Str::limit($item['title'] ?? 'Sem título', 200);
+        $title = Str::limit($item['title_pt'] ?? $item['title'] ?? 'Sem título', 200);
 
         $article = Article::create([
             'title' => $title,
             'slug' => $this->uniqueSlug(Str::slug($title)),
-            'excerpt' => Str::limit($item['excerpt'] ?? '', 300),
+            'excerpt' => Str::limit($item['excerpt_pt'] ?? $item['excerpt'] ?? '', 300),
             'content' => $this->draftContent($item),
             'cover_image' => $this->coverFor($item),
             'featured_image' => $this->coverFor($item),
@@ -211,10 +211,10 @@ class CentralEditorial extends Page
      */
     protected function draftContent(array $item): string
     {
-        $excerpt = e(Str::limit($item['excerpt'] ?? '', 400));
+        $excerpt = e(Str::limit($item['excerpt_pt'] ?? $item['excerpt'] ?? '', 400));
         $url = e((string) ($this->safeUrl($item['url'] ?? null) ?? '#'));
         $source = e((string) ($item['source'] ?? 'fonte externa'));
-        $title = e(Str::limit($item['title'] ?? 'Sem título', 150));
+        $title = e(Str::limit($item['title_pt'] ?? $item['title'] ?? 'Sem título', 150));
 
         return "<h2>{$title}</h2>"
             ."<p>{$excerpt}</p>"

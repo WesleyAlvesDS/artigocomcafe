@@ -20,9 +20,9 @@
                                 <li>
                                     <a href="{{ $item['url'] ?? '#' }}" target="_blank" rel="noopener noreferrer"
                                        class="group block rounded-lg p-2 transition hover:bg-gray-50 dark:hover:bg-white/5">
-                                        <span class="block text-sm font-medium leading-snug text-gray-950 group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400">
-                                            {{ $item['title'] }}
-                                        </span>
+                                    <span class="block text-sm font-medium leading-snag text-gray-950 group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400">
+                                        {{ $item['title_pt'] ?? $item['title'] ?? '' }}
+                                    </span>
                                         <span class="mt-0.5 block text-xs text-gray-400 dark:text-gray-500">
                                             {{ $item['author'] ?? $item['section'] ?? '' }}
                                         </span>

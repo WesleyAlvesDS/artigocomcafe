@@ -1,0 +1,763 @@
+---
+import Base from '../layouts/Base.astro'
+import ProductCard from '../components/ProductCard.astro'
+import AdSterraBanner from '../components/AdSterraBanner.astro'
+import AdSterraNative from '../components/AdSterraNative.astro'
+import ScrollAnimations from '../components/ScrollAnimations.astro'
+
+// Produtos estáticos (máximo 20) — Dropshipping + POD
+// TODO: Substituir por API quando fornecedores forem definidos
+const products = [
+  // ☕ CAFÉ & PREPARO — Dropshipping (8 produtos)
+  {
+    slug: 'v60-dripper',
+    name: 'V60 Dripper Cerâmica',
+    description: 'O clássico método de preparo pour-over. Design icônico para extração limpa e controlada.',
+    price: 89.90,
+    originalPrice: 119.90,
+    image: '/images/products/v60-dripper.jpg',
+    category: 'cafe-preparo',
+    type: 'dropshipping',
+    badge: 'Mais vendido',
+    specs: ['Capacidade: 1-2 xícaras', 'Material: Cerâmica', 'Cor: Branco/Vermelho', 'Inclui: Medidor + 40 filtros'],
+  },
+  {
+    slug: 'prensa-francesa',
+    name: 'Prensa Francesa Inox 350ml',
+    description: 'Corpo completo, sabor intenso. Parede dupla mantém o café quente por mais tempo.',
+    price: 129.90,
+    originalPrice: 169.90,
+    image: '/images/products/prensa-francesa.jpg',
+    category: 'cafe-preparo',
+    type: 'dropshipping',
+    badge: 'Premium',
+    specs: ['Capacidade: 350ml', 'Material: Aço inoxidável 304', 'Parede dupla isolante', 'Filtro de malha fina'],
+  },
+  {
+    slug: 'moedor-manual',
+    name: 'Moedor Manual de Cerâmica',
+    description: 'Moagem consistente para qualquer método. Ajustável do espresso ao cold brew.',
+    price: 159.90,
+    originalPrice: 199.90,
+    image: '/images/products/moedor-manual.jpg',
+    category: 'cafe-preparo',
+    type: 'dropshipping',
+    specs: ['Rebolo: Cerâmica cônica', 'Ajuste: 15+ níveis', 'Capacidade: 30g', 'Portátil e durável'],
+  },
+  {
+    slug: 'balanca-precisao',
+    name: 'Balança de Precisão 0.1g',
+    description: 'Timer integrado, recarregável via USB. Essencial para receitas consistentes.',
+    price: 119.90,
+    image: '/images/products/balanca-precisao.jpg',
+    category: 'cafe-preparo',
+    type: 'dropshipping',
+    specs: ['Precisão: 0.1g', 'Capacidade: 2kg', 'Timer embutido', 'USB-C recarregável', 'Auto-desligamento'],
+  },
+  {
+    slug: 'chaleira-ganso',
+    name: 'Chaleira Bico de Ganso 600ml',
+    description: 'Controle total do fluxo. Design ergonômico para pour-over perfeito.',
+    price: 189.90,
+    originalPrice: 239.90,
+    image: '/images/products/chaleira-ganso.jpg',
+    category: 'cafe-preparo',
+    type: 'dropshipping',
+    badge: 'Design',
+    specs: ['Capacidade: 600ml', 'Material: Inox 304', 'Bico de precisão', 'Compatível: Fogão/Indução'],
+  },
+  {
+    slug: 'filtros-v60-100',
+    name: 'Filtros V60 Brancos (100 un)',
+    description: 'Papel de alta qualidade, sem gosto de papel. Branqueados sem cloro.',
+    price: 24.90,
+    image: '/images/products/filtros-v60.jpg',
+    category: 'cafe-preparo',
+    type: 'dropshipping',
+    specs: ['Quantidade: 100 unidades', 'Tamanho: 02 (1-2 xícaras)', 'Branqueamento: Oxigênio', 'Biodegradável'],
+  },
+  {
+    slug: 'cafe-especial-250g',
+    name: 'Café Especial 250g - Microlote',
+    description: 'Notas de chocolate, caramelo e frutas amarelas. Torra média, 86+ pontos SCA.',
+    price: 49.90,
+    image: '/images/products/cafe-especial.jpg',
+    category: 'cafe-preparo',
+    type: 'dropshipping',
+    badge: 'Edição limitada',
+    specs: ['Peso: 250g', 'Variedade: Arábica', 'Processo: Natural', 'Torra: Média', 'Origem: Cerrado Mineiro'],
+  },
+  {
+    slug: 'kit-iniciante',
+    name: 'Kit Iniciante: V60 + Balança + Filtros',
+    description: 'Tudo para começar no pour-over. Economia de 15% vs. itens separados.',
+    price: 199.90,
+    originalPrice: 234.70,
+    image: '/images/products/kit-iniciante.jpg',
+    category: 'cafe-preparo',
+    type: 'dropshipping',
+    badge: 'Kit completo',
+    specs: ['Inclui: V60 + Balança + 100 filtros', 'Economia: 15%', 'Pronto para usar', 'Guia digital incluso'],
+  },
+
+  // 👕 ARTIGO COM CAFÉ — POD (8 produtos)
+  {
+    slug: 'camiseta-logo-preta',
+    name: 'Camiseta Logo Preta',
+    description: 'Algodão orgânico premium. Logo minimalista no peito. Conforto para longas leituras.',
+    price: 89.90,
+    image: '/images/products/camiseta-logo-preta.jpg',
+    category: 'artigo-com-cafe',
+    type: 'pod',
+    specs: ['100% Algodão orgânico', 'Gramatura: 180g/m²', 'Corte: Regular', 'Tamanhos: PP a GG', 'Estampa: Serigrafia base d\'água'],
+  },
+  {
+    slug: 'camiseta-logo-branca',
+    name: 'Camiseta Logo Branca',
+    description: 'Versão clara da camiseta icônica. Versátil para qualquer ocasião.',
+    price: 89.90,
+    image: '/images/products/camiseta-logo-branca.jpg',
+    category: 'artigo-com-cafe',
+    type: 'pod',
+    specs: ['100% Algodão orgânico', 'Gramatura: 180g/m²', 'Corte: Regular', 'Tamanhos: PP a GG', 'Estampa: Serigrafia base d\'água'],
+  },
+  {
+    slug: 'caneca-ceramica',
+    name: 'Caneca Cerâmica 300ml',
+    description: 'Formato ergonômico, parede grossa mantém a temperatura. Logo discreto na base.',
+    price: 59.90,
+    image: '/images/products/caneca-ceramica.jpg',
+    category: 'artigo-com-cafe',
+    type: 'pod',
+    specs: ['Capacidade: 300ml', 'Material: Cerâmica premium', 'Apto: Micro-ondas/Lava-louças', 'Cor: Preto fosco/Crema'],
+  },
+  {
+    slug: 'moletom-conforto',
+    name: 'Moletom Conforto Cinza',
+    description: 'Fleece interno macio. Ideal para manhãs frias de leitura. Logo bordado no peito.',
+    price: 179.90,
+    originalPrice: 219.90,
+    image: '/images/products/moletom-conforto.jpg',
+    category: 'artigo-com-cafe',
+    type: 'pod',
+    badge: 'Conforto',
+    specs: ['80% Algodão / 20% Poliéster', 'Gramatura: 320g/m²', 'Fleece interno', 'Corte: Oversized', 'Logo: Bordado'],
+  },
+  {
+    slug: 'bone-dad-hat',
+    name: 'Boné Dad Hat Preto',
+    description: 'Aba curva, fecho metálico ajustável. Logo frontal pequeno. Estilo casual.',
+    price: 69.90,
+    image: '/images/products/bone-dad-hat.jpg',
+    category: 'artigo-com-cafe',
+    type: 'pod',
+    specs: ['100% Algodão twill', 'Fecho: Metálico ajustável', 'Aba: Curva', 'Tamanho único', 'Logo: Bordado'],
+  },
+  {
+    slug: 'ecobag-algodao',
+    name: 'Ecobag Algodão Cru',
+    description: 'Resistente, espaçosa. Para levar livros, laptop e compras do mercado.',
+    price: 44.90,
+    image: '/images/products/ecobag-algodao.jpg',
+    category: 'artigo-com-cafe',
+    type: 'pod',
+    specs: ['100% Algodão cru', 'Dimensões: 38x42cm', 'Alças: Reforçadas 60cm', 'Capacidade: ~10kg', 'Estampa: Serigrafia'],
+  },
+  {
+    slug: 'poster-cafe-manha',
+    name: 'Poster "Ritual da Manhã" A3',
+    description: 'Ilustração autoral. Papel premium mate. Emoldure e decore seu cantinho de café.',
+    price: 39.90,
+    image: '/images/products/poster-cafe-manha.jpg',
+    category: 'artigo-com-cafe',
+    type: 'pod',
+    specs: ['Tamanho: A3 (29,7x42cm)', 'Papel: Couché fosco 250g', 'Impressão: Offset', 'Sem moldura', 'Assinatura digital do artista'],
+  },
+  {
+    slug: 'caderno-pontos',
+    name: 'Caderno Pontos 160 pág',
+    description: 'Papel 90g/m², abertura 180°. Para anotações, bullet journal, sketches.',
+    price: 49.90,
+    image: '/images/products/caderno-pontos.jpg',
+    category: 'artigo-com-cafe',
+    type: 'pod',
+    specs: ['Páginas: 160 (80 folhas)', 'Papel: 90g/m² marfim', 'Formato: A5 (14,8x21cm)', 'Capa: Dura 300g', 'Encadernação: Costurada 180°', 'Elástico + Marcador + Bolso'],
+  },
+
+  // 🎁 SELEÇÃO ESPECIAL — Combinações (4 produtos)
+  {
+    slug: 'kit-ritual-manha',
+    name: 'Kit Ritual da Manhã',
+    description: 'Caneca POD + Café Especial 250g + Filtros V60 (20 un). O combo perfeito para começar o dia.',
+    price: 119.90,
+    originalPrice: 144.70,
+    image: '/images/products/kit-ritual-manha.jpg',
+    category: 'selecao-especial',
+    type: 'combo',
+    badge: 'Presente ideal',
+    specs: ['Inclui: Caneca 300ml + Café 250g + 20 filtros', 'Economia: 17%', 'Embalagem presenteável', 'Cartão com dicas de preparo'],
+  },
+  {
+    slug: 'kit-leitura-conforto',
+    name: 'Kit Leitura & Conforto',
+    description: 'Caderno Pontos + Caneca Cerâmica + Ecobag. Para levar seu momento a qualquer lugar.',
+    price: 139.90,
+    originalPrice: 174.70,
+    image: '/images/products/kit-leitura-conforto.jpg',
+    category: 'selecao-especial',
+    type: 'combo',
+    specs: ['Inclui: Caderno A5 + Caneca 300ml + Ecobag', 'Economia: 20%', 'Cores coordenadas', 'Embalagem sustentável'],
+  },
+  {
+    slug: 'kit-barista-iniciante',
+    name: 'Kit Barista Iniciante',
+    description: 'V60 + Balança + Chaleira Ganso + 100 Filtros. Setup completo pour-over profissional.',
+    price: 479.90,
+    originalPrice: 574.60,
+    image: '/images/products/kit-barista-iniciante.jpg',
+    category: 'selecao-especial',
+    type: 'combo',
+    badge: 'Setup completo',
+    specs: ['Inclui: V60 + Balança + Chaleira 600ml + 100 filtros', 'Economia: 16%', 'Guia digital de métodos', 'Garantia 1 ano'],
+  },
+  {
+    slug: 'kit-presente-completo',
+    name: 'Kit Presente Completo',
+    description: 'Camiseta + Caneca + Café Especial + Caderno. A experiência completa Artigo com Café.',
+    price: 269.90,
+    originalPrice: 329.60,
+    image: '/images/products/kit-presente-completo.jpg',
+    category: 'selecao-especial',
+    type: 'combo',
+    badge: 'Best seller',
+    specs: ['Inclui: Camiseta + Caneca + Café 250g + Caderno A5', 'Economia: 18%', 'Caixa premium personalizada', 'Cartão de agradecimento manuscrito'],
+  },
+]
+
+const categories = [
+  { id: 'all', label: 'Todos', count: products.length },
+  { id: 'cafe-preparo', label: '☕ Café & Preparo', count: products.filter(p => p.category === 'cafe-preparo').length },
+  { id: 'artigo-com-cafe', label: '👕 Artigo com Café', count: products.filter(p => p.category === 'artigo-com-cafe').length },
+  { id: 'selecao-especial', label: '🎁 Seleção Especial', count: products.filter(p => p.category === 'selecao-especial').length },
+]
+
+const typeLabels = {
+  dropshipping: 'Produto de parceiro',
+  pod: 'Produção sob demanda',
+  combo: 'Kit especial',
+}
+
+const categoryDescriptions = {
+  'cafe-preparo': 'Produtos selecionados de parceiros para elevar seu preparo.',
+  'artigo-com-cafe': 'Produtos com a identidade Artigo com Café, feitos sob demanda.',
+  'selecao-especial': 'Kits combinados com desconto — ideais para presentear.',
+}
+---
+
+<Base
+  title="Loja Artigo com Café — Produtos para seus momentos de café e leitura"
+  description="Pequena loja para apoiar o Artigo com Café. Até 20 produtos selecionados: café especial, métodos de preparo, acessórios e produtos com a identidade da marca. Frete calculado no checkout."
+  canonical="/loja/"
+  breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Loja', slug: '/loja/' }]}
+  image="/images/og-loja.png"
+>
+  <!-- Hero da Loja -->
+  <section class="section loja-hero" data-scroll-reveal="fade">
+    <div class="container">
+      <div class="loja-hero-content">
+        <span class="section-label">🛍️ Loja</span>
+        <h1 class="section-title">A Loja do Artigo com Café</h1>
+        <p class="section-subtitle" style="max-width: 600px; margin: 1.5rem auto 0;">
+          Uma pequena loja para grandes momentos. Produtos escolhidos para acompanhar seu café, sua leitura e suas descobertas. Ao comprar, você apoia a continuidade deste projeto.
+        </p>
+        <div class="loja-stats" data-stagger data-stagger-delay="80">
+          <div class="stat-item" data-stagger-item>
+            <span class="stat-number">{products.length}</span>
+            <span class="stat-label">Produtos curados</span>
+          </div>
+          <div class="stat-item" data-stagger-item>
+            <span class="stat-number">2</span>
+            <span class="stat-label">Pilares: Dropshipping + POD</span>
+          </div>
+          <div class="stat-item" data-stagger-item>
+            <span class="stat-number">100%</span>
+            <span class="stat-label">Curadoria própria</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Filtros de Categoria -->
+  <section class="section loja-filters-section" data-scroll-reveal="slide-up">
+    <div class="container">
+      <div class="categories-scroll" data-stagger data-stagger-delay="60">
+        {categories.map((cat, i) => (
+          <button
+            class:list={['category-filter-btn', { active: i === 0 }]}
+            data-category={cat.id}
+            data-stagger-item
+            data-count={cat.count}
+          >
+            <span class="cat-label">{cat.label}</span>
+            <span class="cat-count">{cat.count}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Grade de Produtos -->
+  <section class="section loja-products-section" data-scroll-reveal="fade">
+    <div class="container">
+      <div id="products-grid" class="products-grid" data-stagger data-stagger-delay="80">
+        {products.map((product, i) => (
+          <ProductCard product={product} index={i} revealDelay={`delay-${(i % 4) + 1}`} />
+        ))}
+      </div>
+
+      <div class="section-footer" data-scroll-reveal="fade" data-scroll-delay="200">
+        <p class="loja-footer-text">
+          <strong>Poucos produtos. Boas escolhas.</strong> Nossa curadoria é intencionalmente enxuta — até 20 itens que fazem sentido no universo do Artigo com Café.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Seção: Como funciona -->
+  <section class="section loja-how-section" data-scroll-reveal="fade">
+    <div class="container">
+      <div class="section-header" data-scroll-reveal="fade">
+        <span class="section-label">Como funciona</span>
+        <h2 class="section-title">Sua compra, sua jornada</h2>
+        <p class="section-subtitle">Experiência integrada do conteúdo ao produto.</p>
+      </div>
+      <div class="how-grid" data-stagger data-stagger-delay="80">
+        <div class="how-card glass-card" data-stagger-item>
+          <div class="how-icon" aria-hidden="true">🔍</div>
+          <h3 class="how-title">Descubra</h3>
+          <p class="how-desc">Navegue pela loja ou clique em recomendações dentro dos artigos. Cada produto foi escolhido pela equipe.</p>
+        </div>
+        <div class="how-card glass-card" data-stagger-item>
+          <div class="how-icon" aria-hidden="true">🛒</div>
+          <h3 class="how-title">Adicione ao carrinho</h3>
+          <p class="how-desc">Carrinho lateral fluido. Misture dropshipping e POD no mesmo pedido — o sistema organiza tudo.</p>
+        </div>
+        <div class="how-card glass-card" data-stagger-item>
+          <div class="how-icon" aria-hidden="true">💳</div>
+          <h3 class="how-title">Checkout moderno</h3>
+          <p class="how-desc">Pix, cartão, boleto. Endereço salvo no perfil. Cupom de grãos da jornada aplicado automaticamente.</p>
+        </div>
+        <div class="how-card glass-card" data-stagger-item>
+          <div class="how-icon" aria-hidden="true">📦</div>
+          <h3 class="how-title">Acompanhe no Dashboard</h3>
+          <p class="how-desc">Pedido único, múltiplos fornecedores. Status unificado: confirmado → preparação → enviado → entregue.</p>
+        </div>
+        <div class="how-card glass-card" data-stagger-item>
+          <div class="how-icon" aria-hidden="true">☕</div>
+          <h3 class="how-title">Chegou? Hora do café</h3>
+          <p class="how-desc">Ao receber, o dashboard sugere artigos relacionados. Compra → entrega → conteúdo → nova descoberta.</p>
+        </div>
+        <div class="how-card glass-card" data-stagger-item>
+          <div class="how-icon" aria-hidden="true">🫘</div>
+          <h3 class="how-title">Ganhe grãos</h3>
+          <p class="how-desc">Cada compra gera grãos. Troque por descontos, frete grátis ou acesso antecipado a coleções POD.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Newsletter -->
+  <section class="section home-ad-section" data-scroll-reveal="fade">
+    <div class="container" style="max-width: 720px;">
+      <AdSterraNative lazy />
+      <p class="home-ad-disclosure">
+        Esta loja apoia o Artigo com Café. Produtos de parceiros (dropshipping) e produção sob demanda (POD).
+        Saiba mais sobre <a href="/cookies/">como utilizamos cookies de publicidade</a>.
+      </p>
+    </div>
+  </section>
+
+  <ScrollAnimations />
+</Base>
+
+<style>
+  /* ── Hero da Loja ───────────────────────────────────── */
+  .loja-hero {
+    padding: 5rem 0 3rem;
+    text-align: center;
+  }
+
+  .loja-hero .section-title {
+    margin-bottom: 1rem;
+  }
+
+  .loja-stats {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    margin-top: 3rem;
+    flex-wrap: wrap;
+  }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .stat-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--gradient-from), var(--gradient-to));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+  }
+
+  /* ── Filtros de Categoria ───────────────────────────── */
+  .loja-filters-section {
+    padding: 1.5rem 0 2rem;
+  }
+
+  .categories-scroll {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .categories-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .category-filter-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: 100px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    white-space: nowrap;
+  }
+
+  .category-filter-btn:hover,
+  .category-filter-btn.active {
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    transform: translateY(-1px);
+  }
+
+  .cat-count {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    font-family: var(--font-mono);
+    background: var(--color-bg-card-border);
+    padding: 0.1rem 0.5rem;
+    border-radius: 100px;
+  }
+
+  .category-filter-btn.active .cat-count {
+    background: var(--color-accent);
+    color: var(--color-btn-text);
+  }
+
+  /* ── Grade de Produtos ──────────────────────────────── */
+  .loja-products-section {
+    padding: 2rem 0 4rem;
+  }
+
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .products-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.85rem;
+    }
+  }
+
+  .loja-footer-text {
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .loja-footer-text strong {
+    color: var(--color-text-primary);
+  }
+
+  /* ── Como funciona ──────────────────────────────────── */
+  .loja-how-section {
+    padding: 4rem 0;
+    background: var(--color-bg-secondary);
+  }
+
+  .how-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .how-card {
+    padding: 2rem;
+    text-align: center;
+    transition: transform 0.35s, box-shadow 0.35s, border-color 0.35s;
+  }
+
+  .how-card:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
+    box-shadow: var(--shadow-glow), 0 8px 32px rgba(0, 0, 0, 0.18);
+  }
+
+  .how-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    line-height: 1;
+  }
+
+  .how-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .how-desc {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  /* ── ProductCard component styles (inline para SSR) ─── */
+  .product-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    isolation: isolate;
+  }
+
+  .product-card:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .product-badge {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 2;
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary));
+    color: var(--color-btn-text);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+  }
+
+  .product-image-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background: var(--color-bg-secondary);
+  }
+
+  .product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.4s ease;
+  }
+
+  .product-card:hover .product-image {
+    transform: scale(0.97);
+    filter: brightness(0.92);
+  }
+
+  .product-type-badge {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    z-index: 2;
+    padding: 0.2rem 0.5rem;
+    border-radius: 100px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    background: rgba(10, 8, 5, 0.85);
+    backdrop-filter: blur(8px);
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-bg-card-border);
+  }
+
+  .product-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+  }
+
+  .product-category {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+  }
+
+  .product-title {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--color-text-primary);
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .product-desc {
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: var(--color-text-secondary);
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .product-price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-top: auto;
+  }
+
+  .product-price {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    font-family: var(--font-display);
+  }
+
+  .product-original-price {
+    font-size: 0.8rem;
+    text-decoration: line-through;
+    color: var(--color-text-muted);
+  }
+
+  .product-type {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--color-bg-card-border);
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+  }
+
+  .product-type strong {
+    color: var(--color-text-secondary);
+  }
+
+  /* Fallback de imagem */
+  .product-image-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 3rem;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 12%, var(--color-bg-secondary)), var(--color-bg-secondary));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .product-card,
+    .product-image,
+    .how-card {
+      transition: none !important;
+    }
+    .product-card:hover .product-image,
+    .how-card:hover {
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  // Filtro de categorias client-side (SPA-friendly)
+  (function() {
+    const buttons = document.querySelectorAll('.category-filter-btn');
+    const cards = document.querySelectorAll('.product-card');
+
+    function filter(category) {
+      cards.forEach(card => {
+        const cat = card.dataset.category;
+        const match = category === 'all' || cat === category;
+        card.style.display = match ? 'flex' : 'none';
+        if (match) {
+          // Re-trigger stagger animation
+          card.style.animation = 'none';
+          card.offsetHeight; // force reflow
+          card.style.animation = '';
+        }
+      });
+      buttons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.category === category);
+      });
+    }
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => filter(btn.dataset.category));
+    });
+
+    // Re-inicializa após navegação SPA
+    document.addEventListener('astro:after-swap', () => {
+      const newButtons = document.querySelectorAll('.category-filter-btn');
+      const newCards = document.querySelectorAll('.product-card');
+      newButtons.forEach(btn => {
+        btn.addEventListener('click', () => filter(btn.dataset.category));
+      });
+    });
+  })();
+</script>

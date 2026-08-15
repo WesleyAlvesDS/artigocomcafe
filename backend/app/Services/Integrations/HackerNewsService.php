@@ -2,6 +2,7 @@
 
 namespace App\Services\Integrations;
 
+use App\Services\TranslationService;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -39,11 +40,13 @@ class HackerNewsService extends ApiClient
     }
 
     /**
-     * Retorna as top stories normalizadas para exibição.
+     * Retorna as top stories normalizadas para exibição, com tradução
+     * automática pt-BR via TranslationService (nunca quebra se a API falhar).
      */
     public function headlines(int $limit = 8, bool $fresh = false): array
     {
         $ids = array_slice($this->topStoryIds($fresh), 0, $limit);
+        $translator = app(TranslationService::class);
 
         $items = [];
 
@@ -56,8 +59,11 @@ class HackerNewsService extends ApiClient
                 continue;
             }
 
+            $title = $story['title'] ?? 'Sem título';
+
             $items[] = [
-                'title' => $story['title'] ?? 'Sem título',
+                'title' => $title,
+                'title_pt' => $translator->toPortuguese($title),
                 'url' => $story['url'] ?? 'https://news.ycombinator.com/item?id='.$id,
                 'section' => 'Hacker News',
                 'published_at' => isset($story['time']) ? date('c', $story['time']) : null,

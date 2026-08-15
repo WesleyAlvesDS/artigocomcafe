@@ -6,11 +6,13 @@ import { renderMarkdown } from './PostEditor'
 
 interface HeadlineItem {
   title: string
+  title_pt?: string | null
   url: string | null
   section: string | null
   published_at: string | null
   thumbnail: string | null
   excerpt: string | null
+  excerpt_pt?: string | null
   author: string | null
   source: string
 }
@@ -165,9 +167,9 @@ export default function PostCreationAssistant({ onPostCreated, onClose }: PostCr
     setError(null)
 
     const prompt = POST_GENERATION_PROMPT
-      .replace('{titulo}', headline.title)
+      .replace('{titulo}', headline.title_pt || headline.title)
       .replace('{fonte}', `Fonte: ${headline.source}${headline.section ? ` (${headline.section})` : ''}`)
-      .replace('{excerto}', headline.excerpt || 'Sem excerto disponível')
+      .replace('{excerto}', headline.excerpt_pt || headline.excerpt || 'Sem excerto disponível')
       .replace('{url}', headline.url || '')
 
     try {
@@ -385,17 +387,20 @@ ${POST_GENERATION_PROMPT}`
                     disabled={loading}
                     className="headline-card p-4 text-left rounded-xl border border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)] hover:border-[var(--color-accent)]/50 hover:shadow-[var(--shadow-glow)] transition-all disabled:opacity-50"
                   >
-                    <div className="font-medium text-sm text-[var(--color-text-primary)] line-clamp-2 mb-2">
-                      {h.title}
-                    </div>
-                    <div className="flex items-center gap-2 text-[10px] text-[var(--color-text-muted)]">
-                      <span className="font-medium px-2 py-0.5 rounded bg-[var(--color-bg-card-border)]">{h.source}</span>
-                      {h.section && <span>· {h.section}</span>}
-                      {h.published_at && <span>· {new Date(h.published_at).toLocaleDateString('pt-BR')}</span>}
-                    </div>
-                    {h.excerpt && (
-                      <p className="mt-2 text-[11px] text-[var(--color-text-muted)] line-clamp-2">{h.excerpt}</p>
-                    )}
+                     <div className="font-medium text-sm text-[var(--color-text-primary)] line-clamp-2 mb-2">
+                       {h.title_pt || h.title}
+                     </div>
+                     <div className="flex items-center gap-2 text-[10px] text-[var(--color-text-muted)]">
+                       <span className="font-medium px-2 py-0.5 rounded bg-[var(--color-bg-card-border)]">{h.source}</span>
+                       {h.section && <span>· {h.section}</span>}
+                       {h.published_at && <span>· {new Date(h.published_at).toLocaleDateString('pt-BR')}</span>}
+                     </div>
+                     {h.excerpt_pt && (
+                       <p className="mt-2 text-[11px] text-[var(--color-text-muted)] line-clamp-2">{h.excerpt_pt}</p>
+                     )}
+                     {!h.excerpt_pt && h.excerpt && (
+                       <p className="mt-2 text-[11px] text-[var(--color-text-muted)] line-clamp-2">{h.excerpt}</p>
+                     )}
                   </button>
                 ))}
               </div>

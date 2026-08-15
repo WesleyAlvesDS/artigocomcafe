@@ -81,11 +81,35 @@ class OpenLibraryService extends ApiClient
     public function explore(int $limit = 12, bool $fresh = false): ?array
     {
         $themes = [
+            // Café — temas centrais do ecossistema
             ['q' => 'coffee', 'subject' => 'coffee'],
             ['q' => 'coffee history'],
-            ['q' => 'barista'],
+            ['q' => 'coffee culture'],
+            ['q' => 'coffee science'],
+            ['q' => 'specialty coffee'],
+            ['q' => 'coffee roasting'],
+            ['q' => 'coffee brewing'],
+            ['q' => 'coffee origins'],
+            ['q' => 'coffee tasting'],
+            ['q' => 'barista', 'subject' => 'barista'],
+            ['q' => 'barista techniques'],
             ['q' => 'café', 'language' => 'por'],
-            ['q' => 'cooking'],
+            ['q' => 'café especial'],
+            ['q' => 'café gourmet'],
+            ['q' => 'café brasileiro'],
+            // Conhecimento & Estilo de Vida — complementares ao ecossistema
+            ['q' => 'cooking', 'subject' => 'cooking'],
+            ['q' => 'food science'],
+            ['q' => 'gastronomy'],
+            ['q' => 'tea'],
+            ['q' => 'sustainability'],
+            ['q' => 'agriculture'],
+            ['q' => 'entrepreneurship'],
+            ['q' => 'small business'],
+            ['q' => 'mindfulness'],
+            ['q' => 'productivity'],
+            ['q' => 'learning'],
+            ['q' => 'creativity'],
             ['q' => 'technology'],
             ['q' => 'literature fiction'],
         ];
