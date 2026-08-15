@@ -43,7 +43,6 @@ const DEFAULT_ICONS: Record<string, string> = {
   natureza: '🌿', espaco: '🌌', livros: '📕'
 }
 
-// Deterministic color from slug
 function colorFromSlug(slug: string): string {
   const colors = ['#d4a373', '#c68a53', '#b87333', '#a0522d', '#8b5a2b', '#96783f', '#c08552', '#d2a679', '#a9714b', '#b8860b']
   let hash = 0
@@ -59,6 +58,7 @@ function MapContent() {
   const [scale, setScale] = useState(1)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
+  const [hoveredNode, setHoveredNode] = useState<number | null>(null)
   const dragStart = useRef({ x: 0, y: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -75,8 +75,8 @@ function MapContent() {
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault()
-    const delta = e.deltaY > 0 ? 0.9 : 1.1
-    setScale(prev => Math.max(0.3, Math.min(3, prev * delta)))
+    const delta = e.deltaY > 0 ? 0.92 : 1.08
+    setScale(prev => Math.max(0.4, Math.min(2.5, prev * delta)))
   }, [])
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -104,8 +104,12 @@ function MapContent() {
     return (
       <div class="flex items-center justify-center min-h-[60vh]">
         <div class="text-center">
-          <div class="w-12 h-12 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p class="text-[var(--color-text-muted)]">Carregando mapa do conhecimento…</p>
+          <div class="relative w-16 h-16 mx-auto mb-6">
+            <div class="absolute inset-0 rounded-full border-2 border-[var(--color-accent)] opacity-20 animate-ping" />
+            <div class="w-16 h-16 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin mx-auto" />
+          </div>
+          <p class="text-[var(--color-text-muted)] text-sm font-medium">Construindo seu mapa...</p>
+          <p class="text-[var(--color-text-muted)] text-xs mt-1 opacity-60">Isso pode levar alguns segundos</p>
         </div>
       </div>
     )
@@ -115,9 +119,9 @@ function MapContent() {
     return (
       <div class="flex items-center justify-center min-h-[60vh]">
         <div class="text-center glass-card p-8 max-w-md">
-          <div class="text-4xl mb-4">🗺️</div>
-          <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-2">Não foi possível carregar o mapa</h2>
-          <p class="text-[var(--color-text-secondary)] mb-4">Ocorreu um erro ao buscar os dados do seu Mapa do Conhecimento. Tente novamente em instantes.</p>
+          <div class="text-5xl mb-4">🗺️</div>
+          <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-2">Mapa temporariamente indisponível</h2>
+          <p class="text-[var(--color-text-secondary)] mb-6">Ocorreu um erro ao carregar seu Mapa do Conhecimento. Tente novamente em instantes.</p>
           <button onClick={load} class="btn-primary">Tentar novamente</button>
         </div>
       </div>
@@ -131,12 +135,12 @@ function MapContent() {
     return (
       <div class="flex items-center justify-center min-h-[60vh]">
         <div class="text-center glass-card p-8 max-w-md">
-          <div class="text-4xl mb-4">🌱</div>
+          <div class="text-5xl mb-4">🌱</div>
           <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-2">Seu mapa está começando</h2>
           <p class="text-[var(--color-text-secondary)] mb-2">
             Complete a leitura de artigos para desbloquear novos caminhos no seu Mapa do Conhecimento.
           </p>
-          <p class="text-sm text-[var(--color-text-muted)] mb-4">
+          <p class="text-sm text-[var(--color-text-muted)] mb-6">
             {categories.filter(c => c.total_articles > 0).length} temas disponíveis para explorar
           </p>
           <a href="/blog" class="btn-primary">Explorar Artigos</a>
@@ -147,14 +151,12 @@ function MapContent() {
 
   const selected = selectedCategory ? categories.find(c => c.id === selectedCategory) : null
 
-  // SVG layout
   const viewW = 1200, viewH = 800
   const centerX = viewW / 2, centerY = viewH / 2
   const radius = Math.min(viewW, viewH) * 0.32
   const activeCats = categories.filter(c => c.total_articles > 0)
   const catCount = activeCats.length
 
-  // Position categories in a circle
   const positionedCats = activeCats.map((cat, i) => {
     const angle = (i / Math.max(1, catCount)) * Math.PI * 2 - Math.PI / 2
     return {
@@ -163,11 +165,10 @@ function MapContent() {
       y: centerY + Math.sin(angle) * radius,
       angle,
       catColor: cat.color || colorFromSlug(cat.slug),
-      nodeRadius: 25 + (cat.completed_articles / Math.max(1, cat.total_articles)) * 20
+      nodeRadius: 28 + (cat.completed_articles / Math.max(1, cat.total_articles)) * 22
     }
   })
 
-  // Connection lines
   const connectionLines = data.connections
     .map(c => {
       const from = positionedCats.find(p => p.id === c.from)
@@ -181,12 +182,14 @@ function MapContent() {
       {/* Header */}
       <div class="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 class="text-2xl font-bold text-[var(--color-text-primary)]">🗺️ Mapa do Conhecimento</h1>
+          <h1 class="text-2xl font-bold text-[var(--color-text-primary)]">Mapa do Conhecimento</h1>
           <p class="text-sm text-[var(--color-text-muted)]">
             {evolution.categories_explored} de {evolution.categories_total} categorias exploradas · {evolution.articles_read} artigos lidos · {evolution.reading_time_hours}h de leitura
           </p>
         </div>
-        <button onClick={resetView} class="btn-ghost text-sm px-3 py-1.5">Centralizar</button>
+        <div class="flex items-center gap-2">
+          <button onClick={resetView} class="btn-ghost text-sm px-3 py-1.5">Centralizar</button>
+        </div>
       </div>
 
       {/* Map container */}
@@ -204,90 +207,102 @@ function MapContent() {
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
         >
-          {/* Pan/zoom wrapper */}
+          <defs>
+            <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.15" />
+              <stop offset="60%" stopColor="var(--color-accent)" stopOpacity="0.05" />
+              <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0" />
+            </radialGradient>
+            <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0" />
+            </radialGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+
           <g transform={`translate(${offset.x}, ${offset.y}) scale(${scale})`} style={{ transformOrigin: `${centerX}px ${centerY}px` }}>
-            <defs>
-              <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.08" />
-                <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0" />
-              </radialGradient>
-            </defs>
+            <circle cx={centerX} cy={centerY} r={radius * 2} fill="url(#centerGlow)" />
 
-            {/* Background glow */}
-            <circle cx={centerX} cy={centerY} r={radius * 1.8} fill="url(#centerGlow)" />
-
-            {/* Connection lines */}
             {connectionLines.map(line => line && (
               <line key={line.key} x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2}
-                stroke="var(--color-accent)" strokeOpacity={0.08 + line.strength * 0.04}
-                strokeWidth={1 + line.strength * 0.5} strokeDasharray="6,4" strokeLinecap="round"
+                stroke="var(--color-accent)" strokeOpacity={0.15 + line.strength * 0.06}
+                strokeWidth={1.5 + line.strength * 0.7} strokeDasharray="8,6" strokeLinecap="round"
               >
-                <animate attributeName="strokeDashoffset" from="0" to="20" dur="3s" repeatCount="indefinite" />
+                <animate attributeName="strokeDashoffset" from="0" to="28" dur="4s" repeatCount="indefinite" />
               </line>
             ))}
 
-            {/* Center dot */}
-            <circle cx={centerX} cy={centerY} r={12} fill="var(--color-accent)" opacity={0.3}>
-              <animate attributeName="r" values="8;16;8" dur="3s" repeatCount="indefinite" />
-              <animate attributeName="opacity" values="0.4;0.1;0.4" dur="3s" repeatCount="indefinite" />
+            <circle cx={centerX} cy={centerY} r={16} fill="var(--color-accent)" opacity={0.2}>
+              <animate attributeName="r" values="12;20;12" dur="4s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.3;0.1;0.3" dur="4s" repeatCount="indefinite" />
             </circle>
-            <circle cx={centerX} cy={centerY} r={5} fill="var(--color-accent)" />
+            <circle cx={centerX} cy={centerY} r={7} fill="var(--color-accent)" filter="url(#glow)" />
 
-            {/* Category nodes */}
             {positionedCats.map(cat => {
               const isSelected = selectedCategory === cat.id
+              const isHovered = hoveredNode === cat.id
               const icon = cat.icon || DEFAULT_ICONS[cat.slug] || '📂'
-              const labelX = cat.x + Math.cos(cat.angle) * (cat.nodeRadius + 18)
-              const labelY = cat.y + Math.sin(cat.angle) * (cat.nodeRadius + 18)
-              const progressCircumference = (cat.progress_percent / 100) * Math.PI * 2 * (cat.nodeRadius + 4)
-              const totalCircumference = Math.PI * 2 * (cat.nodeRadius + 4)
+              const labelX = cat.x + Math.cos(cat.angle) * (cat.nodeRadius + 24)
+              const labelY = cat.y + Math.sin(cat.angle) * (cat.nodeRadius + 24)
+              const progressCircumference = (cat.progress_percent / 100) * Math.PI * 2 * (cat.nodeRadius + 5)
+              const totalCircumference = Math.PI * 2 * (cat.nodeRadius + 5)
 
               return (
-                <g key={cat.id} className="cursor-pointer" onClick={() => setSelectedCategory(isSelected ? null : cat.id)}>
-                  {/* Selection glow */}
+                <g key={cat.id} className="cursor-pointer" style={{ transition: 'all 0.3s ease' }}
+                  onClick={() => setSelectedCategory(isSelected ? null : cat.id)}
+                  onMouseEnter={() => setHoveredNode(cat.id)}
+                  onMouseLeave={() => setHoveredNode(null)}
+                >
+                  {(isSelected || isHovered) && (
+                    <circle cx={cat.x} cy={cat.y} r={cat.nodeRadius + 16} fill="url(#nodeGlow)" />
+                  )}
+
                   {isSelected && (
-                    <circle cx={cat.x} cy={cat.y} r={cat.nodeRadius + 12} fill="none" stroke={cat.catColor}
-                      strokeWidth="3" opacity={0.5}>
-                      <animate attributeName="r" values={`${cat.nodeRadius + 10};${cat.nodeRadius + 16};${cat.nodeRadius + 10}`} dur="2s" repeatCount="indefinite" />
-                      <animate attributeName="opacity" values="0.5;0.2;0.5" dur="2s" repeatCount="indefinite" />
+                    <circle cx={cat.x} cy={cat.y} r={cat.nodeRadius + 14} fill="none" stroke={cat.catColor}
+                      strokeWidth="3" opacity={0.6}>
+                      <animate attributeName="r" values={`${cat.nodeRadius + 12};${cat.nodeRadius + 18};${cat.nodeRadius + 12}`} dur="2.5s" repeatCount="indefinite" />
+                      <animate attributeName="opacity" values="0.6;0.25;0.6" dur="2.5s" repeatCount="indefinite" />
                     </circle>
                   )}
 
-                  {/* Node */}
                   <circle cx={cat.x} cy={cat.y} r={cat.nodeRadius}
-                    fill={cat.completed_articles > 0 ? `${cat.catColor}22` : 'var(--color-bg-card)'}
-                    stroke={isSelected ? cat.catColor : (cat.completed_articles > 0 ? `${cat.catColor}66` : 'var(--color-bg-card-border)')}
-                    strokeWidth={isSelected ? 3 : 2}
+                    fill={cat.completed_articles > 0 ? `${cat.catColor}30` : 'var(--color-bg-card)'}
+                    stroke={isSelected ? cat.catColor : (cat.completed_articles > 0 ? `${cat.catColor}70` : 'var(--color-bg-card-border)')}
+                    strokeWidth={isSelected ? 3.5 : 2}
+                    style={{ transition: 'all 0.3s ease' }}
                   />
 
-                  {/* Progress arc */}
                   {cat.completed_articles > 0 && (
-                    <circle cx={cat.x} cy={cat.y} r={cat.nodeRadius + 4} fill="none"
-                      stroke={cat.catColor} strokeWidth="2" opacity={0.6}
+                    <circle cx={cat.x} cy={cat.y} r={cat.nodeRadius + 5} fill="none"
+                      stroke={cat.catColor} strokeWidth="2.5" opacity={0.75}
                       strokeDasharray={`${progressCircumference} ${totalCircumference}`}
                       strokeLinecap="round"
                       transform={`rotate(-90, ${cat.x}, ${cat.y})`}
                     />
                   )}
 
-                  {/* Icon */}
-                  <text x={cat.x} y={cat.y + 5} textAnchor="middle" fontSize="16" fill="var(--color-text-primary)">
+                  <text x={cat.x} y={cat.y + 6} textAnchor="middle" fontSize="18" fill="var(--color-text-primary)" style={{ transition: 'all 0.3s ease' }}>
                     {icon}
                   </text>
 
-                  {/* Label */}
-                  <text x={labelX} y={labelY} textAnchor="middle" fontSize="11"
+                  <text x={labelX} y={labelY} textAnchor="middle" fontSize="12"
                     fill={isSelected ? 'var(--color-text-primary)' : 'var(--color-text-secondary)'}
-                    fontWeight={isSelected ? '700' : '500'}
+                    fontWeight={isSelected ? '700' : '600'}
+                    style={{ transition: 'all 0.3s ease' }}
                   >
                     {cat.name}
                   </text>
 
-                  {/* Badge */}
                   {cat.completed_articles > 0 && (
                     <g>
-                      <rect x={cat.x + cat.nodeRadius - 8} y={cat.y - cat.nodeRadius - 6} width={16} height={16} rx="8" fill={cat.catColor} />
-                      <text x={cat.x + cat.nodeRadius} y={cat.y - cat.nodeRadius + 5} textAnchor="middle" fontSize="8" fill="#1a1209" fontWeight="700">
+                      <rect x={cat.x + cat.nodeRadius - 10} y={cat.y - cat.nodeRadius - 8} width={20} height={20} rx="10" fill={cat.catColor} filter="url(#glow)" />
+                      <text x={cat.x + cat.nodeRadius} y={cat.y - cat.nodeRadius + 5} textAnchor="middle" fontSize="10" fill="#1a1209" fontWeight="700">
                         {cat.completed_articles}
                       </text>
                     </g>
@@ -298,33 +313,32 @@ function MapContent() {
           </g>
         </svg>
 
-        {/* Articles panel */}
         {selected && selected.completed_articles > 0 && (
-          <div className="absolute top-4 right-4 bottom-4 w-72 glass-card p-4 overflow-y-auto animate-slide-up"
+          <div className="absolute top-4 right-4 bottom-4 w-80 glass-card p-5 overflow-y-auto animate-slide-up"
             style={{ maxHeight: 'calc(100% - 2rem)' }}
           >
-            <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center justify-between mb-4">
               <h3 class="font-bold text-[var(--color-text-primary)] text-sm flex items-center gap-2">
-                <span>{selected.icon || DEFAULT_ICONS[selected.slug] || '📂'}</span>
+                <span class="text-lg">{selected.icon || DEFAULT_ICONS[selected.slug] || '📂'}</span>
                 {selected.name}
               </h3>
               <button onClick={() => setSelectedCategory(null)}
-                class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-[var(--color-bg-card)] text-[var(--color-text-muted)] transition-colors">✕</button>
+                class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-[var(--color-bg-card)] text-[var(--color-text-muted)] transition-colors text-lg">✕</button>
             </div>
-            <div class="flex items-center gap-2 mb-3">
-              <div class="flex-1 h-1.5 rounded-full bg-[var(--color-bg-card-border)] overflow-hidden">
-                <div class="h-full rounded-full transition-all duration-500"
+            <div class="flex items-center gap-3 mb-4">
+              <div class="flex-1 h-2 rounded-full bg-[var(--color-bg-card-border)] overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-700"
                   style={{ width: `${selected.progress_percent}%`, background: selected.color || 'var(--color-accent)' }} />
               </div>
-              <span class="text-xs font-mono text-[var(--color-text-muted)]">{selected.progress_percent}%</span>
+              <span class="text-xs font-mono text-[var(--color-text-muted)] font-bold">{selected.progress_percent}%</span>
             </div>
-            <p class="text-xs text-[var(--color-text-muted)] mb-3">{selected.completed_articles} de {selected.total_articles} artigos lidos</p>
+            <p class="text-xs text-[var(--color-text-muted)] mb-4">{selected.completed_articles} de {selected.total_articles} artigos lidos</p>
             <div class="space-y-2">
               {selected.articles.map(article => (
                 <a key={article.id} href={`/blog/${article.slug}`}
-                  class="block p-2.5 rounded-xl hover:bg-[var(--color-bg-card)] transition-all group">
+                  class="block p-3 rounded-xl hover:bg-[var(--color-bg-card)] transition-all group">
                   <p class="text-sm font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors line-clamp-2">{article.title}</p>
-                  <div class="flex items-center gap-2 mt-1">
+                  <div class="flex items-center gap-2 mt-1.5">
                     <span class="text-xs text-[var(--color-text-muted)]">{article.reading_time} min</span>
                     {article.tags.slice(0, 2).map(tag => (
                       <span key={tag.id} class="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--color-bg-card)] text-[var(--color-text-muted)]">#{tag.name}</span>
@@ -333,7 +347,7 @@ function MapContent() {
                 </a>
               ))}
             </div>
-            <a href={`/blog?categoria=${selected.slug}`} class="block mt-3 text-center text-xs font-medium text-[var(--color-accent)] hover:underline">
+            <a href={`/blog?categoria=${selected.slug}`} class="block mt-4 text-center text-xs font-medium text-[var(--color-accent)] hover:underline">
               Ver todos os artigos de {selected.name} →
             </a>
           </div>
@@ -343,26 +357,29 @@ function MapContent() {
       {/* Stats */}
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Artigos Lidos', value: evolution.articles_read, icon: '📖' },
-          { label: 'Horas de Leitura', value: evolution.reading_time_hours, icon: '⏱️' },
-          { label: 'Categorias', value: evolution.categories_explored, icon: '🌍' },
-          { label: 'Dias Seguidos', value: evolution.daily_streak, icon: '🔥' },
+          { label: 'Artigos Lidos', value: evolution.articles_read, icon: '📖', color: 'var(--color-accent)' },
+          { label: 'Horas de Leitura', value: evolution.reading_time_hours, icon: '⏱️', color: '#c68a53' },
+          { label: 'Categorias', value: evolution.categories_explored, icon: '🌍', color: '#b87333' },
+          { label: 'Dias Seguidos', value: evolution.daily_streak, icon: '🔥', color: '#d4a373' },
         ].map(stat => (
-          <div key={stat.label} class="glass-card p-3 text-center">
-            <div class="text-lg">{stat.icon}</div>
-            <div class="text-xl font-bold text-[var(--color-text-primary)]">{stat.value}</div>
+          <div key={stat.label} class="glass-card p-4 text-center group hover:scale-[1.02] transition-transform">
+            <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">{stat.icon}</div>
+            <div class="text-2xl font-bold text-[var(--color-text-primary)] mb-1">{stat.value}</div>
             <div class="text-xs text-[var(--color-text-muted)]">{stat.label}</div>
+            <div class="mt-2 h-1 rounded-full bg-[var(--color-bg-card-border)] overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, (stat.value / Math.max(1, stat.value + 5)) * 100)}%`, background: stat.color }} />
+            </div>
           </div>
         ))}
       </div>
 
       {/* Legend */}
-      <div class="flex flex-wrap gap-3 text-xs text-[var(--color-text-muted)]">
-        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full border border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)]" /> Não explorado</span>
-        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full" style={{ background: 'var(--color-accent)', opacity: 0.3 }} /> Em progresso</span>
-        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full" style={{ background: 'var(--color-accent)' }} /> Completo</span>
-        <span class="flex items-center gap-1"><span class="w-2 h-0.5 bg-[var(--color-accent)] opacity-30" /> Conexão</span>
-        <span>💡 Clique em um tema</span>
+      <div class="flex flex-wrap gap-4 text-xs text-[var(--color-text-muted)]">
+        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full border border-[var(--color-bg-card-border)] bg-[var(--color-bg-card)]" /> Não explorado</span>
+        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full" style={{ background: 'var(--color-accent)', opacity: 0.4 }} /> Em progresso</span>
+        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full" style={{ background: 'var(--color-accent)' }} /> Completo</span>
+        <span class="flex items-center gap-1.5"><span class="w-2 h-0.5 bg-[var(--color-accent)] opacity-40" /> Conexão</span>
+        <span class="text-[var(--color-text-secondary)]">Clique em um tema para ver os artigos</span>
       </div>
     </div>
   )
