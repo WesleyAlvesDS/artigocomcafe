@@ -1057,9 +1057,9 @@ function DashboardContent() {
                     </>
                   ) : (
                     statCards.map(stat => (
-                      <div key={stat.label} class="glass-card p-5 text-center group transition-all hover:-translate-y-1">
+                      <div key={stat.label} class="glass-card p-5 text-center group transition-all hover:-translate-y-1 hover:shadow-glow">
                         <div class="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"
-                          style={{ background: 'color-mix(in srgb, var(--color-accent) 12%, transparent)' }}
+                          style={{ background: 'color-mix(in srgb, var(--color-accent) 14%, transparent)', border: '1px solid color-mix(in srgb, var(--color-accent) 20%, transparent)' }}
                           role="img" aria-hidden="true">
                           {stat.icon}
                         </div>
