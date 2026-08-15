@@ -1,0 +1,95 @@
+<div class="maintenance-bar" role="status" aria-live="polite" aria-label="Aviso de manutenção">
+  <div class="maintenance-track">
+    <div class="maintenance-content">
+      <span class="maintenance-icon" aria-hidden="true">☕</span>
+      <span class="maintenance-text">Estamos em manutenção para oferecer a melhor experiência possível. Agradecemos a sua paciência!</span>
+      <span class="maintenance-separator" aria-hidden="true">•</span>
+      <span class="maintenance-text">Estamos em manutenção para oferecer a melhor experiência possível. Agradecemos a sua paciência!</span>
+      <span class="maintenance-separator" aria-hidden="true">•</span>
+      <span class="maintenance-text">Estamos em manutenção para oferecer a melhor experiência possível. Agradecemos a sua paciência!</span>
+      <span class="maintenance-separator" aria-hidden="true">•</span>
+      <span class="maintenance-text">Estamos em manutenção para oferecer a melhor experiência possível. Agradecemos a sua paciência!</span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .maintenance-bar {
+    position: relative;
+    z-index: 10001;
+    width: 100%;
+    background: linear-gradient(90deg, var(--color-accent), var(--color-accent-secondary));
+    color: var(--color-btn-text);
+    overflow: hidden;
+    padding: 0.6rem 0;
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  }
+
+  .maintenance-track {
+    display: flex;
+    width: max-content;
+    animation: maintenance-scroll 28s linear infinite;
+  }
+
+  .maintenance-content {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    white-space: nowrap;
+    padding-right: 1.5rem;
+  }
+
+  .maintenance-icon {
+    font-size: 1.1rem;
+    animation: maintenance-pulse 2s ease-in-out infinite;
+  }
+
+  .maintenance-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+  }
+
+  .maintenance-separator {
+    font-size: 0.75rem;
+    opacity: 0.7;
+  }
+
+  @keyframes maintenance-scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  @keyframes maintenance-pulse {
+    0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
+    50% { opacity: 0.7; transform: scale(1.15) rotate(-5deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .maintenance-track {
+      animation: none;
+      width: 100%;
+      justify-content: center;
+    }
+    .maintenance-content {
+      padding-right: 0;
+      justify-content: center;
+    }
+    .maintenance-icon {
+      animation: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .maintenance-bar {
+      padding: 0.5rem 0;
+    }
+    .maintenance-text {
+      font-size: 0.75rem;
+    }
+    .maintenance-content {
+      gap: 1rem;
+    }
+  }
+</style>
