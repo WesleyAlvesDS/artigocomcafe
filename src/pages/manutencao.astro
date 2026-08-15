@@ -1,0 +1,96 @@
+---
+import Base from '../../layouts/Base.astro'
+---
+
+<Base title="Manutenção — Artigo com Café" description="Site em manutenção para oferecer a melhor experiência. Em breve estaremos de volta." canonical="/">
+  <section class="maintenance-section" aria-label="Aviso de manutenção">
+    <div class="maintenance-container">
+      <div class="maintenance-pill">
+        <span class="maintenance-dot" aria-hidden="true"></span>
+        <span class="maintenance-text">Estamos em manutenção para oferecer a melhor experiência. Em breve estaremos de volta com novidades. Agradecemos a sua paciência!</span>
+        <span class="maintenance-dot" aria-hidden="true"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="min-h-screen flex items-center justify-center px-4" aria-label="Página em manutenção">
+    <div class="text-center max-w-2xl mx-auto">
+      <div class="text-6xl mb-6" aria-hidden="true">☕</div>
+      <h1 class="text-3xl md:text-4xl font-bold text-[var(--color-text-primary)] mb-4">
+        Site em manutenção
+      </h1>
+      <p class="text-lg text-[var(--color-text-secondary)] mb-8 leading-relaxed">
+        Estamos trabalhando para melhorar sua experiência no <strong class="text-[var(--color-accent)]">Artigo com Café</strong>.
+        Em breve estaremos de volta com novidades.
+      </p>
+      <div class="glass-card inline-block px-6 py-4 rounded-2xl">
+        <p class="text-sm text-[var(--color-text-muted)] flex items-center gap-2 justify-center">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          Previsão de retorno: em instantes
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .maintenance-section {
+      position: relative;
+      z-index: 9999;
+      background: var(--color-bg-primary);
+      border-bottom: 1px solid var(--color-bg-card-border);
+      overflow: hidden;
+    }
+
+    .maintenance-container {
+      padding: 0.75rem 0;
+    }
+
+    .maintenance-pill {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      animation: maintenance-scroll 20s linear infinite;
+      width: max-content;
+      margin: 0 auto;
+    }
+
+    .maintenance-dot {
+      flex-shrink: 0;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-accent);
+      animation: maintenance-pulse 2s ease-in-out infinite;
+    }
+
+    .maintenance-text {
+      white-space: nowrap;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      letter-spacing: 0.02em;
+    }
+
+    @keyframes maintenance-scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    @keyframes maintenance-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .maintenance-pill {
+        animation: none;
+        width: 100%;
+        justify-content: center;
+      }
+      .maintenance-dot {
+        animation: none;
+      }
+    }
+  </style>
+</Base>
