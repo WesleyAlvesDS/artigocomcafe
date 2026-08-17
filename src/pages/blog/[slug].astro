@@ -402,6 +402,38 @@ const contentWithIds = post ? addHeadingIds(rawContent, tocHeadings) : ''
 
      <ReadingTracker articleId={post!.id} articleTitle={post!.title} client:visible />
     <ReaderAssistant client:visible />
+
+    {/* Modo Estudo: foco total na leitura (esconde sidebar, anúncios e relacionados) */}
+    <button id="study-mode-toggle" class="study-mode-toggle" type="button" aria-pressed="false" title="Alternar modo estudo">
+      <span aria-hidden="true">📖</span>
+      <span class="study-mode-label">Modo Estudo</span>
+    </button>
+    <script is:inline>
+      (function () {
+        var KEY = 'acf-study-mode'
+        function apply() {
+          var on = false
+          try { on = localStorage.getItem(KEY) === '1' } catch (e) {}
+          document.body.classList.toggle('study-mode', on)
+          var btn = document.getElementById('study-mode-toggle')
+          if (!btn) return
+          btn.setAttribute('aria-pressed', String(on))
+          var label = btn.querySelector('.study-mode-label')
+          if (label) label.textContent = on ? 'Sair do modo estudo' : 'Modo Estudo'
+        }
+        document.addEventListener('click', function (e) {
+          var target = e.target
+          if (!target || !target.closest) return
+          if (!target.closest('#study-mode-toggle')) return
+          var on = !document.body.classList.contains('study-mode')
+          document.body.classList.toggle('study-mode', on)
+          try { localStorage.setItem(KEY, on ? '1' : '0') } catch (err) {}
+          apply()
+        })
+        document.addEventListener('astro:page-load', apply)
+        apply()
+      })()
+    </script>
   </Base>
 )}
 
@@ -876,6 +908,65 @@ const contentWithIds = post ? addHeadingIds(rawContent, tocHeadings) : ''
     }
     .articles-grid[data-stagger] > .lazy-related-loaded {
       animation: none;
+    }
+  }
+
+  /* ── Modo Estudo: foco total no texto (PRD "Modo Estudo") ────────── */
+  .study-mode-toggle {
+    position: fixed;
+    left: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 9000;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.6rem 1.1rem;
+    border-radius: 100px;
+    background: var(--color-glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--color-glass-border);
+    color: var(--color-text-secondary);
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: var(--shadow-card);
+    transition: all 0.25s;
+  }
+  .study-mode-toggle:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+    transform: translateY(-2px);
+  }
+  .study-mode-toggle[aria-pressed="true"] {
+    color: var(--color-btn-text);
+    background: linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary));
+    border-color: transparent;
+  }
+
+  body.study-mode .article-sidebar,
+  body.study-mode .ad-article-inline,
+  body.study-mode .ad-article-mobile,
+  body.study-mode .ad-article-skyscraper,
+  body.study-mode .ad-article-smartlink,
+  body.study-mode .related-articles-section {
+    display: none !important;
+  }
+  body.study-mode .article-main {
+    max-width: 760px;
+    margin-inline: auto;
+  }
+  body.study-mode .article-content {
+    font-size: 1.12rem;
+    line-height: 1.85;
+  }
+  @media (max-width: 600px) {
+    .study-mode-toggle .study-mode-label {
+      display: none;
+    }
+    .study-mode-toggle {
+      padding: 0.7rem;
     }
   }
 </style>

@@ -3,6 +3,7 @@ import { useAuth } from '../lib/auth'
 import { api } from '../lib/api'
 import { useState, useEffect } from 'react'
 import { getCurrentVocabulary } from '../lib/themes'
+import FavoriteCategories from './FavoriteCategories'
 
 interface DashboardData {
   evolution: {
@@ -68,6 +69,8 @@ function ProfileContent() {
           e explorou <strong class="text-[var(--color-text-primary)]">{s?.categories_explored || 0} categorias</strong>.
         </p>
       </div>
+
+      <FavoriteCategories />
 
       <div class="flex flex-wrap gap-3">
         <a href="/mapa" class="px-5 py-2.5 bg-[var(--color-accent)] text-[var(--color-btn-text)] rounded-xl font-medium hover:opacity-90 transition-opacity">🗺️ Mapa</a>

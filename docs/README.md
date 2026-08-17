@@ -18,6 +18,8 @@ manter estes documentos atualizados.
 | [planoapi.md](planoapi.md) | Plano de APIs externas + **status de integração de cada uma** |
 | [receitas.md](receitas.md) | Módulo de Receitas (gamificação, trilha Barista, deploy, auditoria) |
 | [plano-fluxo-login.md](plano-fluxo-login.md) | **Auditoria do fluxo de login** (nós/arestas) + melhorias implementadas |
+| [loja-integracao.md](loja-integracao.md) | Loja — estado atual, o que falta integrar (pedidos, gateway, fornecedores) e roadmap por fase |
+| [apoio.md](apoio.md) | Plano de negócio da loja (dropshipping + Print on Demand, sem estoque) |
 
 ## 🔌 Specs das APIs externas
 

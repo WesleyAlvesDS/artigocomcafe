@@ -41,6 +41,7 @@ class User extends Authenticatable implements FilamentUser
             'password' => 'hashed',
             'last_login_at' => 'datetime',
             'last_visit_date' => 'date',
+            'favorite_categories' => 'array',
         ];
     }
 

@@ -13,6 +13,7 @@ import AdSterraNative from '../components/AdSterraNative.astro'
 import AdSterraSmartLink from '../components/AdSterraSmartLink.astro'
 import AdSterraBanner from '../components/AdSterraBanner.astro'
 import BookCard from '../components/BookCard.astro'
+import HomePersonalized from '../components/HomePersonalized'
 import { getPosts, getCategories } from '../lib/laravel'
 import { getCuratedBooks } from '../lib/books'
 
@@ -127,6 +128,9 @@ const books = await getCuratedBooks(15)
       </div>
     </div>
   </section>
+
+  {/* Home personalizada: só renderiza para usuários logados (continue lendo + recomendações) */}
+  <HomePersonalized client:visible />
 
   {books.length > 0 && (
     <section class="section home-books-section" data-scroll-reveal="slide-up">

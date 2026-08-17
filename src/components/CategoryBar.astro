@@ -1,12 +1,14 @@
 ---
 // Barra de categorias do modelo editorial (modelonovo.md)
 // Cada categoria: ícone + nome, com hover e link para o blog filtrado.
+// ATENÇÃO: os slugs precisam existir no backend (backend/database/seeders/CategorySeeder.php)
+// para o filtro /blog?categoria=<slug> nunca abrir vazio.
 const CATEGORIES = [
   { name: 'Tecnologia', slug: 'tecnologia', icon: '💻', tint: '#3b82f6' },
   { name: 'Finanças', slug: 'financas', icon: '📈', tint: '#10b981' },
   { name: 'Educação', slug: 'educacao', icon: '🎓', tint: '#8b5cf6' },
-  { name: 'Desenvolvimento Pessoal', slug: 'desenvolvimento-pessoal', icon: '🌱', tint: '#f59e0b' },
-  { name: 'Games', slug: 'games', icon: '🎮', tint: '#ef4444' },
+  { name: 'Produtividade', slug: 'produtividade', icon: '⚡', tint: '#f59e0b' },
+  { name: 'Saúde e Bem-estar', slug: 'saude-e-bem-estar', icon: '🧠', tint: '#ef4444' },
   { name: 'Curiosidades', slug: 'curiosidades', icon: '✨', tint: '#ec4899' },
 ]
 ---

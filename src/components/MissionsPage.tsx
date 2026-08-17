@@ -87,6 +87,44 @@ function MissionsContent() {
         ))}
       </div>
 
+      {/* Desafio da Semana (missão semanal em destaque) */}
+      {(() => {
+        const challenge = missions.find(m => m.type === 'weekly')
+        if (!challenge) return null
+        const cPercent = challenge.target > 0 ? Math.round((challenge.progress / challenge.target) * 100) : 0
+        return (
+          <div class="relative overflow-hidden rounded-2xl p-6 border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-[var(--color-bg-card)] to-[var(--color-bg-card)] data-reveal">
+            <div class="absolute -top-10 -right-10 text-8xl opacity-10 select-none" aria-hidden="true">🏆</div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-mono uppercase tracking-wider text-amber-400 font-bold">🏆 Desafio da Semana</span>
+              <span class="text-xs font-bold text-[var(--color-accent)] bg-[var(--color-accent)]/10 px-2 py-1 rounded-lg">
+                +{challenge.grain_reward} {vocab.currency_icon}
+              </span>
+            </div>
+            <h3 class={`text-lg font-bold text-[var(--color-text-primary)] ${challenge.is_completed ? 'line-through text-green-400' : ''}`}>
+              {challenge.title}
+            </h3>
+            <p class="text-sm text-[var(--color-text-secondary)] mt-1 mb-3">{challenge.description}</p>
+            <div class="flex items-center gap-3">
+              <div class="reader-progress-track flex-1">
+                <div class="reader-progress-fill" style={{ width: `${Math.min(100, cPercent)}%` }} />
+              </div>
+              {challenge.is_completed ? (
+                <button onClick={() => handleClaim(challenge)}
+                  class="px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-black hover:from-amber-400 hover:to-orange-400 transition-all hover:scale-105 shadow-lg shadow-amber-500/25 whitespace-nowrap"
+                >
+                  Resgatar 🎉
+                </button>
+              ) : (
+                <span class="text-xs font-mono text-[var(--color-text-muted)] whitespace-nowrap tabular-nums">
+                  {challenge.progress}/{challenge.target} · {cPercent}%
+                </span>
+              )}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Tabs */}
       <div class="flex gap-2 flex-wrap data-reveal">
         {(['daily', 'weekly'] as const).map(type => {

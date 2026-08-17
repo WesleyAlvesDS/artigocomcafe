@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\ThemeController;
 use App\Http\Controllers\Api\TrailController;
 use App\Http\Controllers\Api\UserBookController;
 use App\Http\Controllers\Api\UserDashboardController;
+use App\Http\Controllers\Api\UserFavoriteController;
 use App\Http\Controllers\Api\UserPostController;
 use Illuminate\Support\Facades\Route;
 
@@ -56,6 +57,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/auth/profile', [AuthController::class, 'updateProfile']);
 
     Route::get('/user/dashboard', [UserDashboardController::class, 'index']);
+
+    Route::get('/user/favorites', [UserFavoriteController::class, 'index']);
+    Route::put('/user/favorites/categories', [UserFavoriteController::class, 'update']);
 
     Route::get('/user/posts', [UserPostController::class, 'index']);
     Route::post('/user/posts', [UserPostController::class, 'store']);

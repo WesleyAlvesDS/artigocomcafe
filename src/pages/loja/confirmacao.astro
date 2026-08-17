@@ -183,7 +183,8 @@ import ScrollAnimations from '../../components/ScrollAnimations.astro'
       set('conf-payment', `${order.payment.label}${order.payment.method === 'pix' ? ' · aprovação imediata' : ''}`)
 
       const addr = order.address
-      set('conf-address', `${addr.street}, ${addr.number}${addr.complement ? ' - ' + addr.complement : ''} — ${addr.cep}<br>${addr.city} / ${addr.state}`)
+      // set() usa textContent: usar separador de texto simples em vez de <br> (que apareceria literalmente)
+      set('conf-address', `${addr.street}, ${addr.number}${addr.complement ? ' - ' + addr.complement : ''} — ${addr.cep} · ${addr.city} / ${addr.state}`)
 
       const totals = document.getElementById('conf-totals')
       if (totals) {
