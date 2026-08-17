@@ -267,5 +267,57 @@ export const seoLandings: SeoLanding[] = [
     ctaHref: '/blog',
     ctaLabel: 'Ler artigos do blog',
     symbologyNote: 'O café aqui é uma simbologia: a ideia é criar um ambiente agradável, resgatar a manhã e o momento de pausa do leitor. Use essas informações como curiosidade e inspiração.'
+  },
+  {
+    slug: 'cafe-da-manha',
+    h1: 'Café da Manhã com Café: Ideias e Receitas',
+    pageTitle: 'Café da Manhã — Ideias e Receitas para Começar Bem o Dia',
+    description: 'Ideias e receitas de café da manhã com café: combinações clássicas, opções saudáveis, receitas rápidas de 15 minutos e dicas para montar a mesa perfeita.',
+    intro: 'O café da manhã é a primeira pausa do dia — e o café é o seu melhor acompanhante. Neste guia, você encontra combinações clássicas, receitas rápidas para dias corridos, opções saudáveis e ideias para transformar a primeira refeição do dia em um ritual inesquecível.',
+    sections: [
+      {
+        id: 'por-que-cafe',
+        title: 'Por que o café é o protagonista da manhã',
+        body: '<p>O café da manhã é mais do que a primeira refeição: é o momento em que o dia começa de verdade. E o café, com seu aroma e calor, é o ingrediente que transforma essa refeição em <strong>ritual</strong> — não à toa ele é o par mais tradicional das manhãs brasileiras.</p><p>Além do prazer, o café ajuda a despertar: a <strong>cafeína estimula o sistema nervoso</strong> e melhora foco e disposição nas primeiras horas. Combinado a um café da manhã equilibrado, ele entrega energia de verdade — sem depender só do açúcar para começar o dia.</p>'
+      },
+      {
+        id: 'combinacoes-classicas',
+        title: 'Combinações clássicas: o que comer com café',
+        body: '<p>Algumas duplas são imbatíveis. <strong>Pão fresco com manteiga</strong>, <strong>ovos mexidos</strong>, <strong>queijo branco</strong>, <strong>frutas da estação</strong>, <strong>tapioca</strong> e <strong>cuscuz nordestino</strong> formam a base do café da manhã brasileiro — e combinam perfeitamente com o café.</p><p>Para variar, aposte em <strong>bolos e pães caseiros</strong>, <strong>iogurte com granola</strong>, <strong>geleias artesanais</strong> e <strong>pão de queijo</strong>. O segredo é equilibrar texturas: o crocante do pão torrado contrasta com a cremosidade do café, e o doce da geleia realça a acidez da bebida.</p>'
+      },
+      {
+        id: 'receitas-rapidas',
+        title: 'Receitas rápidas para dias de semana',
+        body: '<p>Em dia corrido, o café da manhã não precisa ser simples — só precisa ser <strong>rápido</strong>. Opções em até 15 minutos:</p><p><strong>Ovos mexidos cremosos</strong> (2 ovos, manteiga, fogo baixo e mexer sem parar); <strong>tapioca recheada</strong> com queijo e ervas; <strong>overnight oats</strong> preparados na noite anterior (aveia, leite, chia e frutas); <strong>sanduíche quente</strong> de queijo e tomate; e <strong>vitamina</strong> de frutas com aveia.</p><p>Dica de organização: deixe frutas lavadas e porcionadas, pão na torradeira e o moedor de café pronto na noite anterior. Em 10 minutos a mesa está servida — e o café, fresquinho.</p>'
+      },
+      {
+        id: 'saudavel',
+        title: 'Café da manhã saudável e equilibrado',
+        body: '<p>Um café da manhã equilibrado combina <strong>proteína</strong> (ovos, queijo, iogurte), <strong>fibras</strong> (aveia, pão integral, frutas) e <strong>gorduras boas</strong> (abacate, castanhas, pasta de amendoim) — com pouco açúcar refinado.</p><p>Substitua o açúcar do café por <strong>canela</strong>, cacau ou um toque de mel quando quiser adoçar. Troque pães brancos por integrais e inclua frutas inteiras no lugar de sucos. Resultado: saciedade maior, pico de energia mais estável e menos vontade de beliscar antes do almoço.</p><p>Quer um cardápio completo? Leia o guia <a href="/blog/cafe-da-manha-saudavel-com-cafe">Café da manhã saudável com café: 7 combinações equilibradas</a> e monte a sua semana.</p>'
+      },
+      {
+        id: 'mesa-para-receber',
+        title: 'Montando uma mesa de café da manhã para receber',
+        body: '<p>Receber convidados no café da manhã é uma tradição que encanta — e não precisa de sofisticação, só de <strong>planejamento</strong>. Monte a mesa na noite anterior: xícaras, talheres, guardanapos e a fruteira já à vista.</p><p>No dia, sirva uma <strong>mistura de salgado e doce</strong>: pães variados, ovos, queijos e frios de um lado; geleias, frutas, bolos e iogurte do outro. Ofereça <strong>mais de um preparo de café</strong> — um coado de torra média e um espresso, por exemplo — e deixe leite, água quente e opções sem cafeína para os convidados.</p>'
+      },
+      {
+        id: 'harmonizacao',
+        title: 'Como harmonizar o café com a comida',
+        body: '<p>A harmonização segue a lógica do vinho: <strong>intensidades que se complementam</strong>. Torras claras, com acidez e notas florais, combinam com pães, frutas e queijos suaves. Torras médias, equilibradas, acompanham ovos, tapioca e bolos caseiros. Torras escuras e espressos encorpados pedem chocolate, pão de queijo e preparos mais intensos.</p><p>Regra prática: <strong>não deixe um lado brigar com o outro</strong>. Café muito amargo com comida muito doce cansa o paladar; café delicado com comida forte se perde. Comece pelo par clássico — pão com manteiga e coado fresco — e experimente a partir daí.</p>'
+      }
+    ],
+    faqs: [
+      { q: 'O que comer no café da manhã com café?', a: 'O clássico é pão com manteiga, ovos, queijo e frutas. Para variar: tapioca, cuscuz, iogurte com granola, pão de queijo, bolos caseiros e geleias artesanais. O segredo é equilibrar salgado e doce para harmonizar com o café.' },
+      { q: 'Qual café combina melhor com café da manhã?', a: 'Torras médias e coados (V60, prensa francesa, moka) são os mais versáteis: equilibram acidez e corpo sem brigar com a comida. Torras claras combinam com pães e frutas; espressos e torras escuras, com chocolate e pão de queijo.' },
+      { q: 'O que não pode faltar em um café da manhã saudável?', a: 'Proteína (ovos, queijo, iogurte), fibras (aveia, pão integral, frutas) e gorduras boas (abacate, castanhas). Evite excesso de açúcar — experimente adoçar o café com canela ou cacau.' },
+      { q: 'Como deixar o café da manhã pronto mais rápido?', a: 'Prepare o que der na noite anterior: overnight oats, frutas lavadas e porcionadas, pão na torradeira e café moído na medida certa. Em 10 a 15 minutos a mesa está servida.' },
+      { q: 'Café em jejum faz mal?', a: 'Para a maioria das pessoas, não. A cafeína em jejum pode causar desconforto em quem tem sensibilidade gástrica — nesse caso, prefira tomar o café junto da primeira refeição ou após um copo de água.' },
+      { q: 'Como montar uma mesa de café da manhã para receber convidados?', a: 'Planeje na véspera, misture salgado e doce (pães, ovos, queijos, geleias, frutas e bolos) e ofereça mais de um preparo de café, além de opções sem cafeína. A apresentação caprichada e a conversa fazem o resto.' }
+    ],
+    ctaTitle: 'Do guia para a mesa',
+    ctaText: 'Coloque as ideias em prática: explore receitas testadas da categoria Café da Manhã, do pão de queijo aos pratos com ovos.',
+    ctaHref: '/receitas?categoria=cafe-da-manha',
+    ctaLabel: 'Ver receitas de café da manhã',
+    symbologyNote: 'O café aqui é uma simbologia: a ideia é criar um ambiente agradável, resgatar a manhã e o momento de pausa do leitor. Use essas informações como curiosidade e inspiração.'
   }
 ]

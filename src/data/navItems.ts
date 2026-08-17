@@ -15,7 +15,7 @@ export interface NavDropdown {
   title: string
   allLabel: string
   fallback: { icon: string; name: string; note: string }
-  foot: { icon: string; label: string }[]
+  foot: { icon: string; label: string; href?: string }[]
 }
 
 export type NavItem = NavLink | NavDropdown
@@ -40,7 +40,7 @@ export const mainNav: NavItem[] = [
     foot: [
       { icon: '🕐', label: 'Receita do Dia' },
       { icon: '🍳', label: 'Receitas para o café' },
-      { icon: '🥐', label: 'Café da manhã' },
+      { icon: '🥐', label: 'Café da manhã', href: '/cafe-da-manha/' },
       { icon: '🥤', label: 'Bebidas' },
     ],
   },

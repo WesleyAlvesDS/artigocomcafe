@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro'
+import ScrollAnimations from '../components/ScrollAnimations.astro'
+import SeoLandingPage from '../components/SeoLandingPage.astro'
+import { seoLandings } from '../data/seoLanding'
+
+const data = seoLandings.find(l => l.slug === 'cafe-da-manha')!
+---
+
+<Base
+  title={data.pageTitle}
+  description={data.description}
+  image="/og/cafe-da-manha.png.ts"
+  canonical={`/${data.slug}/`}
+  breadcrumbs={[{ name: 'Início', slug: '/' }, { name: data.h1, slug: `/${data.slug}/` }]}
+>
+  <SeoLandingPage data={data} />
+  <ScrollAnimations />
+</Base>

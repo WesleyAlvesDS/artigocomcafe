@@ -77,7 +77,7 @@ function isActive(item: { href: string; page: string }): boolean {
             </div>
             <div class="dropdown-foot">
               {item.foot.map(f => (
-                <a href={item.href} class="dropdown-foot-link">{f.icon} {f.label}</a>
+                <a href={f.href || item.href} class="dropdown-foot-link">{f.icon} {f.label}</a>
               ))}
             </div>
           </div>
