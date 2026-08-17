@@ -97,6 +97,18 @@ class OpenLibraryService extends ApiClient
             ['q' => 'café especial'],
             ['q' => 'café gourmet'],
             ['q' => 'café brasileiro'],
+            ['q' => 'coffee business'],
+            ['q' => 'coffee shop'],
+            ['q' => 'coffee equipment'],
+            ['q' => 'coffee sensory'],
+            ['q' => 'coffee chemistry'],
+            ['q' => 'fair trade coffee'],
+            ['q' => 'coffee sustainability'],
+            ['q' => 'coffee health'],
+            ['q' => 'coffee roasting profiles'],
+            ['q' => 'coffee varieties'],
+            ['q' => 'coffee processing'],
+            ['q' => 'coffee terroir'],
             // Conhecimento & Estilo de Vida — complementares ao ecossistema
             ['q' => 'cooking', 'subject' => 'cooking'],
             ['q' => 'food science'],
@@ -112,6 +124,9 @@ class OpenLibraryService extends ApiClient
             ['q' => 'creativity'],
             ['q' => 'technology'],
             ['q' => 'literature fiction'],
+            ['q' => 'brazilian coffee'],
+            ['q' => 'coffee farms'],
+            ['q' => 'coffee exporting'],
         ];
 
         $books = [];

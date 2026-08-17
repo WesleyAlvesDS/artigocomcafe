@@ -167,10 +167,10 @@
         }
       })
 
-      // Parallax elements — SOMENTE [data-parallax-speed]. O hero usa
-      // [data-parallax] com progresso próprio (Hero.astro); se ouvirmos aqui
-      // escrevemos transform por cima do dele a cada scroll (jitter no texto).
-      const parallaxElements = document.querySelectorAll('[data-parallax-speed]')
+      // Parallax elements — SOMENTE [data-parallax-speed].
+      // O hero usa [data-parallax] com progresso próprio (Hero.astro) e deve ser
+      // excluído daqui para evitar jitter (ScrollAnimations escrevendo por cima).
+      const parallaxElements = document.querySelectorAll('[data-parallax-speed]:not([data-hero-parallax])')
       if (parallaxElements.length) {
         let ticking = false
         function updateParallax() {

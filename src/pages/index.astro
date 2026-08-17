@@ -19,7 +19,7 @@ import { getCuratedBooks } from '../lib/books'
 
 const { posts } = await getPosts(1, 6)
 const categories = await getCategories()
-const books = await getCuratedBooks(15)
+const books = await getCuratedBooks(20)
 ---
 
 <Base title="Artigo com Café — Blog de Cafeteria Digital" description="Blog autoral sobre o universo do café: cultura, tecnologia e conhecimento. Conteúdo aprofundado para quem ama aprender." canonical="/" breadcrumbs={[{ name: 'Início', slug: '/' }]} image="/og-default.png.ts">

@@ -19,3 +19,18 @@ tests/playwright/static-server.mjs
 tests/playwright/test-results/
 shots/
 docs/ops/
+
+# ── Loja em desenvolvimento (fora do versionamento até estar pronta) ──
+# A loja fica local, em desenvolvimento, exibindo o cadeado no servidor.
+# Para liberar: remover estas linhas e git add dos arquivos (docs/loja-integracao.md).
+src/pages/loja.astro
+src/pages/loja/
+src/components/CartDrawer.astro
+src/components/ProductCard.astro
+src/components/StoreLocked.astro
+src/data/products.ts
+src/lib/cart.ts
+src/lib/storeConfig.ts
+public/images/products/
+scripts/generate-product-images.mjs
+tests/playwright/loja-flow-check.mjs
