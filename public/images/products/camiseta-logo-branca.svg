@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="hsl(40, 45%, 32%)" />
+      <stop offset="1" stop-color="hsl(58, 55%, 14%)" />
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.55">
+      <stop offset="0" stop-color="hsl(48, 60%, 62%)" stop-opacity="0.5" />
+      <stop offset="1" stop-color="hsl(48, 60%, 62%)" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="800" height="800" fill="url(#bg)" />
+  <rect width="800" height="800" fill="url(#glow)" />
+  <circle cx="40" cy="40" r="2" fill="rgba(255,255,255,0.05)" /><circle cx="213" cy="137" r="3" fill="rgba(255,255,255,0.05)" /><circle cx="386" cy="234" r="4" fill="rgba(255,255,255,0.05)" /><circle cx="559" cy="331" r="2" fill="rgba(255,255,255,0.05)" /><circle cx="732" cy="428" r="3" fill="rgba(255,255,255,0.05)" /><circle cx="185" cy="525" r="4" fill="rgba(255,255,255,0.05)" /><circle cx="358" cy="622" r="2" fill="rgba(255,255,255,0.05)" /><circle cx="531" cy="719" r="3" fill="rgba(255,255,255,0.05)" /><circle cx="704" cy="96" r="4" fill="rgba(255,255,255,0.05)" /><circle cx="157" cy="193" r="2" fill="rgba(255,255,255,0.05)" /><circle cx="330" cy="290" r="3" fill="rgba(255,255,255,0.05)" /><circle cx="503" cy="387" r="4" fill="rgba(255,255,255,0.05)" /><circle cx="676" cy="484" r="2" fill="rgba(255,255,255,0.05)" /><circle cx="129" cy="581" r="3" fill="rgba(255,255,255,0.05)" />
+  <circle cx="400" cy="380" r="150" fill="rgba(10,8,5,0.28)" />
+  <circle cx="400" cy="380" r="128" fill="rgba(255,255,255,0.08)" />
+  <text x="400" y="430" font-size="150" text-anchor="middle" dominant-baseline="middle">👕</text>
+  <text x="400" y="610" font-family="Montserrat, Arial, sans-serif" font-size="44" font-weight="800" fill="#f8f5f0" text-anchor="middle" letter-spacing="1">Camiseta Logo Branca</text>
+  <text x="400" y="660" font-family="Montserrat, Arial, sans-serif" font-size="22" font-weight="500" fill="#e8d5c4" text-anchor="middle" letter-spacing="4">ARTIGO COM CAFÉ</text>
+  <rect x="340" y="688" width="120" height="3" rx="1.5" fill="hsl(48, 60%, 62%)" />
+</svg>

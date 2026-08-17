@@ -156,6 +156,30 @@ const books = await getCuratedBooks(15)
     </section>
   )}
 
+  {/* ── Apoie o projeto: apresentação discreta da loja (docs/apoio.md) ── */}
+  <section class="section home-support-section" data-scroll-reveal="fade">
+    <div class="container">
+      <div class="home-support-card glass-card">
+        <div class="home-support-content">
+          <span class="section-label">☕ Apoie o Artigo com Café</span>
+          <h2 class="home-support-title">Leve um pedacinho deste projeto para casa</h2>
+          <p class="home-support-text">
+            Se você gosta do que encontra por aqui, também pode apoiar a continuidade do projeto conhecendo nossa pequena seleção de produtos — café especial, métodos de preparo e itens com a identidade da marca.
+          </p>
+          <div class="home-support-actions">
+            <a href="/loja/" class="btn-primary">Conhecer a loja</a>
+            <span class="home-support-note">Poucos produtos. Boas escolhas. 🫘</span>
+          </div>
+        </div>
+        <div class="home-support-art" aria-hidden="true">
+          <span class="support-art-cup">☕</span>
+          <span class="support-art-grain g1">🫘</span>
+          <span class="support-art-grain g2">📚</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="section home-ad-section" data-scroll-reveal="fade">
     <div class="container" style="max-width: 720px;">
       <AdSterraNative lazy />
@@ -502,6 +526,93 @@ const books = await getCuratedBooks(15)
   .home-books-section {
     padding: 4rem 0;
   }
+
+  /* ── Apoie o projeto (loja) ─────────────────────────── */
+  .home-support-section {
+    padding: 2rem 0 4rem;
+  }
+
+  .home-support-card {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    align-items: center;
+    gap: 2rem;
+    padding: 3rem;
+  }
+
+  @media (max-width: 860px) {
+    .home-support-card { grid-template-columns: 1fr; padding: 2rem; }
+  }
+
+  .home-support-content { position: relative; z-index: 2; }
+
+  .home-support-title {
+    font-size: clamp(1.4rem, 3vw, 1.9rem);
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin-bottom: 0.9rem;
+    line-height: 1.25;
+    max-width: 520px;
+    font-family: var(--font-serif);
+  }
+
+  .home-support-text {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+    max-width: 540px;
+    margin-bottom: 1.5rem;
+  }
+
+  .home-support-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .home-support-actions .btn-primary { text-decoration: none; }
+
+  .home-support-note {
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+  }
+
+  .home-support-art {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
+  }
+
+  .home-support-art::before {
+    content: '';
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 22%, transparent), transparent 70%);
+    filter: blur(6px);
+  }
+
+  .support-art-cup {
+    font-size: 4.5rem;
+    filter: drop-shadow(0 10px 24px color-mix(in srgb, var(--color-accent) 35%, transparent));
+    animation: float-particle 7s ease-in-out infinite;
+  }
+
+  .support-art-grain {
+    position: absolute;
+    font-size: 1.6rem;
+    opacity: 0.85;
+  }
+
+  .support-art-grain.g1 { top: 18%; left: 12%; animation: float-particle 9s ease-in-out infinite; }
+  .support-art-grain.g2 { bottom: 16%; right: 14%; animation: float-particle 8s ease-in-out infinite; animation-delay: -3s; }
 
   .books-grid {
     display: grid;

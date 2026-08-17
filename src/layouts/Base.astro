@@ -22,6 +22,7 @@ export interface Props {
   hideAiAssistant?: boolean
   transitionName?: string
   editorial?: boolean
+  robots?: string
 }
 
 const {
@@ -34,7 +35,8 @@ const {
   disableTransitions = false,
   hideAiAssistant = false,
   transitionName = 'page-root',
-  editorial = true
+  editorial = true,
+  robots = 'index, follow'
 } = Astro.props
 
 const siteUrl = 'https://artigocomcafe.com'
@@ -75,7 +77,7 @@ const organizationJsonLd = {
     <meta name="description" content={description} />
     <meta name="theme-color" content="#0a0805" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#faf6f0" media="(prefers-color-scheme: light)" />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content={robots} />
 
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

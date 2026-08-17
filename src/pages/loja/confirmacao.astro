@@ -1,0 +1,444 @@
+---
+import Base from '../../layouts/Base.astro'
+import CartDrawer from '../../components/CartDrawer.astro'
+import ScrollAnimations from '../../components/ScrollAnimations.astro'
+---
+
+<Base
+  title="Pedido confirmado — Loja Artigo com Café"
+  description="Seu pedido foi confirmado. Acompanhe o status pelo seu painel e obrigado por apoiar o Artigo com Café."
+  canonical="/loja/confirmacao/"
+  breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Loja', slug: '/loja/' }, { name: 'Confirmação', slug: '/loja/confirmacao/' }]}
+  robots="noindex"
+>
+  <section class="conf-section">
+    <div class="container">
+      <div class="conf-loading" id="conf-loading">
+        <div class="skeleton conf-skeleton"></div>
+      </div>
+
+      <div class="conf-card glass-card" id="conf-card" hidden>
+        <div class="conf-hero">
+          <span class="conf-check" aria-hidden="true">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+          </span>
+          <h1 class="conf-title">Pedido confirmado! ☕</h1>
+          <p class="conf-subtitle">Obrigado por apoiar o Artigo com Café. Sua compra ajuda a manter o projeto no ar.</p>
+          <div class="conf-order-id">
+            Pedido <strong id="conf-order-id">—</strong>
+          </div>
+        </div>
+
+        <div class="conf-timeline" aria-label="Status do pedido">
+          <div class="timeline-step done">
+            <span class="timeline-dot">✓</span>
+            <div class="timeline-body">
+              <strong>Pedido confirmado</strong>
+              <small>Recebemos seu pedido e o pagamento está sendo processado.</small>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <span class="timeline-dot"></span>
+            <div class="timeline-body">
+              <strong>Em preparação</strong>
+              <small>Nossa equipe e parceiros estão separando e preparando seus itens.</small>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <span class="timeline-dot"></span>
+            <div class="timeline-body">
+              <strong>Enviado</strong>
+              <small>O código de rastreio aparecerá aqui assim que a transportadora postar.</small>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <span class="timeline-dot"></span>
+            <div class="timeline-body">
+              <strong>Entregue</strong>
+              <small>Quando chegar, sugeriremos artigos e receitas para o seu novo ritual.</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="conf-grid">
+          <div class="conf-block">
+            <h2 class="conf-block-title">📦 Itens do pedido</h2>
+            <div class="conf-items" id="conf-items"></div>
+          </div>
+          <div class="conf-block">
+            <h2 class="conf-block-title">💳 Pagamento</h2>
+            <p class="conf-line" id="conf-payment">—</p>
+            <p class="conf-line muted">Status: <span class="conf-badge">Aguardando confirmação</span></p>
+
+            <h2 class="conf-block-title conf-block-spaced">📍 Entrega</h2>
+            <p class="conf-line" id="conf-address">—</p>
+            <p class="conf-line muted">Previsão: 7 a 15 dias úteis</p>
+
+            <h2 class="conf-block-title conf-block-spaced">🧾 Totais</h2>
+            <div class="conf-totals" id="conf-totals"></div>
+          </div>
+        </div>
+
+        <div class="conf-grains">
+          <span aria-hidden="true">🫘</span>
+          <div>
+            <strong>Você ganhou grãos na sua jornada!</strong>
+            <p>Cada compra gera grãos que podem ser trocados por descontos, frete grátis e acesso antecipado a coleções. Eles serão creditados em até 24h após a confirmação do pagamento.</p>
+          </div>
+        </div>
+
+        <div class="conf-actions">
+          <a href="/jornada/" class="btn-primary">Ver minha jornada</a>
+          <a href="/loja/" class="btn-ghost">Continuar na loja</a>
+          <a href="/blog/" class="btn-ghost">Ler artigos</a>
+        </div>
+
+        <p class="conf-note">
+          Este é um pedido de demonstração — a integração com fornecedores e o rastreamento em tempo real no
+          <a href="/dashboard/">dashboard</a> serão ativados em breve. Guarde o número do pedido para referência.
+        </p>
+      </div>
+
+      <div class="conf-card glass-card" id="conf-missing" hidden>
+        <div class="conf-hero">
+          <span class="conf-check" aria-hidden="true">❓</span>
+          <h1 class="conf-title">Pedido não encontrado</h1>
+          <p class="conf-subtitle">
+            Não encontramos um pedido com esse número neste dispositivo. Pedidos são armazenados localmente no navegador.
+          </p>
+          <a href="/loja/" class="btn-primary">Voltar para a loja</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <CartDrawer />
+  <ScrollAnimations />
+
+  <script>
+    import { formatBRL } from '../../lib/cart'
+
+    const esc = (s: string | number | undefined): string =>
+      String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
+    interface OrderItem { slug: string; name: string; price: number; image: string; qty: number }
+    interface Order {
+      id: string
+      items: OrderItem[]
+      subtotal: number
+      shipping: number
+      total: number
+      payment: { method: string; label: string }
+      customer: { name: string; email: string; phone: string }
+      address: { cep: string; street: string; number: string; complement?: string; city: string; state: string }
+      createdAt: string
+    }
+
+    function loadOrder(id: string): Order | null {
+      try {
+        const orders = JSON.parse(localStorage.getItem('acf-orders') || '[]') as Order[]
+        return orders.find(o => o.id === id) || null
+      } catch (e) {
+        return null
+      }
+    }
+
+    const loading = document.getElementById('conf-loading')
+    const card = document.getElementById('conf-card')
+    const missing = document.getElementById('conf-missing')
+
+    const params = new URLSearchParams(window.location.search)
+    const orderId = params.get('pedido') || ''
+    const order = orderId ? loadOrder(orderId) : null
+
+    if (loading) loading.hidden = true
+
+    if (!order || !card || !missing) {
+      if (card) card.hidden = true
+      if (missing) missing.hidden = false
+    } else {
+      if (missing) missing.hidden = true
+      if (card) card.hidden = false
+
+      const set = (id: string, text: string) => {
+        const el = document.getElementById(id)
+        if (el) el.textContent = text
+      }
+      set('conf-order-id', order.id)
+
+      const items = document.getElementById('conf-items')
+      if (items) {
+        items.innerHTML = order.items.map(item => `
+          <div class="conf-item">
+            <img src="${esc(item.image)}" alt="" width="52" height="52" loading="lazy" decoding="async" />
+            <div class="conf-item-body">
+              <a class="conf-item-name" href="/loja/${esc(item.slug)}/">${esc(item.name)}</a>
+              <span class="conf-item-meta">${item.qty} × ${formatBRL(item.price)}</span>
+            </div>
+            <strong class="conf-item-total">${formatBRL(item.price * item.qty)}</strong>
+          </div>
+        `).join('')
+      }
+
+      set('conf-payment', `${order.payment.label}${order.payment.method === 'pix' ? ' · aprovação imediata' : ''}`)
+
+      const addr = order.address
+      set('conf-address', `${addr.street}, ${addr.number}${addr.complement ? ' - ' + addr.complement : ''} — ${addr.cep}<br>${addr.city} / ${addr.state}`)
+
+      const totals = document.getElementById('conf-totals')
+      if (totals) {
+        totals.innerHTML = `
+          <div class="conf-totals-row"><span>Subtotal</span><strong>${formatBRL(order.subtotal)}</strong></div>
+          <div class="conf-totals-row"><span>Frete</span><strong>${order.shipping === 0 ? 'Grátis' : formatBRL(order.shipping)}</strong></div>
+          <div class="conf-totals-row total"><span>Total</span><strong>${formatBRL(order.total)}</strong></div>
+        `
+      }
+    }
+  </script>
+</Base>
+
+<style is:global>
+  .conf-section { padding: 4rem 0 5rem; }
+
+  .conf-card {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .conf-card { padding: 1.5rem; }
+  }
+
+  .conf-skeleton { height: 400px; max-width: 860px; margin: 0 auto; }
+
+  .conf-hero { text-align: center; margin-bottom: 2.2rem; }
+
+  .conf-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #fff;
+    box-shadow: 0 10px 34px rgba(34, 197, 94, 0.4);
+    margin-bottom: 1.2rem;
+    animation: conf-pop 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  @keyframes conf-pop {
+    0% { transform: scale(0.3); opacity: 0; }
+    60% { transform: scale(1.15); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .conf-title {
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin-bottom: 0.6rem;
+    font-family: var(--font-serif);
+  }
+
+  .conf-subtitle {
+    color: var(--color-text-secondary);
+    font-size: 1rem;
+    max-width: 520px;
+    margin: 0 auto 1.1rem;
+    line-height: 1.6;
+  }
+
+  .conf-order-id {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    padding: 0.45rem 1rem;
+    border-radius: 100px;
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
+  }
+
+  .conf-order-id strong { color: var(--color-accent); font-weight: 700; }
+
+  .conf-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 2.2rem;
+    padding: 1.6rem;
+    border-radius: var(--radius-card);
+    background: color-mix(in srgb, var(--color-bg-secondary) 70%, transparent);
+    border: 1px solid var(--color-bg-card-border);
+  }
+
+  .timeline-step {
+    display: flex;
+    gap: 1rem;
+    position: relative;
+    padding-bottom: 1.4rem;
+  }
+
+  .timeline-step:last-child { padding-bottom: 0; }
+
+  .timeline-step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: 30px;
+    bottom: 0;
+    width: 2px;
+    background: var(--color-bg-card-border);
+  }
+
+  .timeline-step.done:not(:last-child)::before {
+    background: linear-gradient(180deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 30%, var(--color-bg-card-border)));
+  }
+
+  .timeline-dot {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--color-bg-card-border);
+    background: var(--color-bg-card);
+    color: transparent;
+    font-size: 0.75rem;
+    font-weight: 800;
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s;
+  }
+
+  .timeline-step.done .timeline-dot {
+    background: linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary));
+    border-color: transparent;
+    color: var(--color-btn-text);
+    box-shadow: 0 0 16px color-mix(in srgb, var(--color-accent) 45%, transparent);
+  }
+
+  .timeline-body strong { display: block; font-size: 0.95rem; color: var(--color-text-primary); margin-bottom: 0.2rem; }
+  .timeline-body small { font-size: 0.82rem; color: var(--color-text-muted); line-height: 1.5; }
+
+  .timeline-step:not(.done) .timeline-body { opacity: 0.65; }
+
+  .conf-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.8rem;
+  }
+
+  @media (max-width: 720px) {
+    .conf-grid { grid-template-columns: 1fr; }
+  }
+
+  .conf-block-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin-bottom: 0.9rem;
+  }
+
+  .conf-block-spaced { margin-top: 1.5rem; }
+
+  .conf-items { display: flex; flex-direction: column; gap: 0.7rem; }
+
+  .conf-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem;
+    border-radius: 12px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+  }
+
+  .conf-item img {
+    width: 48px;
+    height: 48px;
+    border-radius: 9px;
+    object-fit: cover;
+    border: 1px solid var(--color-bg-card-border);
+    flex-shrink: 0;
+  }
+
+  .conf-item-body { flex: 1; min-width: 0; }
+
+  .conf-item-name {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    text-decoration: none;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .conf-item-name:hover { color: var(--color-accent); }
+
+  .conf-item-meta { font-size: 0.74rem; color: var(--color-text-muted); font-family: var(--font-mono); }
+  .conf-item-total { font-size: 0.84rem; color: var(--color-accent); font-family: var(--font-mono); flex-shrink: 0; }
+
+  .conf-line { font-size: 0.88rem; color: var(--color-text-secondary); margin: 0 0 0.4rem; line-height: 1.55; }
+
+  .conf-line.muted { color: var(--color-text-muted); font-size: 0.82rem; }
+
+  .conf-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    font-family: var(--font-mono);
+  }
+
+  .conf-totals { display: flex; flex-direction: column; gap: 0.4rem; }
+
+  .conf-totals-row { display: flex; justify-content: space-between; font-size: 0.86rem; color: var(--color-text-secondary); }
+  .conf-totals-row strong { color: var(--color-text-primary); font-family: var(--font-mono); }
+  .conf-totals-row.total { font-size: 1rem; font-weight: 700; padding-top: 0.4rem; border-top: 1px dashed var(--color-bg-card-border); }
+  .conf-totals-row.total strong { color: var(--color-accent); font-size: 1.1rem; }
+
+  .conf-grains {
+    display: flex;
+    gap: 0.9rem;
+    padding: 1.2rem;
+    border-radius: var(--radius-card);
+    background: color-mix(in srgb, #f59e0b 8%, var(--color-bg-card));
+    border: 1px solid color-mix(in srgb, #f59e0b 25%, transparent);
+    margin-bottom: 1.8rem;
+  }
+
+  .conf-grains > span { font-size: 1.8rem; flex-shrink: 0; }
+
+  .conf-grains strong { display: block; font-size: 0.95rem; color: var(--color-text-primary); margin-bottom: 0.25rem; }
+  .conf-grains p { font-size: 0.85rem; color: var(--color-text-secondary); line-height: 1.6; margin: 0; }
+
+  .conf-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; }
+
+  .conf-actions .btn-primary, .conf-actions .btn-ghost { text-decoration: none; }
+
+  .conf-note {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    margin: 1.4rem auto 0;
+    max-width: 560px;
+    line-height: 1.6;
+    font-family: var(--font-mono);
+  }
+
+  .conf-note a { color: var(--color-accent); }
+</style>

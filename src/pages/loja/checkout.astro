@@ -1,0 +1,675 @@
+---
+import Base from '../../layouts/Base.astro'
+import CartDrawer from '../../components/CartDrawer.astro'
+import ScrollAnimations from '../../components/ScrollAnimations.astro'
+---
+
+<Base
+  title="Checkout — Loja Artigo com Café"
+  description="Finalize seu pedido com segurança. Pix, cartão ou boleto. Seu pedido é acompanhado pelo seu painel no Artigo com Café."
+  canonical="/loja/checkout/"
+  breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Loja', slug: '/loja/' }, { name: 'Checkout', slug: '/loja/checkout/' }]}
+>
+  <section class="checkout-hero">
+    <div class="container">
+      <span class="section-label">🛒 Checkout</span>
+      <h1 class="checkout-title">Finalize seu pedido</h1>
+      <p class="checkout-subtitle">
+        Ao comprar, você apoia a continuidade do Artigo com Café. Poucos produtos, boas escolhas.
+      </p>
+    </div>
+  </section>
+
+  <section class="checkout-section">
+    <div class="container">
+      <div class="checkout-empty" id="checkout-empty" hidden>
+        <div class="checkout-empty-card glass-card">
+          <span class="checkout-empty-icon" aria-hidden="true">🛒</span>
+          <h2 class="checkout-empty-title">Seu carrinho está vazio</h2>
+          <p class="checkout-empty-desc">Adicione produtos à sua seleção antes de finalizar o pedido.</p>
+          <a href="/loja/" class="btn-primary">Explorar a loja</a>
+        </div>
+      </div>
+
+      <div class="checkout-layout" id="checkout-layout" hidden>
+        <form class="checkout-form" id="checkout-form" novalidate>
+          <div class="checkout-card glass-card">
+            <h2 class="checkout-card-title">1 · Dados pessoais</h2>
+            <div class="form-grid">
+              <div class="form-field">
+                <label class="form-label" for="co-name">Nome completo <span class="form-label-accent">*</span></label>
+                <input class="form-input" id="co-name" name="name" type="text" autocomplete="name" placeholder="Seu nome" required />
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="co-email">E-mail <span class="form-label-accent">*</span></label>
+                <input class="form-input" id="co-email" name="email" type="email" autocomplete="email" placeholder="voce@email.com" required />
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="co-phone">Telefone / WhatsApp <span class="form-label-accent">*</span></label>
+                <input class="form-input" id="co-phone" name="phone" type="tel" autocomplete="tel" placeholder="(11) 99999-9999" required />
+              </div>
+            </div>
+          </div>
+
+          <div class="checkout-card glass-card">
+            <h2 class="checkout-card-title">2 · Endereço de entrega</h2>
+            <div class="form-grid">
+              <div class="form-field">
+                <label class="form-label" for="co-cep">CEP <span class="form-label-accent">*</span></label>
+                <input class="form-input" id="co-cep" name="cep" type="text" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000" required />
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="co-street">Rua / Avenida <span class="form-label-accent">*</span></label>
+                <input class="form-input" id="co-street" name="street" type="text" autocomplete="address-line1" placeholder="Nome da rua" required />
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="co-number">Número <span class="form-label-accent">*</span></label>
+                <input class="form-input" id="co-number" name="number" type="text" autocomplete="address-line2" placeholder="123" required />
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="co-complement">Complemento</label>
+                <input class="form-input" id="co-complement" name="complement" type="text" placeholder="Apto, bloco..." />
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="co-city">Cidade <span class="form-label-accent">*</span></label>
+                <input class="form-input" id="co-city" name="city" type="text" autocomplete="address-level2" placeholder="Cidade" required />
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="co-state">Estado <span class="form-label-accent">*</span></label>
+                <select class="form-select" id="co-state" name="state" required>
+                  <option value="">Selecione</option>
+                  <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+                  <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+                  <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+                  <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+                  <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+                  <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+                  <option>SP</option><option>SE</option><option>TO</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="checkout-card glass-card">
+            <h2 class="checkout-card-title">3 · Pagamento</h2>
+            <div class="payment-methods" id="payment-methods" role="radiogroup" aria-label="Forma de pagamento">
+              <label class="payment-option">
+                <input type="radio" name="payment" value="pix" checked />
+                <span class="payment-option-body">
+                  <span class="payment-icon" aria-hidden="true">⚡</span>
+                  <span>
+                    <strong>Pix</strong>
+                    <small>Aprovação imediata, 24h por dia</small>
+                  </span>
+                </span>
+              </label>
+              <label class="payment-option">
+                <input type="radio" name="payment" value="card" />
+                <span class="payment-option-body">
+                  <span class="payment-icon" aria-hidden="true">💳</span>
+                  <span>
+                    <strong>Cartão de crédito</strong>
+                    <small>Em até 3x sem juros</small>
+                  </span>
+                </span>
+              </label>
+              <label class="payment-option">
+                <input type="radio" name="payment" value="boleto" />
+                <span class="payment-option-body">
+                  <span class="payment-icon" aria-hidden="true">🧾</span>
+                  <span>
+                    <strong>Boleto bancário</strong>
+                    <small>Compensação em até 2 dias úteis</small>
+                  </span>
+                </span>
+              </label>
+            </div>
+
+            <div class="payment-detail" id="payment-pix" hidden>
+              <div class="pix-box">
+                <div class="pix-qr" aria-hidden="true">
+                  <svg viewBox="0 0 96 96" width="140" height="140">
+                    <rect width="96" height="96" fill="#fff" />
+                    <g fill="#1a1a1a">
+                      <rect x="8" y="8" width="24" height="24" /><rect x="64" y="8" width="24" height="24" /><rect x="8" y="64" width="24" height="24" /><rect x="64" y="64" width="24" height="24" />
+                      <rect x="14" y="14" width="12" height="12" fill="#fff" /><rect x="70" y="14" width="12" height="12" fill="#fff" /><rect x="14" y="70" width="12" height="12" fill="#fff" /><rect x="70" y="70" width="12" height="12" fill="#fff" />
+                      <rect x="40" y="8" width="6" height="6" /><rect x="50" y="8" width="6" height="6" /><rect x="40" y="82" width="6" height="6" /><rect x="8" y="40" width="6" height="6" /><rect x="82" y="40" width="6" height="6" />
+                      <rect x="16" y="40" width="12" height="6" /><rect x="68" y="40" width="12" height="6" />
+                      <rect x="40" y="16" width="6" height="12" /><rect x="50" y="16" width="6" height="12" />
+                      <rect x="40" y="40" width="16" height="16" /><rect x="60" y="40" width="6" height="16" /><rect x="40" y="60" width="6" height="16" /><rect x="50" y="60" width="16" height="6" />
+                      <rect x="16" y="68" width="12" height="6" /><rect x="68" y="68" width="12" height="6" /><rect x="16" y="56" width="6" height="6" /><rect x="74" y="56" width="6" height="6" />
+                    </g>
+                  </svg>
+                </div>
+                <div class="pix-info">
+                  <strong>Pague com Pix</strong>
+                  <p>Após confirmar o pedido, um QR Code será exibido para você escanear com o app do seu banco. Aprovação imediata.</p>
+                  <p class="pix-note">🔒 Transação simulada neste ambiente de demonstração — a integração com o gateway real será ativada em breve.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="payment-detail" id="payment-card" hidden>
+              <div class="form-grid">
+                <div class="form-field">
+                  <label class="form-label" for="cc-number">Número do cartão</label>
+                  <input class="form-input" id="cc-number" name="ccNumber" type="text" inputmode="numeric" placeholder="0000 0000 0000 0000" />
+                </div>
+                <div class="form-field">
+                  <label class="form-label" for="cc-name">Nome impresso no cartão</label>
+                  <input class="form-input" id="cc-name" name="ccName" type="text" autocomplete="cc-name" placeholder="Como está no cartão" />
+                </div>
+                <div class="form-field">
+                  <label class="form-label" for="cc-expiry">Validade</label>
+                  <input class="form-input" id="cc-expiry" name="ccExpiry" type="text" inputmode="numeric" placeholder="MM/AA" />
+                </div>
+                <div class="form-field">
+                  <label class="form-label" for="cc-cvv">CVV</label>
+                  <input class="form-input" id="cc-cvv" name="ccCvv" type="text" inputmode="numeric" placeholder="123" />
+                </div>
+              </div>
+              <p class="payment-sim-note">🔒 Dados de cartão são fictícios neste ambiente de demonstração. Nunca insira um cartão real.</p>
+            </div>
+
+            <div class="payment-detail" id="payment-boleto" hidden>
+              <div class="boleto-box">
+                <strong>Boleto bancário</strong>
+                <p>Após confirmar, geraremos o boleto para pagamento em qualquer banco, com vencimento em 3 dias úteis.</p>
+                <p class="pix-note">🧾 Simulação — integração com o emissor real será ativada em breve.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="checkout-card glass-card">
+            <h2 class="checkout-card-title">Observações</h2>
+            <div class="form-field">
+              <label class="form-label" for="co-notes">Alguma observação? (mensagem para o cartão, tamanho da camiseta, etc.)</label>
+              <textarea class="form-textarea" id="co-notes" name="notes" rows="3" placeholder="Ex.: Camiseta tamanho M, mensagem para o cartão de agradecimento..."></textarea>
+            </div>
+            <label class="checkout-consent">
+              <input type="checkbox" id="co-consent" required />
+              <span>Li e aceito as <a href="/cookies/">políticas de privacidade e cookies</a> e os termos de compra da loja. <span class="form-label-accent">*</span></span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn-primary checkout-submit" id="checkout-submit">
+            Confirmar pedido
+          </button>
+          <p class="checkout-secure-note">🔒 Ambiente seguro · Seus dados são usados apenas para processar este pedido.</p>
+        </form>
+
+        <aside class="checkout-summary" id="checkout-summary">
+          <div class="checkout-summary-card glass-card">
+            <h2 class="checkout-summary-title">Seu pedido</h2>
+            <div class="checkout-items" id="checkout-items"></div>
+            <div class="checkout-totals">
+              <div class="co-row"><span>Subtotal</span><strong id="co-subtotal">R$ 0,00</strong></div>
+              <div class="co-row"><span>Frete</span><strong id="co-shipping">—</strong></div>
+              <div class="co-row co-total"><span>Total</span><strong id="co-total">R$ 0,00</strong></div>
+            </div>
+            <p class="checkout-grains-note">🫘 Esta compra gera grãos na sua jornada: quanto mais você apoia, mais benefícios desbloqueia.</p>
+            <a href="/loja/" class="checkout-back-link">← Continuar comprando</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <CartDrawer />
+  <ScrollAnimations />
+
+  <script>
+    import { getCart, cartSubtotal, cartShipping, cartTotal, clearCart, formatBRL } from '../../lib/cart'
+    import type { CartItem } from '../../lib/cart'
+
+    const esc = (s: string | number | undefined): string =>
+      String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
+    function showToast(title: string, type = 'success', message?: string) {
+      window.dispatchEvent(new CustomEvent('app:show-toast', { detail: { title, type, message } }))
+    }
+
+    function renderSummary() {
+      const items = getCart()
+      const empty = document.getElementById('checkout-empty')
+      const layout = document.getElementById('checkout-layout')
+      if (!empty || !layout) return
+
+      if (items.length === 0) {
+        empty.hidden = false
+        layout.hidden = true
+        return
+      }
+      empty.hidden = true
+      layout.hidden = false
+
+      const list = document.getElementById('checkout-items')
+      if (list) {
+        list.innerHTML = items.map((item: CartItem) => `
+          <div class="co-item">
+            <img src="${esc(item.image)}" alt="" width="56" height="56" loading="lazy" decoding="async" />
+            <div class="co-item-body">
+              <span class="co-item-name">${esc(item.name)}</span>
+              <span class="co-item-meta">${item.qty} × ${formatBRL(item.price)}</span>
+            </div>
+            <strong class="co-item-total">${formatBRL(item.price * item.qty)}</strong>
+          </div>
+        `).join('')
+      }
+
+      const subtotal = cartSubtotal()
+      const shipping = cartShipping(subtotal)
+      const total = cartTotal()
+      const set = (id: string, text: string) => {
+        const el = document.getElementById(id)
+        if (el) el.textContent = text
+      }
+      set('co-subtotal', formatBRL(subtotal))
+      set('co-shipping', shipping === 0 ? 'Grátis' : formatBRL(shipping))
+      set('co-total', formatBRL(total))
+    }
+
+    // Pagamento: alterna detalhes conforme a opção selecionada
+    document.querySelectorAll<HTMLInputElement>('input[name="payment"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        const detailMap: Record<string, string> = { pix: 'payment-pix', card: 'payment-card', boleto: 'payment-boleto' }
+        Object.entries(detailMap).forEach(([method, id]) => {
+          const el = document.getElementById(id)
+          if (el) el.hidden = method !== radio.value
+        })
+      })
+    })
+
+    // Preenche com dados anteriores, se houver
+    try {
+      const saved = JSON.parse(localStorage.getItem('acf-customer') || 'null')
+      if (saved) {
+        const map: Record<string, string> = { name: 'co-name', email: 'co-email', phone: 'co-phone' }
+        Object.entries(map).forEach(([key, id]) => {
+          const el = document.getElementById(id) as HTMLInputElement | null
+          if (el && saved[key] && !el.value) el.value = saved[key]
+        })
+      }
+    } catch (e) {}
+
+    // CEP: mascara simples
+    const cepInput = document.getElementById('co-cep') as HTMLInputElement | null
+    cepInput?.addEventListener('input', () => {
+      let v = cepInput.value.replace(/\D/g, '').slice(0, 8)
+      if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5)
+      cepInput.value = v
+    })
+
+    // Cartão: máscaras simples
+    const ccNumber = document.getElementById('cc-number') as HTMLInputElement | null
+    ccNumber?.addEventListener('input', () => {
+      ccNumber.value = ccNumber.value.replace(/\D/g, '').slice(0, 16).replace(/(\d{4})(?=\d)/g, '$1 ')
+    })
+    const ccExpiry = document.getElementById('cc-expiry') as HTMLInputElement | null
+    ccExpiry?.addEventListener('input', () => {
+      let v = ccExpiry.value.replace(/\D/g, '').slice(0, 4)
+      if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2)
+      ccExpiry.value = v
+    })
+    const ccCvv = document.getElementById('cc-cvv') as HTMLInputElement | null
+    ccCvv?.addEventListener('input', () => { ccCvv.value = ccCvv.value.replace(/\D/g, '').slice(0, 4) })
+    const ccPhone = document.getElementById('co-phone') as HTMLInputElement | null
+    ccPhone?.addEventListener('input', () => {
+      ccPhone.value = ccPhone.value.replace(/\D/g, '').slice(0, 11).replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2')
+    })
+
+    // Envio
+    const form = document.getElementById('checkout-form') as HTMLFormElement | null
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault()
+      if (!form) return
+
+      const fields = ['co-name', 'co-email', 'co-phone', 'co-cep', 'co-street', 'co-number', 'co-city', 'co-state']
+      let firstInvalid: HTMLElement | null = null
+      for (const id of fields) {
+        const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement | null
+        if (!el) continue
+        const valid = el.value.trim() !== ''
+        el.classList.toggle('form-input-error', !valid)
+        if (!valid && !firstInvalid) firstInvalid = el
+      }
+
+      const consent = document.getElementById('co-consent') as HTMLInputElement | null
+      consent?.closest('.checkout-consent')?.classList.toggle('consent-error', !consent.checked)
+
+      if (firstInvalid || (consent && !consent.checked)) {
+        showToast('Preencha os campos obrigatórios', 'warning', 'Verifique os campos destacados antes de continuar.')
+        firstInvalid?.focus()
+        return
+      }
+
+      const items = getCart()
+      if (items.length === 0) {
+        showToast('Seu carrinho está vazio', 'warning')
+        return
+      }
+
+      const val = (id: string) => (document.getElementById(id) as HTMLInputElement | null)?.value.trim() || ''
+      const payment = (document.querySelector('input[name="payment"]:checked') as HTMLInputElement | null)?.value || 'pix'
+      const paymentLabel = payment === 'pix' ? 'Pix' : payment === 'card' ? 'Cartão de crédito' : 'Boleto bancário'
+
+      const order = {
+        id: 'ACF-' + Math.random().toString(36).slice(2, 8).toUpperCase(),
+        createdAt: new Date().toISOString(),
+        items,
+        subtotal: cartSubtotal(),
+        shipping: cartShipping(cartSubtotal()),
+        total: cartTotal(),
+        payment: { method: payment, label: paymentLabel },
+        customer: { name: val('co-name'), email: val('co-email'), phone: val('co-phone') },
+        address: {
+          cep: val('co-cep'), street: val('co-street'), number: val('co-number'),
+          complement: val('co-complement'), city: val('co-city'), state: val('co-state'),
+        },
+        notes: val('co-notes'),
+        status: 'confirmado',
+      }
+
+      try {
+        const orders = JSON.parse(localStorage.getItem('acf-orders') || '[]')
+        orders.unshift(order)
+        localStorage.setItem('acf-orders', JSON.stringify(orders))
+        localStorage.setItem('acf-customer', JSON.stringify({ name: order.customer.name, email: order.customer.email, phone: order.customer.phone }))
+      } catch (err) {
+        showToast('Não foi possível salvar o pedido', 'error')
+        return
+      }
+
+      clearCart()
+      window.location.href = `/loja/confirmacao/?pedido=${order.id}`
+    })
+
+    window.addEventListener('cart:update', renderSummary)
+    document.addEventListener('astro:page-load', renderSummary)
+    renderSummary()
+  </script>
+</Base>
+
+<style is:global>
+  .checkout-hero {
+    padding: 4rem 0 2rem;
+    text-align: center;
+  }
+
+  .checkout-title {
+    font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin-bottom: 0.75rem;
+    font-family: var(--font-serif);
+  }
+
+  .checkout-subtitle {
+    color: var(--color-text-secondary);
+    font-size: 1.05rem;
+    max-width: 560px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .checkout-section { padding: 1rem 0 5rem; }
+
+  .checkout-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  @media (max-width: 1000px) {
+    .checkout-layout { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  .checkout-card {
+    padding: 1.6rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .checkout-card-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .checkout-card-title::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--color-accent) 60%, transparent);
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .payment-methods { display: flex; flex-direction: column; gap: 0.7rem; margin-bottom: 1rem; }
+
+  .payment-option {
+    display: block;
+    cursor: pointer;
+  }
+
+  .payment-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .payment-option-body {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.9rem 1.1rem;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--color-bg-card-border);
+    background: var(--color-bg-card);
+    transition: all 0.25s;
+  }
+
+  .payment-option:hover .payment-option-body {
+    border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+  }
+
+  .payment-option input:checked + .payment-option-body {
+    border-color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 9%, var(--color-bg-card));
+    box-shadow: var(--shadow-glow);
+  }
+
+  .payment-option input:focus-visible + .payment-option-body {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .payment-icon {
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 20%, transparent);
+    flex-shrink: 0;
+  }
+
+  .payment-option-body strong { display: block; font-size: 0.95rem; color: var(--color-text-primary); }
+  .payment-option-body small { font-size: 0.78rem; color: var(--color-text-muted); }
+
+  .payment-detail {
+    padding: 1rem;
+    border-radius: var(--radius-card);
+    background: color-mix(in srgb, var(--color-bg-secondary) 70%, transparent);
+    border: 1px dashed var(--color-bg-card-border);
+  }
+
+  .pix-box { display: flex; gap: 1.2rem; align-items: center; flex-wrap: wrap; }
+
+  .pix-qr {
+    padding: 0.6rem;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: var(--shadow-card);
+  }
+
+  .pix-qr svg { display: block; }
+
+  .pix-info { flex: 1; min-width: 240px; }
+  .pix-info strong { display: block; font-size: 1rem; color: var(--color-text-primary); margin-bottom: 0.4rem; }
+  .pix-info p { font-size: 0.86rem; line-height: 1.65; color: var(--color-text-secondary); margin: 0 0 0.5rem; }
+
+  .pix-note, .payment-sim-note {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    margin: 0;
+  }
+
+  .boleto-box strong { display: block; font-size: 1rem; color: var(--color-text-primary); margin-bottom: 0.4rem; }
+  .boleto-box p { font-size: 0.86rem; line-height: 1.65; color: var(--color-text-secondary); margin: 0 0 0.5rem; }
+
+  .checkout-consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-top: 1.1rem;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    cursor: pointer;
+  }
+
+  .checkout-consent input {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--color-accent);
+    margin-top: 0.15rem;
+    flex-shrink: 0;
+  }
+
+  .checkout-consent a { color: var(--color-accent); }
+
+  .checkout-consent.consent-error { color: #ef4444; }
+
+  .checkout-submit {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+    border: none;
+    font-family: var(--font-sans);
+  }
+
+  .checkout-secure-note {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    margin-top: 0.9rem;
+    font-family: var(--font-mono);
+  }
+
+  .checkout-summary { position: sticky; top: 96px; }
+
+  .checkout-summary-card { padding: 1.4rem; }
+
+  .checkout-summary-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin-bottom: 1rem;
+  }
+
+  .checkout-items { display: flex; flex-direction: column; gap: 0.7rem; margin-bottom: 1rem; }
+
+  .co-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem;
+    border-radius: 12px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+  }
+
+  .co-item img {
+    width: 52px;
+    height: 52px;
+    border-radius: 9px;
+    object-fit: cover;
+    border: 1px solid var(--color-bg-card-border);
+    flex-shrink: 0;
+  }
+
+  .co-item-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.15rem; }
+
+  .co-item-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .co-item-meta { font-size: 0.74rem; color: var(--color-text-muted); font-family: var(--font-mono); }
+
+  .co-item-total { font-size: 0.85rem; color: var(--color-accent); font-family: var(--font-mono); }
+
+  .checkout-totals { display: flex; flex-direction: column; gap: 0.5rem; border-top: 1px dashed var(--color-bg-card-border); padding-top: 0.9rem; }
+
+  .co-row { display: flex; justify-content: space-between; font-size: 0.88rem; color: var(--color-text-secondary); }
+  .co-row strong { color: var(--color-text-primary); font-family: var(--font-mono); }
+  .co-total { font-size: 1rem; font-weight: 700; padding-top: 0.4rem; border-top: 1px dashed var(--color-bg-card-border); }
+  .co-total strong { font-size: 1.15rem; color: var(--color-accent); }
+
+  .checkout-grains-note {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    margin: 1rem 0 0;
+    line-height: 1.55;
+    font-family: var(--font-mono);
+  }
+
+  .checkout-back-link {
+    display: inline-block;
+    margin-top: 0.9rem;
+    font-size: 0.85rem;
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .checkout-back-link:hover { text-decoration: underline; }
+
+  .checkout-empty { padding: 3rem 0; }
+
+  .checkout-empty-card {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .checkout-empty-icon { font-size: 3rem; }
+  .checkout-empty-title { font-size: 1.3rem; font-weight: 800; color: var(--color-text-primary); margin: 0; }
+  .checkout-empty-desc { color: var(--color-text-muted); margin: 0 0 0.5rem; }
+</style>

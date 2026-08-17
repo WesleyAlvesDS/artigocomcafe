@@ -11,6 +11,7 @@ tests/playwright/screenshots/*.png
 dash-check*.html
 designe/
 dist-audit/
+.book-cache/
 # artefatos locais de auditoria/testes
 prod-home.html
 tests/playwright/debug-links.mjs
