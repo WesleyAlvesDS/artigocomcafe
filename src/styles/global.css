@@ -3547,6 +3547,90 @@ body.reading-sepia .article-content p {
 .headline-card:disabled {
   cursor: not-allowed;
 }
+
+/* ── Focus Mode (PostEditor) ────────────────────────────── */
+.post-editor.focus-mode {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--color-bg-primary);
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.post-editor.focus-mode .editor-toolbar {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.post-editor.focus-mode .editor-pane {
+  max-width: 900px;
+  margin: 0 auto;
+  min-height: calc(100vh - 200px);
+}
+
+.post-editor.focus-mode .seo-panel {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.post-editor.focus-mode .preview-toggle {
+  max-width: 900px;
+  margin: 0.85rem auto 0;
+}
+
+.post-editor.focus-mode .editor-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.post-editor.focus-mode .editor-textarea {
+  font-size: 1rem;
+  line-height: 1.8;
+  min-height: 500px;
+}
+
+.focus-toggle {
+  position: relative;
+}
+
+.focus-toggle.active {
+  background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+  color: var(--color-accent);
+}
+
+.focus-toggle.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 2px;
+  background: var(--color-accent);
+  border-radius: 1px;
+}
+
+/* Word count & read time styling */
+.word-count, .read-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+.word-count::before {
+  content: '📝';
+  font-size: 0.7rem;
+}
+
+.read-time::before {
+  content: '⏱️';
+  font-size: 0.7rem;
+}
 /* ── Home personalizada (HomePersonalized.tsx) ─────────────────────── */
 .home-personalized {
   padding-top: 1rem;

@@ -549,8 +549,10 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
 
   const isDirty = formData.title || formData.content || formData.excerpt
 
+  const [focusMode, setFocusMode] = useState(false)
+
   return (
-    <div className="post-editor" role="application" aria-label="Editor de artigo">
+    <div className={`post-editor ${focusMode ? 'focus-mode' : ''}`} role="application" aria-label="Editor de artigo">
       {/* Toolbar */}
       <div className="editor-toolbar" role="toolbar" aria-label="Formatação">
         <div className="toolbar-group">
@@ -578,8 +580,23 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
             {wordCount} palavras
           </span>
           <span className="read-time" aria-label={`Tempo estimado de leitura: ${readTime} minutos`}>
-            ~{readTime} min de leitura
+            ~{readTime} min
           </span>
+          <button
+            type="button"
+            onClick={() => setFocusMode(!focusMode)}
+            className={`toolbar-btn focus-toggle ${focusMode ? 'active' : ''}`}
+            title={focusMode ? 'Sair do modo foco' : 'Modo foco (distração zero)' }
+            aria-label="Modo foco"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" strokeLinecap="round" strokeLinejoin="round">
+              {focusMode ? (
+                <><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></>
+              ) : (
+                <><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></>
+              )}
+            </svg>
+          </button>
         </div>
       </div>
 
