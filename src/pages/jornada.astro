@@ -5,10 +5,57 @@ import JornadaPage from '../components/JornadaPage'
 ---
 
 <Base title="Minha Jornada — Artigo com Café" description="Acompanhe sua evolução como leitor e conhecedor no Artigo com Café" canonical="/jornada/" breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Área do leitor', slug: '/dashboard/' }, { name: 'Jornada', slug: '/jornada/' }]}>
-  <section class="min-h-screen py-20 px-4" aria-label="Minha jornada de aprendizado">
-    <div class="max-w-5xl mx-auto">
+  <section class="user-page" aria-label="Minha jornada de aprendizado">
+    <div class="user-page-bg" aria-hidden="true">
+      <div class="user-orb user-orb-1"></div>
+      <div class="user-orb user-orb-2"></div>
+    </div>
+    <div class="max-w-5xl mx-auto relative z-10">
       <LoggedAreaNav current="jornada" crumb="Minha Jornada" />
       <JornadaPage client:visible />
     </div>
   </section>
 </Base>
+
+<style is:global>
+  .user-page {
+    min-height: 100vh;
+    padding: 5.5rem 1rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .user-page-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .user-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.4;
+  }
+  .user-orb-1 {
+    width: 400px;
+    height: 400px;
+    top: -10%;
+    right: -5%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 70%);
+    animation: float-orb 15s ease-in-out infinite;
+  }
+  .user-orb-2 {
+    width: 350px;
+    height: 350px;
+    bottom: 10%;
+    left: -8%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--color-accent-secondary) 8%, transparent), transparent 70%);
+    animation: float-orb 18s ease-in-out infinite reverse;
+  }
+  @keyframes float-orb {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(10px, -10px) scale(1.1); }
+    66% { transform: translate(-5px, 5px) scale(0.95); }
+  }
+  @media (max-width: 640px) { .user-orb { opacity: 0.25; } }
+</style>

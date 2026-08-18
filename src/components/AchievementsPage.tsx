@@ -40,15 +40,16 @@ function AchievementsContent() {
       />
 
       <div class="glass-card p-6 data-reveal relative overflow-hidden">
+        <div class="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-[var(--color-accent)]/8 blur-3xl pointer-events-none" />
         <div class="absolute inset-0 opacity-5"
           style={{ background: 'radial-gradient(circle at 50% 0%, var(--color-accent) 0%, transparent 70%)' }} />
         <div class="relative">
           <div class="flex items-center justify-between mb-3">
             <span class="text-sm font-bold text-[var(--color-text-primary)]">Progresso Total</span>
-            <span class="text-xs font-mono text-[var(--color-accent)] tabular-nums">{count}/{total}</span>
+            <span class="text-xs font-mono text-[var(--color-accent)] tabular-nums bg-[var(--color-accent)]/10 px-2 py-1 rounded-lg">{count}/{total}</span>
           </div>
           <div class="h-3 rounded-full bg-[var(--color-bg-card-border)] overflow-hidden">
-            <div class="h-full rounded-full bg-gradient-to-r from-[var(--color-accent)] via-[var(--color-accent-secondary)] to-[var(--color-accent)] relative transition-all duration-700" style={{ width: `${percent}%` }}>
+            <div class="h-full rounded-full bg-gradient-to-r from-[var(--color-accent)] via-[var(--color-accent-secondary)] to-[var(--color-accent)] relative transition-all duration-700 shadow-[0_0_12px_var(--color-accent-glow)]" style={{ width: `${percent}%` }}>
               <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" />
             </div>
           </div>
@@ -59,26 +60,27 @@ function AchievementsContent() {
       {unlocked.length > 0 && (
         <div data-reveal>
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-bold text-[var(--color-text-primary)]">Desbloqueadas ({unlocked.length})</h2>
-            <button onClick={() => setShowUnlocked(!showUnlocked)} class="text-xs text-[var(--color-accent)] hover:underline">
+            <h2 class="text-lg font-bold text-[var(--color-text-primary)]">✨ Desbloqueadas ({unlocked.length})</h2>
+            <button onClick={() => setShowUnlocked(!showUnlocked)} class="text-xs text-[var(--color-accent)] hover:underline font-medium">
               {showUnlocked ? 'Ocultar' : 'Mostrar'}
             </button>
           </div>
           {showUnlocked && (
-            <div class="grid sm:grid-cols-2 gap-3 animate-stagger">
+            <div class="grid sm:grid-cols-2 gap-3">
               {unlocked.map(a => {
                 const rarity = rarityColors[a.rarity] || rarityColors.common
                 return (
-                  <div key={a.id} class="glass-card p-4 group hover:border-[var(--color-accent)]/30" style={{ background: rarity.bg, borderColor: rarity.border }}>
-                    <div class="flex items-center gap-3">
-                      <div class="w-11 h-11 rounded-xl bg-[var(--color-bg-card)] flex items-center justify-center text-xl group-hover:scale-110 transition-transform duration-300">
+                  <div key={a.id} class="glass-card p-4 group hover:-translate-y-0.5 transition-all duration-200 relative overflow-hidden" style={{ background: rarity.bg, borderColor: rarity.border }}>
+                    <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" style={{ background: `radial-gradient(circle at 50% 0%, ${rarity.glow}, transparent 70%)` }} />
+                    <div class="relative flex items-center gap-3">
+                      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform duration-300" style={{ background: `color-mix(in srgb, ${rarity.text} 15%, transparent)`, border: `1px solid color-mix(in srgb, ${rarity.text} 25%, transparent)` }}>
                         {a.icon || '🏆'}
                       </div>
                       <div class="flex-1 min-w-0">
                         <h3 class="font-bold text-[var(--color-text-primary)] text-sm truncate">{a.name}</h3>
                         <p class="text-xs text-[var(--color-text-muted)] line-clamp-1">{a.description}</p>
                       </div>
-                      <span class="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ background: rarity.glow, color: rarity.text }}>
+                      <span class="text-[10px] px-2 py-1 rounded-full font-bold flex-shrink-0" style={{ background: rarity.glow, color: rarity.text }}>
                         {a.rarity}
                       </span>
                     </div>
@@ -93,17 +95,17 @@ function AchievementsContent() {
       {locked.length > 0 && (
         <div data-reveal>
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-bold text-[var(--color-text-primary)]">Bloqueadas ({locked.length})</h2>
-            <button onClick={() => setShowLocked(!showLocked)} class="text-xs text-[var(--color-accent)] hover:underline">
+            <h2 class="text-lg font-bold text-[var(--color-text-primary)]">🔒 Bloqueadas ({locked.length})</h2>
+            <button onClick={() => setShowLocked(!showLocked)} class="text-xs text-[var(--color-accent)] hover:underline font-medium">
               {showLocked ? 'Ocultar' : 'Mostrar'}
             </button>
           </div>
           {showLocked && (
-            <div class="grid sm:grid-cols-2 gap-3 animate-stagger">
+            <div class="grid sm:grid-cols-2 gap-3">
               {locked.map(a => (
-                <div key={a.id} class="reader-card p-4 opacity-60 hover:opacity-80 transition-opacity">
+                <div key={a.id} class="glass-card p-4 opacity-50 hover:opacity-70 transition-all duration-200">
                   <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-xl bg-[var(--color-bg-card)] flex items-center justify-center text-xl">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)]">
                       🔒
                     </div>
                     <div class="flex-1 min-w-0">
