@@ -23,12 +23,14 @@
     overflow: hidden;
     padding: 0.6rem 0;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    pointer-events: none;
   }
 
   .maintenance-track {
     display: flex;
     width: max-content;
     animation: maintenance-scroll 28s linear infinite;
+    will-change: transform;
   }
 
   .maintenance-content {
@@ -84,12 +86,16 @@
   @media (max-width: 640px) {
     .maintenance-bar {
       padding: 0.5rem 0;
+      max-height: 36px;
     }
     .maintenance-text {
       font-size: 0.75rem;
     }
     .maintenance-content {
       gap: 1rem;
+    }
+    .maintenance-track {
+      width: 200%;
     }
   }
 </style>

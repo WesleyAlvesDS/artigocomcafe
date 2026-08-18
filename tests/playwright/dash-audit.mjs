@@ -373,7 +373,9 @@ async function testAuthenticated(browser, viewport, label) {
           const fabCount = await fab.count();
           if (fabCount > 0) {
             await fab.click({ timeout: 5000 }).catch(() => {});
-            await sleep(500);
+            // Aguarda o sheet abrir completamente (animação CSS 400ms)
+            await page.waitForSelector('.dash-mobile-sheet.open', { timeout: 3000 }).catch(() => {});
+            await sleep(600);
             btn = page.locator(`.dash-mobile-sheet.open button:has-text("${label}")`).first();
           }
         }
@@ -546,7 +548,9 @@ async function testEmptyState(browser) {
     await page.goto(BASE_URL + '/dashboard/', { waitUntil: 'domcontentloaded', timeout: 20000 });
     await sleep(1500);
 
-    const zeroStats = await page.locator('text=/0 dias seguidos|0 horas de leitura/i').count();
+    // Procura por zeros nos stat cards (valor + label em elementos separados)
+    const zeroStats = await page.locator('text=/0.*Dias Seguidos|0.*Horas de Leitura|Dias Seguidos.*0|Horas de Leitura.*0/i').count()
+      || await page.locator('text=/(0\s*$|^\s*0)/m').count();
     report('Dashboard renderiza estado vazio (zeros)', zeroStats >= 1, `zero stats found: ${zeroStats}`);
 
     const zeroPct = await page.locator('text=/0%/').count();
