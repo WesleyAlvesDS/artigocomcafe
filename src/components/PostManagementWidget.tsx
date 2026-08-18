@@ -109,7 +109,7 @@ export default function PostManagementWidget() {
     <div className="glass-card p-6 relative overflow-hidden">
       <div className="absolute -top-10 -left-10 w-28 h-28 rounded-full bg-amber-500/8 blur-2xl pointer-events-none" />
       
-      <div className="relative flex items-center justify-between mb-4">
+      <div className="relative flex items-center justify-between mb-5">
         <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
           Meus Artigos
         </span>
@@ -117,9 +117,10 @@ export default function PostManagementWidget() {
       </div>
 
       {error && (
-        <div className="mb-4 p-3 text-sm text-red-400 bg-red-50 dark:bg-red-950/30 rounded-xl border border-red-500/30">
-          {error}
-          <button onClick={() => fetchPosts(page)} className="ml-2 text-xs underline">Tentar novamente</button>
+        <div className="mb-4 p-4 flex items-center gap-3 text-sm text-red-400 bg-red-500/8 rounded-xl border border-red-500/20">
+          <span className="text-lg">⚠️</span>
+          <span className="flex-1">{error}</span>
+          <button onClick={() => fetchPosts(page)} className="text-xs font-medium text-red-400 hover:text-red-300 underline">Tentar novamente</button>
         </div>
       )}
 
@@ -135,47 +136,51 @@ export default function PostManagementWidget() {
           {loading ? (
             <PostListSkeleton />
           ) : posts.length === 0 ? (
-            <div className="text-center py-8">
-              <span className="text-3xl mb-3 block" aria-hidden="true">📄</span>
-              <p className="text-sm text-[var(--color-text-muted)] mb-4">Nenhum artigo ainda</p>
-              <button onClick={startCreate} className="btn-primary form-submit">
-                Criar Primeiro Artigo
+            <div className="text-center py-12">
+              <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center text-3xl" style={{ background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 10%, transparent), color-mix(in srgb, var(--color-accent-secondary) 5%, transparent))', border: '1px solid color-mix(in srgb, var(--color-accent) 15%, transparent)' }}>
+                📄
+              </div>
+              <p className="text-sm font-medium text-[var(--color-text-primary)] mb-1">Nenhum artigo ainda</p>
+              <p className="text-xs text-[var(--color-text-muted)] mb-5">Comece criando seu primeiro artigo.</p>
+              <button onClick={startCreate} className="btn-primary">
+                ✨ Criar Primeiro Artigo
               </button>
             </div>
           ) : (
             <>
-              <div className="divide-y divide-[var(--color-bg-card-border)]">
+              <div className="space-y-2">
                 {posts.map(post => (
-                  <div key={post.id} className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="font-medium text-[var(--color-text-primary)] line-clamp-1">{post.title}</span>
-                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full"
-                          style={{ background: `${statusColors[post.status] || 'var(--color-text-muted)'}22`, color: statusColors[post.status] || 'var(--color-text-muted)' }}>
-                          {statusLabels[post.status] || post.status}
-                        </span>
-                        {post.featured_image && <span className="text-[10px] text-[var(--color-text-muted)]" aria-hidden="true">🖼️</span>}
+                  <div key={post.id} className="p-4 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] hover:border-[var(--color-accent)]/20 hover:bg-[var(--color-bg-card-hover)] transition-all duration-200 group">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                          <span className="font-medium text-[var(--color-text-primary)] line-clamp-1 group-hover:text-[var(--color-accent)] transition-colors">{post.title}</span>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                            style={{ background: `${statusColors[post.status] || 'var(--color-text-muted)'}15`, color: statusColors[post.status] || 'var(--color-text-muted)', border: `1px solid ${statusColors[post.status] || 'var(--color-text-muted)'}25` }}>
+                            {statusLabels[post.status] || post.status}
+                          </span>
+                          {post.featured_image && <span className="text-[10px] text-[var(--color-text-muted)]" aria-hidden="true">🖼️</span>}
+                        </div>
+                        <div className="flex items-center gap-3 text-[10px] text-[var(--color-text-muted-dark)]">
+                          <span>{new Date(post.date).toLocaleDateString('pt-BR')}</span>
+                          {post.category && <span>· {post.category.name}</span>}
+                          {post.reading_time && <span>⏱️ {post.reading_time} min</span>}
+                          {post.tags.length > 0 && <span>🏷️ {post.tags.slice(0, 3).map(t => t.name).join(', ')}{post.tags.length > 3 ? '…' : ''}</span>}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-3 text-[10px] text-[var(--color-text-muted-dark)]">
-                        <span>{new Date(post.date).toLocaleDateString('pt-BR')}</span>
-                        {post.category && <span>· {post.category.name}</span>}
-                        {post.reading_time && <span>⏱️ {post.reading_time} min</span>}
-                        {post.tags.length > 0 && <span>🏷️ {post.tags.slice(0, 3).map(t => t.name).join(', ')}{post.tags.length > 3 ? '…' : ''}</span>}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5">
                       <a
                         href={`/blog/${post.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)] transition-colors"
+                        className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 transition-all duration-200 hover:-translate-y-0.5"
                         title="Ver no site"
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                       </a>
                       <button
                         onClick={() => startEdit(post)}
-                        className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)] transition-colors"
+                        className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 transition-all duration-200 hover:-translate-y-0.5"
                         title="Editar"
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -186,7 +191,7 @@ export default function PostManagementWidget() {
                             api.delete(`/user/posts/${post.id}`).then(() => fetchPosts(page)).catch(() => showToast('Erro ao excluir', 'error'))
                           }
                         }}
-                        className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                        className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 hover:-translate-y-0.5"
                         title="Excluir"
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>

@@ -5,8 +5,14 @@ import DashboardPage from '../components/DashboardPage.tsx'
 ---
 
 <Base title="Dashboard — Artigo com Café" description="Seu painel de controle e evolução no Artigo com Café. Acompanhe grãos, leituras, trilhas, clima e mais." canonical="/dashboard/" hideAiAssistant editorial={false} breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Área do leitor', slug: '/dashboard/' }]}>
-  <section class="min-h-screen py-20 px-4" aria-label="Dashboard">
-    <div class="max-w-6xl mx-auto">
+  <section class="dash-page" aria-label="Dashboard">
+    {/* Mesh gradient background */}
+    <div class="dash-bg-mesh" aria-hidden="true">
+      <div class="dash-orb dash-orb-1"></div>
+      <div class="dash-orb dash-orb-2"></div>
+      <div class="dash-orb dash-orb-3"></div>
+    </div>
+    <div class="max-w-6xl mx-auto relative z-10">
       <LoggedAreaNav current="dashboard" crumb="Dashboard" />
       <DashboardPage client:load />
     </div>
@@ -14,6 +20,56 @@ import DashboardPage from '../components/DashboardPage.tsx'
 </Base>
 
 <style is:global>
+  .dash-page {
+    min-height: 100vh;
+    padding: 5.5rem 1rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Mesh gradient background */
+  .dash-bg-mesh {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .dash-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.5;
+  }
+
+  .dash-orb-1 {
+    width: 500px;
+    height: 500px;
+    top: -15%;
+    right: -10%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 70%);
+    animation: float-orb 15s ease-in-out infinite;
+  }
+
+  .dash-orb-2 {
+    width: 400px;
+    height: 400px;
+    bottom: 10%;
+    left: -8%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--color-accent-secondary) 8%, transparent), transparent 70%);
+    animation: float-orb 18s ease-in-out infinite reverse;
+  }
+
+  .dash-orb-3 {
+    width: 300px;
+    height: 300px;
+    top: 40%;
+    right: 20%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 5%, transparent), transparent 70%);
+    animation: float-orb 12s ease-in-out infinite 3s;
+  }
+
   /* Dashboard stagger animation */
   @keyframes dash-fade-in {
     from {
@@ -23,6 +79,18 @@ import DashboardPage from '../components/DashboardPage.tsx'
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+
+  @keyframes float-orb {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+    }
+    33% {
+      transform: translate(10px, -10px) scale(1.1);
+    }
+    66% {
+      transform: translate(-5px, 5px) scale(0.95);
     }
   }
 
@@ -39,72 +107,11 @@ import DashboardPage from '../components/DashboardPage.tsx'
   .glass-card:nth-child(7) { animation-delay: 300ms; }
   .glass-card:nth-child(8) { animation-delay: 350ms; }
 
-  /* Floating glow orbs */
-  @keyframes float-orb {
-    0%, 100% {
-      transform: translate(0, 0) scale(1);
-    }
-    33% {
-      transform: translate(10px, -10px) scale(1.1);
-    }
-    66% {
-      transform: translate(-5px, 5px) scale(0.95);
-    }
-  }
-
-  /* Pulse glow for active elements */
-  @keyframes pulse-glow {
-    0%, 100% {
-      box-shadow: 0 0 20px var(--color-accent-glow);
-    }
-    50% {
-      box-shadow: 0 0 30px var(--color-accent-glow);
-    }
-  }
-
   /* Dashboard-specific responsive fixes */
   @media (max-width: 640px) {
     .glass-card {
       animation: none;
     }
-  }
-
-  /* Stat card shimmer on hover */
-  .stat-card-shimmer {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .stat-card-shimmer::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-      to right,
-      transparent 0%,
-      color-mix(in srgb, var(--color-accent) 5%, transparent) 50%,
-      transparent 100%
-    );
-    transform: rotate(30deg);
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
-  }
-
-  .stat-card-shimmer:hover::after {
-    opacity: 1;
-    animation: shimmer 1.5s ease-in-out;
-  }
-
-  @keyframes shimmer {
-    0% {
-      transform: rotate(30deg) translateX(-100%);
-    }
-    100% {
-      transform: rotate(30deg) translateX(100%);
-    }
+    .dash-orb { opacity: 0.3; }
   }
 </style>

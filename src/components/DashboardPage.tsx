@@ -631,6 +631,15 @@ function CreatorAssistantWidget() {
     outline: 'Outline',
   }
 
+  const toolIcons: Record<string, string> = {
+    translate: '🌍',
+    summarize: '📋',
+    seo: '🔍',
+    improve: '✨',
+    titles: '💡',
+    outline: '📝',
+  }
+
   return (
     <div class="glass-card p-6 relative overflow-hidden">
       <div className="absolute -bottom-10 -right-10 w-32 h-32 rounded-full bg-indigo-500/8 blur-3xl pointer-events-none" />
@@ -643,32 +652,35 @@ function CreatorAssistantWidget() {
       </div>
 
       {!status?.available ? (
-        <div class="flex items-center gap-3 text-sm text-[var(--color-text-muted)]">
-          <span>⚠️</span>
-          <span>Assistente de IA não configurado no servidor</span>
+        <div class="flex items-center gap-3 p-4 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)]">
+          <span class="text-2xl">⚠️</span>
+          <div>
+            <p class="text-sm font-medium text-[var(--color-text-primary)]">Assistente indisponível</p>
+            <p class="text-xs text-[var(--color-text-muted)]">O assistente de IA não está configurado no servidor.</p>
+          </div>
         </div>
       ) : (
         <>
-          <div class="flex gap-2 mb-4 border-b border-[var(--color-bg-card-border)] pb-3 overflow-x-auto">
+          <div class="flex gap-1 p-1 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] mb-5">
             <button
               onClick={() => setActiveTab('chat')}
-              class={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+              class={`flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                 activeTab === 'chat'
-                  ? 'bg-[var(--color-accent)] text-[var(--color-btn-text)]'
-                  : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-card-hover)]'
+                  ? 'bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-secondary)] text-[var(--color-btn-text)] shadow-md'
+                  : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-card-hover)]'
               }`}
             >
-              Chat
+              💬 Chat
             </button>
             <button
               onClick={() => setActiveTab('tools')}
-              class={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+              class={`flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                 activeTab === 'tools'
-                  ? 'bg-[var(--color-accent)] text-[var(--color-btn-text)]'
-                  : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-card-hover)]'
+                  ? 'bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-secondary)] text-[var(--color-btn-text)] shadow-md'
+                  : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-card-hover)]'
               }`}
             >
-              Ferramentas de Post
+              🔧 Ferramentas
             </button>
           </div>
 
@@ -760,9 +772,10 @@ function CreatorAssistantWidget() {
                     key={key}
                     onClick={() => aiAction(actionPrompts[key])}
                     disabled={loading || !selectedPost}
-                    class="px-3 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-card-border)]/30 hover:bg-[var(--color-accent)]/20 disabled:opacity-50 rounded-xl transition-colors border border-[var(--color-bg-card-border)] text-left"
+                    class="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-card)] hover:bg-[var(--color-accent)]/15 disabled:opacity-50 rounded-xl transition-all duration-200 border border-[var(--color-bg-card-border)] hover:border-[var(--color-accent)]/30 hover:-translate-y-0.5 text-left group"
                   >
-                    {actionLabels[key] || key.charAt(0).toUpperCase() + key.slice(1)}
+                    <span class="text-base group-hover:scale-110 transition-transform" aria-hidden="true">{toolIcons[key] || '🔧'}</span>
+                    <span>{actionLabels[key] || key.charAt(0).toUpperCase() + key.slice(1)}</span>
                   </button>
                 ))}
               </div>
@@ -1040,25 +1053,46 @@ function DashboardContent() {
 
       <div class="grid grid-cols-1 lg:grid-cols-[264px_1fr] gap-6 items-start">
         {/* Desktop sidebar */}
-        <aside class="hidden lg:block lg:sticky lg:top-24">
+        <aside class="hidden lg:block lg:sticky lg:top-24 space-y-4">
           <nav class="glass-card p-3 space-y-1" aria-label="Seções do dashboard">
             {SECTIONS.map(sec => navItem(sec, false))}
           </nav>
-          <div class="mt-4 glass-card p-4">
-            <div class="flex items-center justify-between gap-2 mb-1.5">
-              <span class="text-xs font-semibold text-[var(--color-text-primary)]">
-                Nível {level} · {!!s ? `${Math.round(levelProgress)}% para o próximo` : '…'}
-              </span>
+
+          {/* Level Progress Card */}
+          <div class="glass-card p-5 relative overflow-hidden">
+            <div class="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-[var(--color-accent)]/8 blur-xl pointer-events-none" />
+            <div class="relative">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style={{ background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 15%, transparent), color-mix(in srgb, var(--color-accent-secondary) 10%, transparent))', border: '1px solid color-mix(in srgb, var(--color-accent) 20%, transparent)' }}>
+                  ⬆️
+                </div>
+                <div>
+                  <div class="text-sm font-bold text-[var(--color-text-primary)]">Nível {level}</div>
+                  <div class="text-[10px] text-[var(--color-text-muted)]">{!!s ? `${Math.round(levelProgress)}% para o próximo` : '…'}</div>
+                </div>
+              </div>
+              <div class="h-2 bg-[var(--color-bg-card-border)] rounded-full overflow-hidden">
+                <div
+                  class="h-full rounded-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-secondary)] transition-all duration-700 shadow-[0_0_8px_var(--color-accent-glow)]"
+                  style={{ width: `${levelProgress}%` }}
+                />
+              </div>
             </div>
-            <div class="h-1.5 bg-[var(--color-bg-card-border)] rounded-full overflow-hidden">
-              <div
-                class="h-full rounded-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-secondary)] transition-all duration-700"
-                style={{ width: `${levelProgress}%` }}
-              />
+          </div>
+
+          {/* Keyboard Shortcuts Card */}
+          <div class="glass-card p-4">
+            <div class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)] mb-3">Atalhos</div>
+            <div class="space-y-2">
+              {SECTIONS.map((sec, i) => (
+                <div key={sec.id} class="flex items-center justify-between text-xs">
+                  <span class="text-[var(--color-text-muted)]">{sec.icon} {sec.label}</span>
+                  <kbd class="px-1.5 py-0.5 rounded bg-[var(--color-bg-card-border)] text-[var(--color-text-primary)] font-mono text-[10px] border border-[var(--color-bg-card-border)]">
+                    {i + 1}
+                  </kbd>
+                </div>
+              ))}
             </div>
-            <p class="text-[10px] text-[var(--color-text-muted)] mt-3">
-              Navegue rápido: <span class="font-mono">1</span>–<span class="font-mono">4</span> trocam de seção.
-            </p>
           </div>
         </aside>
 
@@ -1067,8 +1101,9 @@ function DashboardContent() {
           {visited.has('overview') && (
             <section class="dash-section" hidden={active !== 'overview'} aria-hidden={active !== 'overview'}>
               <div class="mb-5">
-                <div class="section-label">Visão Geral</div>
+                <div class="section-label">📊 Visão Geral</div>
                 <h2 class="text-xl font-bold text-[var(--color-text-primary)] mt-0.5">Sua evolução no café</h2>
+                <p class="text-sm text-[var(--color-text-muted)] mt-1">Acompanhe seu progresso, leituras e conquistas.</p>
               </div>
 
               {error ? (
@@ -1239,11 +1274,9 @@ function DashboardContent() {
           {visited.has('context') && (
             <section class="dash-section" hidden={active !== 'context'} aria-hidden={active !== 'context'}>
               <div class="mb-5">
-                <div class="section-label">Contexto do Dia</div>
+                <div class="section-label">🌤️ Contexto do Dia</div>
                 <h2 class="text-xl font-bold text-[var(--color-text-primary)] mt-0.5">Clima, câmbio e notícias</h2>
-                <p class="text-sm text-[var(--color-text-muted)] mt-1">
-                  Dados em tempo real integrados ao seu painel de acordo com o plano de APIs do projeto.
-                </p>
+                <p class="text-sm text-[var(--color-text-muted)] mt-1">Dados em tempo real integrados ao seu painel.</p>
               </div>
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <WeatherWidget />
@@ -1256,11 +1289,9 @@ function DashboardContent() {
           {visited.has('posts') && (
             <section class="dash-section" hidden={active !== 'posts'} aria-hidden={active !== 'posts'}>
               <div class="mb-5">
-                <div class="section-label">Meus Artigos</div>
+                <div class="section-label">📝 Meus Artigos</div>
                 <h2 class="text-xl font-bold text-[var(--color-text-primary)] mt-0.5">Gerencie seu conteúdo</h2>
-                <p class="text-sm text-[var(--color-text-muted)] mt-1">
-                  Crie, edite e publique seus artigos. Rascunhos são salvos automaticamente.
-                </p>
+                <p class="text-sm text-[var(--color-text-muted)] mt-1">Crie, edite e publique seus artigos. Rascunhos são salvos automaticamente.</p>
               </div>
               <PostManagementWidget />
             </section>
@@ -1269,11 +1300,9 @@ function DashboardContent() {
           {visited.has('assistant') && (
             <section class="dash-section" hidden={active !== 'assistant'} aria-hidden={active !== 'assistant'}>
               <div class="mb-5">
-                <div class="section-label">Assistente do Criador</div>
+                <div class="section-label">🤖 Assistente do Criador</div>
                 <h2 class="text-xl font-bold text-[var(--color-text-primary)] mt-0.5">Crie e refine com IA</h2>
-                <p class="text-sm text-[var(--color-text-muted)] mt-1">
-                  Pergunte, traduza, melhore ou gere títulos para seus artigos.
-                </p>
+                <p class="text-sm text-[var(--color-text-muted)] mt-1">Pergunte, traduza, melhore ou gere títulos para seus artigos.</p>
               </div>
               <CreatorAssistantWidget />
             </section>
