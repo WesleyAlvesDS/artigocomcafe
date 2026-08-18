@@ -1,4 +1,4 @@
-<div class="maintenance-bar" role="status" aria-live="polite" aria-label="Aviso de manutenção">
+<div class="maintenance-bar" role="status" aria-live="polite" aria-label="Aviso de manutenção" data-maintenance-bar>
   <div class="maintenance-track">
     <div class="maintenance-content">
       <span class="maintenance-icon" aria-hidden="true">☕</span>
@@ -13,17 +13,34 @@
   </div>
 </div>
 
+<script is:inline>
+  // Empurra o header fixo para baixo quando a barra de manutenção está presente
+  (function() {
+    function adjust() {
+      var bar = document.querySelector('[data-maintenance-bar]');
+      var header = document.querySelector('.header');
+      if (bar && header) {
+        var h = bar.offsetHeight;
+        header.style.top = h + 'px';
+        document.documentElement.style.setProperty('--maintenance-bar-h', h + 'px');
+      }
+    }
+    adjust();
+    document.addEventListener('astro:after-swap', adjust);
+    window.addEventListener('resize', adjust);
+  })();
+</script>
+
 <style>
   .maintenance-bar {
     position: relative;
-    z-index: 10001;
+    z-index: 101;
     width: 100%;
     background: linear-gradient(90deg, var(--color-accent), var(--color-accent-secondary));
     color: var(--color-btn-text);
     overflow: hidden;
     padding: 0.6rem 0;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
-    pointer-events: none;
   }
 
   .maintenance-track {

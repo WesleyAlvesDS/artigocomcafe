@@ -84,11 +84,11 @@ async function runSuite(viewport, label) {
     filtroBusca.close();
 
     const filtroCat = await context.newPage();
-    const respCat = await filtroCat.goto(BASE_URL + '/receitas/?categoria=cafe', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    const respCat = await filtroCat.goto(BASE_URL + '/receitas/?categoria=sobremesas', { waitUntil: 'domcontentloaded', timeout: 30000 });
     await filtroCat.waitForTimeout(1500);
     report('Filtro por categoria retorna 200', respCat?.status() === 200, `Status: ${respCat?.status()}`);
     const catCards = await filtroCat.locator('.recipe-card').count();
-    report(`Categoria "cafe" tem cards (${catCards})`, catCards > 0, 'nenhum card');
+    report(`Categoria "sobremesas" tem cards (${catCards})`, catCards > 0, 'nenhum card');
     filtroCat.close();
     listPage.close();
 
