@@ -213,12 +213,13 @@ export default function DashboardMobileNav({
           max-height: 85vh;
           background: var(--color-bg-primary);
           border-radius: var(--radius-card-lg) var(--radius-card-lg) 0 0;
-          box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+          box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3), 0 0 80px color-mix(in srgb, var(--color-accent) 10%, transparent);
           transform: translateY(100%);
           transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
           display: flex;
           flex-direction: column;
           overflow: hidden;
+          border-top: 1px solid color-mix(in srgb, var(--color-accent) 20%, transparent);
         }
         .dash-mobile-sheet.open .sheet-content {
           transform: translateY(0);
@@ -286,9 +287,11 @@ export default function DashboardMobileNav({
           color: var(--color-text-primary);
         }
         .dash-mobile-sheet .sheet-nav-item.active {
-          background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+          background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 15%, transparent), color-mix(in srgb, var(--color-accent-secondary) 10%, transparent));
           color: var(--color-accent);
           font-weight: 600;
+          border: 1px solid color-mix(in srgb, var(--color-accent) 20%, transparent);
+          box-shadow: 0 0 20px color-mix(in srgb, var(--color-accent) 10%, transparent);
         }
         .dash-mobile-sheet .sheet-nav-icon {
           font-size: 1.5rem;

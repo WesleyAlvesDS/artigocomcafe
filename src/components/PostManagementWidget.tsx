@@ -106,8 +106,10 @@ export default function PostManagementWidget() {
   }
 
   return (
-    <div className="glass-card p-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="glass-card p-6 relative overflow-hidden">
+      <div className="absolute -top-10 -left-10 w-28 h-28 rounded-full bg-amber-500/8 blur-2xl pointer-events-none" />
+      
+      <div className="relative flex items-center justify-between mb-4">
         <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
           Meus Artigos
         </span>

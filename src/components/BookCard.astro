@@ -86,12 +86,29 @@ const subtitle = book.subtitle_pt || book.subtitle
     transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
                 box-shadow 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
                 border-color 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    position: relative;
+  }
+
+  .book-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 5%, transparent), transparent);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .book-card:hover::before {
+    opacity: 1;
   }
 
   .book-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-6px);
     border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
-    box-shadow: var(--shadow-glow);
+    box-shadow: var(--shadow-glow), 0 20px 40px rgba(0, 0, 0, 0.15);
   }
 
   .book-cover {
@@ -110,8 +127,8 @@ const subtitle = book.subtitle_pt || book.subtitle
   }
 
   .book-card:hover .book-cover img {
-    transform: scale(0.97);
-    filter: brightness(0.92);
+    transform: scale(0.96);
+    filter: brightness(0.9) saturate(1.1);
   }
 
   .book-cover-fallback {
@@ -139,6 +156,8 @@ const subtitle = book.subtitle_pt || book.subtitle
     flex-direction: column;
     gap: 0.3rem;
     flex: 1;
+    position: relative;
+    z-index: 2;
   }
 
   .book-title {
@@ -186,11 +205,21 @@ const subtitle = book.subtitle_pt || book.subtitle
     padding: 0.15rem 0.5rem;
     border-radius: 100px;
     background: var(--color-bg-card-border);
+    transition: all 0.2s;
+  }
+
+  .book-card:hover .meta-chip {
+    background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+    color: var(--color-accent);
   }
 
   .meta-chip.rating {
     color: #f59e0b;
     background: rgba(245, 158, 11, 0.12);
+  }
+
+  .book-card:hover .meta-chip.rating {
+    background: rgba(245, 158, 11, 0.2);
   }
 
   .book-read-more {
@@ -202,11 +231,19 @@ const subtitle = book.subtitle_pt || book.subtitle
     font-size: 0.82rem;
     font-weight: 600;
     color: var(--color-accent);
-    transition: gap 0.3s;
+    transition: gap 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .book-card:hover .book-read-more {
-    gap: 0.6rem;
+    gap: 0.7rem;
+  }
+
+  .book-read-more svg {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .book-card:hover .book-read-more svg {
+    transform: translateX(2px);
   }
 
   @media (prefers-reduced-motion: reduce) {

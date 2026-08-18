@@ -105,6 +105,18 @@ const schemaBook = book ? {
   'inLanguage': 'pt-BR',
   'publisher': { '@type': 'Organization', 'name': 'Open Library' },
   'numberOfEditions': editionsCount && editionsCount > 0 ? editionsCount : undefined,
+  'subject': (book.subjects || []).slice(0, 5),
+  'url': `https://artigocomcafe.com/livro/${book.key}/`,
+} : null
+
+const schemaBreadcrumb = book ? {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  'itemListElement': [
+    { '@type': 'ListItem', 'position': 1, 'name': 'Início', 'item': 'https://artigocomcafe.com/' },
+    { '@type': 'ListItem', 'position': 2, 'name': 'Biblioteca', 'item': 'https://artigocomcafe.com/biblioteca/' },
+    { '@type': 'ListItem', 'position': 3, 'name': displayTitle, 'item': `https://artigocomcafe.com/livro/${book.key}/` },
+  ],
 } : null
 ---
 
@@ -135,12 +147,16 @@ const schemaBook = book ? {
     {schemaBook && (
       <script type="application/ld+json" set:html={JSON.stringify(schemaBook)} />
     )}
+    {schemaBreadcrumb && (
+      <script type="application/ld+json" set:html={JSON.stringify(schemaBreadcrumb)} />
+    )}
 
     <article class="book-page">
       <div class="book-header-section">
         <div class="book-header-bg">
           <div class="book-header-sphere b-hs-1"></div>
           <div class="book-header-sphere b-hs-2"></div>
+          <div class="book-header-sphere b-hs-3"></div>
         </div>
         <div class="container">
           <div class="book-header" data-scroll-reveal="slide-up">
@@ -154,7 +170,7 @@ const schemaBook = book ? {
             )}
             {displaySubtitle && <p class="book-subtitle-page">{displaySubtitle}</p>}
             <p class="book-authors-page">
-              {(book.authors || []).join(', ') || 'Autor desconhecido'}
+              por <strong>{(book.authors || []).join(', ') || 'Autor desconhecido'}</strong>
             </p>
             <div class="book-stats-row">
               {year && (
@@ -169,10 +185,10 @@ const schemaBook = book ? {
                   {(book.subjects || []).length} {book.subjects!.length === 1 ? 'tema' : 'temas'}
                 </span>
               )}
-              {book.key && (
+              {editionsCount && editionsCount > 0 && (
                 <span class="book-stat">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-                  {book.key}
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /></svg>
+                  {editionsCount} {editionsCount === 1 ? 'edição' : 'edições'}
                 </span>
               )}
             </div>
@@ -378,6 +394,15 @@ const schemaBook = book ? {
     animation-delay: -5s;
   }
 
+  .b-hs-3 {
+    width: 200px;
+    height: 200px;
+    top: 30%;
+    right: 20%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent);
+    animation-delay: -8s;
+  }
+
   .book-header {
     position: relative;
     z-index: 1;
@@ -428,6 +453,11 @@ const schemaBook = book ? {
     font-size: 0.9rem;
     color: var(--color-text-muted);
     margin-bottom: 0.6rem;
+    padding: 0.3rem 0.75rem;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    border-radius: 100px;
+    display: inline-block;
   }
 
   .book-subtitle-page {
@@ -442,6 +472,10 @@ const schemaBook = book ? {
     font-size: 1.05rem;
     color: var(--color-text-secondary);
     margin-bottom: 1.5rem;
+  }
+
+  .book-authors-page strong {
+    color: var(--color-text-primary);
   }
 
   .book-stats-row {
@@ -461,6 +495,12 @@ const schemaBook = book ? {
     background: color-mix(in srgb, var(--color-bg-card) 90%, transparent);
     border: 1px solid var(--color-bg-card-border);
     backdrop-filter: blur(8px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .book-stat:hover {
+    border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+    transform: translateY(-1px);
   }
 
   .book-stat svg {
@@ -489,9 +529,15 @@ const schemaBook = book ? {
     aspect-ratio: 2 / 3;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: var(--shadow-card), 0 0 0 1px rgba(255, 255, 255, 0.03);
+    box-shadow: var(--shadow-card), 0 0 0 1px rgba(255, 255, 255, 0.03), 0 20px 60px rgba(0, 0, 0, 0.3);
     border: 1px solid var(--color-bg-card-border);
     background: var(--color-bg-secondary);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s;
+  }
+
+  .book-cover-large:hover {
+    transform: scale(1.02);
+    box-shadow: var(--shadow-card), 0 0 0 1px rgba(255, 255, 255, 0.03), 0 30px 80px rgba(0, 0, 0, 0.4), var(--shadow-glow);
   }
 
   .book-cover-large img {
@@ -580,13 +626,14 @@ const schemaBook = book ? {
     border-radius: 14px;
     background: var(--color-bg-card);
     border: 1px solid var(--color-bg-card-border);
-    transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .edition-card:hover {
     border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
     transform: translateY(-2px);
     box-shadow: var(--shadow-glow);
+    background: var(--color-bg-card-hover);
   }
 
   .edition-year {
@@ -665,13 +712,14 @@ const schemaBook = book ? {
     background: var(--color-bg-card);
     border: 1px solid var(--color-bg-card-border);
     text-decoration: none;
-    transition: all 0.25s;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .subject-chip:hover {
     color: var(--color-accent);
     border-color: var(--color-accent);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--color-accent) 20%, transparent);
   }
 
   .book-actions {

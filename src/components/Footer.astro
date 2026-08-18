@@ -193,6 +193,13 @@ import AdSterraSmartLink from './AdSterraSmartLink.astro'
     font-size: 0.78rem;
   }
 
+  @media (max-width: 1100px) {
+    .footer-grid {
+      grid-template-columns: 1.5fr 1fr 1fr 1fr 1.5fr;
+      gap: 1.5rem;
+    }
+  }
+
   @media (max-width: 768px) {
     .footer-grid {
       grid-template-columns: 1fr 1fr;

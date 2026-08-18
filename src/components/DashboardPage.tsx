@@ -154,8 +154,9 @@ const emptyFormData = (): PostFormData => ({
 
 function StatSkeleton() {
   return (
-    <div class="glass-card p-5 animate-pulse">
-      <div class="w-10 h-10 rounded-xl bg-[var(--color-bg-card-border)] mb-3" />
+    <div class="glass-card p-5 animate-pulse overflow-hidden relative">
+      <div class="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-[var(--color-accent)]/5 blur-2xl" />
+      <div class="w-11 h-11 rounded-xl bg-[var(--color-bg-card-border)] mb-3" />
       <div class="h-7 w-3/4 bg-[var(--color-bg-card-border)] rounded mb-1" />
       <div class="h-4 w-1/2 bg-[var(--color-bg-card-border)] rounded" />
     </div>
@@ -201,6 +202,13 @@ function WeatherWidget() {
       .catch(() => setError(true))
       .finally(() => setLoading(false))
   }
+
+  // Weather icon based on description
+  const weatherEmoji = weather?.description?.toLowerCase().includes('sun') || weather?.description?.toLowerCase().includes('clear') ? '☀️'
+    : weather?.description?.toLowerCase().includes('cloud') ? '☁️'
+    : weather?.description?.toLowerCase().includes('rain') ? '🌧️'
+    : weather?.description?.toLowerCase().includes('snow') ? '❄️'
+    : '🌤️'
 
   const queryFor = (pref: LocationPref | null) => {
     if (pref?.granted && pref.lat != null && pref.lon != null) {
@@ -258,8 +266,11 @@ function WeatherWidget() {
   }, [])
 
   return (
-    <div class="glass-card p-6 transition-all hover:shadow-glow h-full">
-      <div class="flex items-center justify-between mb-4">
+    <div class="glass-card p-6 transition-all hover:shadow-glow h-full relative overflow-hidden group">
+      {/* Subtle background glow */}
+      <div class="absolute -top-10 -right-10 w-28 h-28 rounded-full bg-blue-500/8 blur-2xl pointer-events-none group-hover:bg-blue-500/12 transition-colors duration-500" />
+      
+      <div class="relative flex items-center justify-between mb-4">
         <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
           Clima do Café
         </span>
@@ -268,7 +279,7 @@ function WeatherWidget() {
           <button
             onClick={requestGeolocation}
             disabled={loading}
-            class="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)] transition-colors"
+            class="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)] transition-all duration-200 hover:scale-110"
             aria-label="Atualizar localização"
             title="Atualizar pela localização atual"
           >
@@ -304,39 +315,42 @@ function WeatherWidget() {
         </div>
       ) : (
         <>
-          <div class="flex items-center gap-4 mb-1">
-            <span class="text-3xl font-bold text-[var(--color-text-primary)] tabular-nums">
-              {Math.round(weather.temperature_c)}°C
-            </span>
-            <span class="text-sm text-[var(--color-text-secondary)] capitalize">
-              {weather.description || '—'}
-            </span>
+          <div class="relative flex items-center gap-4 mb-2">
+            <span class="text-4xl" aria-hidden="true">{weatherEmoji}</span>
+            <div>
+              <span class="text-3xl font-bold text-[var(--color-text-primary)] tabular-nums">
+                {Math.round(weather.temperature_c)}°C
+              </span>
+              <span class="text-sm text-[var(--color-text-secondary)] capitalize ml-2">
+                {weather.description || '—'}
+              </span>
+            </div>
           </div>
-          <p class="text-sm text-[var(--color-text-secondary)] mb-3">
+          <p class="text-sm text-[var(--color-text-secondary)] mb-4">
             {weather.city}{weather.region ? `, ${weather.region}` : ''}
           </p>
-          <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="grid grid-cols-3 gap-2.5">
             {weather.humidity != null && (
-              <div>
-                <div class="text-sm font-semibold text-[var(--color-text-primary)]">{weather.humidity}%</div>
+              <div class="glass-card p-2.5 text-center">
+                <div class="text-sm font-bold text-[var(--color-text-primary)]">{weather.humidity}%</div>
                 <div class="text-[10px] text-[var(--color-text-muted)]">Umidade</div>
               </div>
             )}
             {weather.wind_speed_kmph != null && (
-              <div>
-                <div class="text-sm font-semibold text-[var(--color-text-primary)]">{Math.round(weather.wind_speed_kmph)} km/h</div>
+              <div class="glass-card p-2.5 text-center">
+                <div class="text-sm font-bold text-[var(--color-text-primary)]">{Math.round(weather.wind_speed_kmph)} km/h</div>
                 <div class="text-[10px] text-[var(--color-text-muted)]">Vento</div>
               </div>
             )}
             {weather.feels_like_c != null && (
-              <div>
-                <div class="text-sm font-semibold text-[var(--color-text-primary)]">{Math.round(weather.feels_like_c)}°C</div>
+              <div class="glass-card p-2.5 text-center">
+                <div class="text-sm font-bold text-[var(--color-text-primary)]">{Math.round(weather.feels_like_c)}°C</div>
                 <div class="text-[10px] text-[var(--color-text-muted)]">Sensação</div>
               </div>
             )}
           </div>
           {weather.uv_index != null && (
-            <p class="text-[10px] text-[var(--color-text-muted-dark)] mt-3">
+            <p class="text-[10px] text-[var(--color-text-muted-dark)] mt-4 text-center">
               Índice UV {Math.round(weather.uv_index)} · {weather.source || 'wttr.in'}
             </p>
           )}
@@ -381,8 +395,10 @@ function ExchangeWidget() {
   }, [])
 
   return (
-    <div class="glass-card p-6 transition-all hover:shadow-glow h-full">
-      <div class="flex items-center justify-between mb-4">
+    <div class="glass-card p-6 transition-all hover:shadow-glow h-full relative overflow-hidden group">
+      <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-emerald-500/8 blur-2xl pointer-events-none group-hover:bg-emerald-500/12 transition-colors duration-500" />
+      
+      <div class="relative flex items-center justify-between mb-4">
         <div>
           <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
             Câmbio ao Vivo
@@ -486,8 +502,10 @@ function HeadlinesWidget() {
   }, [])
 
   return (
-    <div class="glass-card p-6 transition-all hover:shadow-glow h-full">
-      <div class="flex items-center justify-between mb-4">
+    <div class="glass-card p-6 transition-all hover:shadow-glow h-full relative overflow-hidden group">
+      <div className="absolute -top-8 -left-8 w-24 h-24 rounded-full bg-violet-500/8 blur-2xl pointer-events-none group-hover:bg-violet-500/12 transition-colors duration-500" />
+      
+      <div class="relative flex items-center justify-between mb-4">
         <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
           Manchetes do Dia
         </span>
@@ -614,8 +632,10 @@ function CreatorAssistantWidget() {
   }
 
   return (
-    <div class="glass-card p-6">
-      <div class="flex items-center justify-between mb-4">
+    <div class="glass-card p-6 relative overflow-hidden">
+      <div className="absolute -bottom-10 -right-10 w-32 h-32 rounded-full bg-indigo-500/8 blur-3xl pointer-events-none" />
+      
+      <div class="relative flex items-center justify-between mb-4">
         <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
           Assistente do Criador
         </span>
@@ -937,47 +957,59 @@ function DashboardContent() {
   )
 
   return (
-    <div class="space-y-5">
+    <div class="space-y-6">
       {/* Header */}
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-1">
-        <div class="flex items-center gap-4">
-          <div class="relative flex-shrink-0">
-            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--gradient-from)] to-[var(--gradient-to)] flex items-center justify-center text-3xl font-bold text-[var(--color-btn-text)] shadow-[0_0_30px_var(--color-accent-glow)]">
-              {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-            </div>
-            {s && s.daily_streak > 0 && (
-              <span class="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-amber-500 text-white text-xs flex items-center justify-center shadow-md" title={`${s.daily_streak} dias seguidos`}>
-                🔥
-              </span>
-            )}
-          </div>
-          <div class="min-w-0">
-            <h1 class="text-2xl font-bold text-[var(--color-text-primary)]">
-              Olá, <span class="gradient-text">{firstName}</span> 👋
-            </h1>
-            <div class="flex items-center gap-2 mt-1 flex-wrap">
-              <span class="text-sm text-[var(--color-text-secondary)]">@{user?.username || '—'}</span>
+      <div class="glass-card p-6 relative overflow-hidden">
+        {/* Background glow */}
+        <div class="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-[var(--color-accent)]/8 blur-3xl pointer-events-none" />
+        <div class="absolute -bottom-16 -left-16 w-40 h-40 rounded-full bg-[var(--color-accent-secondary)]/6 blur-2xl pointer-events-none" />
+        
+        <div class="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="flex items-center gap-5">
+            {/* Avatar with gradient ring */}
+            <div class="relative flex-shrink-0">
+              <div class="w-[72px] h-[72px] rounded-[20px] p-[2px] bg-gradient-to-br from-[var(--color-accent)] via-[var(--color-accent-secondary)] to-[var(--color-accent)] shadow-[0_0_40px_var(--color-accent-glow)]">
+                <div class="w-full h-full rounded-[18px] bg-gradient-to-br from-[var(--gradient-from)] to-[var(--gradient-to)] flex items-center justify-center text-3xl font-bold text-[var(--color-btn-text)]">
+                  {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                </div>
+              </div>
               {s && s.daily_streak > 0 && (
-                <>
-                  <span class="text-[var(--color-text-muted)]">·</span>
-                  <span class="inline-flex items-center gap-1 text-xs font-medium text-amber-400">
-                    🔥 {s.daily_streak} dias seguidos
-                  </span>
-                </>
+                <span class="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-white text-sm flex items-center justify-center shadow-[0_0_16px_rgba(245,158,11,0.5)] animate-pulse" title={`${s.daily_streak} dias seguidos`}>
+                  🔥
+                </span>
               )}
-              <span class="text-[var(--color-text-muted)]">·</span>
-              <span class="inline-flex items-center gap-1 text-xs font-medium text-[var(--color-accent)]">
-                Nível {level}
-              </span>
+            </div>
+            
+            {/* User info */}
+            <div class="min-w-0">
+              <h1 class="text-2xl sm:text-3xl font-bold text-[var(--color-text-primary)]">
+                Olá, <span class="gradient-text">{firstName}</span> 👋
+              </h1>
+              <div class="flex items-center gap-2.5 mt-1.5 flex-wrap">
+                <span class="text-sm text-[var(--color-text-secondary)]">@{user?.username || '—'}</span>
+                {s && s.daily_streak > 0 && (
+                  <>
+                    <span class="text-[var(--color-text-muted)]">·</span>
+                    <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">
+                      🔥 {s.daily_streak} dias seguidos
+                    </span>
+                  </>
+                )}
+                <span class="text-[var(--color-text-muted)]">·</span>
+                <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-[var(--color-accent)]/15 text-[var(--color-accent)] border border-[var(--color-accent)]/20 shadow-[0_0_12px_var(--color-accent-glow)]">
+                  Nível {level}
+                </span>
+              </div>
             </div>
           </div>
+          
+          <button
+            onClick={logout}
+            class="px-4 py-2.5 text-sm font-medium text-[var(--color-text-muted)] hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl border border-[var(--color-bg-card-border)] transition-all hover:border-red-400/30 flex-shrink-0"
+          >
+            Sair
+          </button>
         </div>
-        <button
-          onClick={logout}
-          class="px-4 py-2 text-sm text-[var(--color-text-muted)] hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl border border-[var(--color-bg-card-border)] transition-colors flex-shrink-0"
-        >
-          Sair
-        </button>
       </div>
 
       {/* Global draft banner */}
@@ -1040,11 +1072,12 @@ function DashboardContent() {
               </div>
 
               {error ? (
-                <div class="glass-card p-6 text-center mb-6">
-                  <p class="text-sm text-[var(--color-text-secondary)] mb-3">{error}</p>
+                <div class="glass-card p-8 text-center mb-6">
+                  <span class="text-4xl block mb-3">⚠️</span>
+                  <p class="text-sm text-[var(--color-text-secondary)] mb-4">{error}</p>
                   <button
                     onClick={fetchDashboard}
-                    class="px-4 py-2 text-sm font-medium text-[var(--color-accent)] border border-[var(--color-accent)]/30 hover:bg-[var(--color-accent)]/10 rounded-xl transition-colors"
+                    class="px-5 py-2.5 text-sm font-medium text-[var(--color-accent)] border border-[var(--color-accent)]/30 hover:bg-[var(--color-accent)]/10 rounded-xl transition-all hover:shadow-[0_0_20px_var(--color-accent-glow)]"
                   >
                     Tentar novamente
                   </button>
@@ -1058,17 +1091,26 @@ function DashboardContent() {
                       ))}
                     </>
                   ) : (
-                    statCards.map(stat => (
-                      <div key={stat.label} class="glass-card p-5 text-center group transition-all hover:-translate-y-1 hover:shadow-glow">
-                        <div class="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center text-2xl transition-transform group-hover:scale-110"
-                          style={{ background: 'color-mix(in srgb, var(--color-accent) 14%, transparent)', border: '1px solid color-mix(in srgb, var(--color-accent) 20%, transparent)' }}
+                    statCards.map((stat, idx) => (
+                      <div 
+                        key={stat.label} 
+                        class="glass-card p-5 text-center group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-glow relative overflow-hidden"
+                        style={{ animationDelay: `${idx * 50}ms` }}
+                      >
+                        {/* Subtle gradient background on hover */}
+                        <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-[var(--color-accent)]/5 via-transparent to-[var(--color-accent-secondary)]/5 pointer-events-none" />
+                        
+                        {/* Icon container with glow */}
+                        <div class="relative w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center text-2xl transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_var(--color-accent-glow)]"
+                          style={{ background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 12%, transparent), color-mix(in srgb, var(--color-accent-secondary) 8%, transparent))', border: '1px solid color-mix(in srgb, var(--color-accent) 15%, transparent)' }}
                           role="img" aria-hidden="true">
                           {stat.icon}
                         </div>
-                        <div class="text-2xl font-bold text-[var(--color-text-primary)] tabular-nums">
+                        
+                        <div class="relative text-2xl font-bold text-[var(--color-text-primary)] tabular-nums">
                           <CountUp value={stat.value} />
                         </div>
-                        <div class="text-xs text-[var(--color-text-muted)] mt-0.5">
+                        <div class="relative text-xs font-medium text-[var(--color-text-muted)] mt-1">
                           {stat.label}
                         </div>
                       </div>
@@ -1079,32 +1121,35 @@ function DashboardContent() {
 
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Progress viz */}
-                <div class="glass-card p-6 lg:col-span-1">
+                <div class="glass-card p-6 lg:col-span-1 relative overflow-hidden">
+                  {/* Background glow */}
+                  <div class="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-[var(--color-accent)]/8 blur-2xl pointer-events-none" />
+                  
                   <div class="section-label mb-4">Progresso Geral</div>
                   {loading ? (
                     <div class="flex flex-col items-center py-6">
-                      <div class="w-24 h-24 rounded-full bg-[var(--color-bg-card-border)] animate-pulse mb-4" />
+                      <div class="w-28 h-28 rounded-full bg-[var(--color-bg-card-border)] animate-pulse mb-4" />
                       <div class="h-4 w-20 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
                     </div>
                   ) : (
-                    <div class="flex flex-col items-center text-center">
-                      <div class="relative w-28 h-28">
-                        <svg class="w-full h-full" viewBox="0 0 100 100">
+                    <div class="flex flex-col items-center text-center relative">
+                      <div class="relative w-32 h-32">
+                        <svg class="w-full h-full drop-shadow-lg" viewBox="0 0 100 100">
                           <circle
                             cx="50" cy="50" r="42"
                             fill="none"
                             stroke="var(--color-bg-card-border)"
-                            stroke-width="8"
+                            stroke-width="7"
                           />
                           <circle
                             cx="50" cy="50" r="42"
                             fill="none"
                             stroke="url(#progressGradient)"
-                            stroke-width="8"
+                            stroke-width="7"
                             stroke-linecap="round"
                             stroke-dasharray={`${264 * (progressPct / 100)} 264`}
                             transform="rotate(-90 50 50)"
-                            style={{ transition: 'stroke-dasharray 0.8s ease' }}
+                            style={{ transition: 'stroke-dasharray 1s cubic-bezier(0.4, 0, 0.2, 1)', filter: 'drop-shadow(0 0 6px var(--color-accent-glow))' }}
                           />
                           <defs>
                             <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -1113,16 +1158,17 @@ function DashboardContent() {
                             </linearGradient>
                           </defs>
                         </svg>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                          <span class="text-2xl font-bold text-[var(--color-text-primary)] tabular-nums">
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                          <span class="text-3xl font-bold text-[var(--color-text-primary)] tabular-nums leading-none">
                             {progressPct}%
                           </span>
+                          <span class="text-[10px] text-[var(--color-text-muted)] mt-0.5">completo</span>
                         </div>
                       </div>
-                      <p class="text-xs text-[var(--color-text-muted)] mt-3">
+                      <p class="text-xs text-[var(--color-text-muted)] mt-4">
                         Baseado na sua atividade recente
                       </p>
-                      <span class="mt-2 inline-flex items-center gap-1 text-[11px] font-medium px-3 py-1 rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)]">
+                      <span class="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)] border border-[var(--color-accent)]/20">
                         Nível {level} · Continue evoluindo
                       </span>
                     </div>
@@ -1130,7 +1176,9 @@ function DashboardContent() {
                 </div>
 
                 {/* Reading time bar */}
-                <div class="glass-card p-6 lg:col-span-1">
+                <div class="glass-card p-6 lg:col-span-1 relative overflow-hidden">
+                  <div class="absolute -top-8 -left-8 w-24 h-24 rounded-full bg-[var(--color-accent-secondary)]/6 blur-2xl pointer-events-none" />
+                  
                   <div class="section-label mb-4">Tempo de Leitura</div>
                   {loading ? (
                     <div class="space-y-3">
@@ -1138,27 +1186,27 @@ function DashboardContent() {
                       <div class="h-3 w-3/4 bg-[var(--color-bg-card-border)] rounded-full animate-pulse" />
                     </div>
                   ) : (
-                    <div class="space-y-4">
+                    <div class="space-y-4 relative">
                       <div class="flex items-center justify-between">
-                        <span class="text-sm text-[var(--color-text-secondary)]">
-                          {s?.reading_time_hours || 0} horas de leitura
+                        <span class="text-sm font-medium text-[var(--color-text-secondary)]">
+                          {s?.reading_time_hours || 0}h de leitura
                         </span>
-                        <span class="text-xs text-[var(--color-text-muted)]">meta: {maxReading}h</span>
+                        <span class="text-[11px] text-[var(--color-text-muted)] font-medium">meta: {maxReading}h</span>
                       </div>
-                      <div class="h-2.5 bg-[var(--color-bg-card-border)] rounded-full overflow-hidden">
+                      <div class="h-3 bg-[var(--color-bg-card-border)] rounded-full overflow-hidden">
                         <div
-                          class="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-secondary)]"
+                          class="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-secondary)] shadow-[0_0_12px_var(--color-accent-glow)]"
                           style={{ width: `${readingPct}%` }}
                         />
                       </div>
-                      <div class="grid grid-cols-2 gap-3 text-center pt-2">
-                        <div>
-                          <div class="text-lg font-bold text-[var(--color-text-primary)]">{s?.articles_read || 0}</div>
-                          <div class="text-[10px] text-[var(--color-text-muted)]">Artigos concluídos</div>
+                      <div class="grid grid-cols-2 gap-3 pt-2">
+                        <div class="glass-card p-3 text-center">
+                          <div class="text-xl font-bold text-[var(--color-text-primary)]">{s?.articles_read || 0}</div>
+                          <div class="text-[10px] text-[var(--color-text-muted)] mt-0.5">Artigos lidos</div>
                         </div>
-                        <div>
-                          <div class="text-lg font-bold text-[var(--color-text-primary)]">{s?.trails_completed || 0}</div>
-                          <div class="text-[10px] text-[var(--color-text-muted)]">Trilhas concluídas</div>
+                        <div class="glass-card p-3 text-center">
+                          <div class="text-xl font-bold text-[var(--color-text-primary)]">{s?.trails_completed || 0}</div>
+                          <div class="text-[10px] text-[var(--color-text-muted)] mt-0.5">Trilhas feitas</div>
                         </div>
                       </div>
                     </div>
@@ -1166,18 +1214,20 @@ function DashboardContent() {
                 </div>
 
                 {/* Quick Actions */}
-                <div class="glass-card p-6 lg:col-span-1">
+                <div class="glass-card p-6 lg:col-span-1 relative overflow-hidden">
+                  <div class="absolute -bottom-6 -right-6 w-20 h-20 rounded-full bg-[var(--color-accent)]/6 blur-xl pointer-events-none" />
+                  
                   <div class="section-label mb-4">Atalhos</div>
-                  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-1 gap-2.5">
+                  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-2.5 relative">
                     {quickActions.map(action => (
                       <a
                         key={action.label}
                         href={action.href}
-                        class="flex items-center gap-2.5 p-3 rounded-xl text-[var(--color-text-primary)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card-hover)] transition-all text-sm font-medium"
-                        style={{ background: 'color-mix(in srgb, var(--color-bg-card) 40%, transparent)' }}
+                        class="flex flex-col items-center gap-2 p-3.5 rounded-xl text-[var(--color-text-primary)] hover:text-[var(--color-accent)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-glow group border border-transparent hover:border-[var(--color-accent)]/20"
+                        style={{ background: 'color-mix(in srgb, var(--color-bg-card) 50%, transparent)' }}
                       >
-                        <span class="text-xl flex-shrink-0">{action.icon}</span>
-                        <span>{action.label}</span>
+                        <span class="text-2xl flex-shrink-0 transition-transform duration-200 group-hover:scale-110">{action.icon}</span>
+                        <span class="text-xs font-medium text-center leading-tight">{action.label}</span>
                       </a>
                     ))}
                   </div>
