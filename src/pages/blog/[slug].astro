@@ -7,6 +7,7 @@ import ArticleActions from '../../components/ArticleActions'
 import ArticleToc from '../../components/ArticleToc'
 import ScrollAnimations from '../../components/ScrollAnimations.astro'
 import SmartSidebar from '../../components/SmartSidebar.astro'
+import DiamondProtocol from '../../components/DiamondProtocol.astro'
 import AdSterraNative from '../../components/AdSterraNative.astro'
 import AdSterraSmartLink from '../../components/AdSterraSmartLink.astro'
 import AdSterraBanner from '../../components/AdSterraBanner.astro'
@@ -213,6 +214,8 @@ const contentWithIds = post ? addHeadingIds(rawContent, tocHeadings) : ''
           <div class="article-layout">
             <div class="article-main">
               <div class="article-content prose" set:html={contentWithIds} />
+
+              <DiamondProtocol slug={slug!} />
 
               <AdSterraNative className="ad-article-inline" lazy />
 

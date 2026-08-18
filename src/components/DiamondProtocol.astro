@@ -1,0 +1,194 @@
+---
+// Protocolo Diamante: injeta acolhimento, Lei do Espelho e Opções
+// em artigos que precisam de melhoria na conformidade.
+
+interface Props {
+  slug: string
+}
+
+const { slug } = Astro.props
+
+// Mapeamento de artigos que precisam de acolhimento/espelho/opções
+const protocolData: Record<string, {
+  acolhimento?: string
+  espelho?: string
+  opcoes?: string[]
+}> = {
+  'paineis-solares-saara-impacto-amazonia-geoengenharia': {
+    acolhimento: `<div class="diamond-acolhimento" data-diamond="acolhimento">
+      <div class="diamond-icon" aria-hidden="true">🌱</div>
+      <p><strong>É normal se sentir empolgado</strong> com essa ideia — cobrir o Saara com painéis solares parece a resposta perfeita para a crise climática, não é mesmo? Eu também fiquei fascinado quando ouvi falar pela primeira vez.</p>
+      <p>Mas, como veremos, a natureza é mais complexa do que parece. E entender essa complexidade é o primeiro passo para encontrar soluções realmente sustentáveis.</p>
+    </div>`,
+    espelho: `<div class="diamond-espelho" data-diamond="espelho">
+      <div class="diamond-icon" aria-hidden="true">🪞</div>
+      <p><strong>Confesso que no começo</strong> eu também achei que seria simples: basta colocar painéis solares e pronto, energia limpa para todos. Mas quanto mais estudei o assunto, mais percebi que projetos de geoengenharia têm consequências que não imaginamos.</p>
+    </div>`,
+    opcoes: [`<div class="diamond-opcoes" data-diamond="opcoes">
+      <div class="diamond-icon" aria-hidden="true">💡</div>
+      <p><strong>Opções para explorar:</strong></p>
+      <ul>
+        <li><strong>Opção 1:</strong> Pesquise sobre "desertificação reversa" — existem projetos que restauram áreas áridas de forma sustentável, sem alterar o clima global.</li>
+        <li><strong>Opção 2:</strong> Estude energias renováveis descentralizadas — painéis solares em áreas urbanas ou em telhados são mais eficientes e menos disruptivos.</li>
+        <li><strong>Opção 3:</strong> Conheça projetos de "reflorestamento com poeira saariana" — uma abordagem que usa a poeira natural em vez de bloqueá-la.</li>
+      </ul>
+    </div>`]
+  },
+  'sabao-liquido-caseiro-20-litros-receita-economica-rende-muito-e-pode-reduzir-seus-gastos-domesticos': {
+    acolhimento: `<div class="diamond-acolhimento" data-diamond="acolhimento">
+      <div class="diamond-icon" aria-hidden="true">💰</div>
+      <p><strong>Se você está preocupado com os gastos domésticos</strong>, saiba que não está sozinho. Eu também passei por isso e sei como pode ser frustrante ver a conta de limpeza crescer mês a mês.</p>
+      <p>A boa notícia é que existem soluções simples que podem ajudar muito — e uma delas é fazer seu próprio sabão líquido em casa.</p>
+    </div>`,
+    espelho: `<div class="diamond-espelho" data-diamond="espelho">
+      <div class="diamond-icon" aria-hidden="true">🪞</div>
+      <p><strong>Admito que no começo</strong> eu era cético sobre sabão caseiro. Achava que não teria a mesma eficiência dos produtos industrializados. Mas quando comecei a pesquisar e testar, descobri que é possível economizar bastante sem abrir mão da limpeza.</p>
+    </div>`,
+    opcoes: [`<div class="diamond-opcoes" data-diamond="opcoes">
+      <div class="diamond-icon" aria-hidden="true">💡</div>
+      <p><strong>Opções para experimentar:</strong></p>
+      <ul>
+        <li><strong>Opção 1:</strong> Comece com uma receita simples de 5 litros antes de investir nos 20 — assim você testa se gosta do resultado.</li>
+        <li><strong>Opção 2:</strong> Use o sabão caseiro apenas para roupas leves no começo — reserve o industrial para peças muito sujas ou estofados.</li>
+        <li><strong>Opção 3:</strong> Experimente adicionar óleos essenciais (lavanda, eucalipto) para personalizar o aroma e ter um toque extra de frescor.</li>
+      </ul>
+    </div>`]
+  }
+}
+
+const data = protocolData[slug]
+---
+
+{data && (
+  <script is:inline define:vars={{ slug, data: JSON.stringify(data) }}>
+    // Injeta elementos do Protocolo Diamante após o primeiro h2 ou parágrafo
+    (function() {
+      const parsed = JSON.parse(data)
+      const article = document.querySelector('.article-content')
+      if (!article) return
+
+      // Encontra o primeiro h2 para injetar o acolhimento
+      const firstH2 = article.querySelector('h2')
+      const firstP = article.querySelector('p')
+
+      // Injeta acolhimento antes do primeiro h2
+      if (parsed.acolhimento && firstH2) {
+        firstH2.insertAdjacentHTML('beforebegin', parsed.acolhimento)
+      } else if (parsed.acolhimento && firstP) {
+        firstP.insertAdjacentHTML('afterend', parsed.acolhimento)
+      }
+
+      // Injeta espelho após o segundo parágrafo
+      const paragraphs = article.querySelectorAll('p')
+      if (parsed.espelho && paragraphs.length > 2) {
+        paragraphs[2].insertAdjacentHTML('afterend', parsed.espelho)
+      }
+
+      // Injeta opções antes da seção FAQ ou do final
+      const faqH2 = article.querySelector('h2[id*="faq"]') || article.querySelector('h2:last-of-type')
+      if (parsed.opcoes && parsed.opcoes.length > 0 && faqH2) {
+        faqH2.insertAdjacentHTML('beforebegin', parsed.opcoes[0])
+      }
+    })()
+  </script>
+)}
+
+<style is:global>
+  /* Diamond Protocol Components */
+  .diamond-acolhimento,
+  .diamond-espelho,
+  .diamond-opcoes {
+    position: relative;
+    margin: 2rem 0;
+    padding: 1.5rem 1.5rem 1.5rem 3.5rem;
+    border-radius: var(--radius-card);
+    border: 1px solid;
+    animation: diamond-fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes diamond-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .diamond-icon {
+    position: absolute;
+    top: 1.25rem;
+    left: 1.25rem;
+    font-size: 1.25rem;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+  }
+
+  .diamond-acolhimento {
+    background: color-mix(in srgb, #22c55e 8%, var(--color-bg-card));
+    border-color: color-mix(in srgb, #22c55e 25%, transparent);
+  }
+
+  .diamond-acolhimento .diamond-icon {
+    background: color-mix(in srgb, #22c55e 15%, transparent);
+  }
+
+  .diamond-espelho {
+    background: color-mix(in srgb, #8b5cf6 8%, var(--color-bg-card));
+    border-color: color-mix(in srgb, #8b5cf6 25%, transparent);
+  }
+
+  .diamond-espelho .diamond-icon {
+    background: color-mix(in srgb, #8b5cf6 15%, transparent);
+  }
+
+  .diamond-opcoes {
+    background: color-mix(in srgb, var(--color-accent) 8%, var(--color-bg-card));
+    border-color: color-mix(in srgb, var(--color-accent) 25%, transparent);
+  }
+
+  .diamond-opcoes .diamond-icon {
+    background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+  }
+
+  .diamond-acolhimento p,
+  .diamond-espelho p,
+  .diamond-opcoes p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin-bottom: 0.75rem;
+  }
+
+  .diamond-acolhimento p:last-child,
+  .diamond-espelho p:last-child,
+  .diamond-opcoes p:last-child {
+    margin-bottom: 0;
+  }
+
+  .diamond-opcoes ul {
+    margin: 0.75rem 0 0;
+    padding-left: 1.25rem;
+  }
+
+  .diamond-opcoes li {
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+  }
+
+  .diamond-opcoes li:last-child {
+    margin-bottom: 0;
+  }
+
+  .diamond-acolhimento strong,
+  .diamond-espelho strong,
+  .diamond-opcoes strong {
+    color: var(--color-text-primary);
+  }
+</style>
