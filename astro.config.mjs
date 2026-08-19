@@ -16,6 +16,17 @@ export default defineConfig({
     assets: '_astro',
     format: 'directory'
   },
+  redirects: {
+    '/jornada': '/dashboard#/jornada',
+    '/missoes': '/dashboard#/missoes',
+    '/trilhas': '/dashboard#/trilhas',
+    '/conquistas': '/dashboard#/conquistas',
+    '/biblioteca': '/dashboard#/biblioteca',
+    '/mapa': '/dashboard#/mapa',
+    '/graos': '/dashboard#/graos',
+    '/torrefacao': '/dashboard#/torrefacao',
+    '/perfil': '/dashboard#/perfil',
+  },
   compressHTML: true,
   scopedStyleStrategy: 'where'
 });

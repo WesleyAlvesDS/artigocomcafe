@@ -40,7 +40,7 @@ function GrainsContent() {
               <p class="text-4xl font-bold text-[var(--color-text-primary)] tabular-nums gradient-text">{data?.balance || 0}</p>
             </div>
           </div>
-          <a href="/torrefacao" class="btn-primary ripple">
+          <a href="/dashboard#/torrefacao" class="btn-primary ripple">
             {vocab.roasting} {vocab.currency}
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="5" y1="12" x2="19" y2="12" />

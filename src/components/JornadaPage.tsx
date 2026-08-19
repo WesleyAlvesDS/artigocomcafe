@@ -174,12 +174,12 @@ function JornadaContent() {
 
       {/* Quick actions */}
       <div class="flex flex-wrap gap-3 data-reveal">
-        <a href="/mapa" class="btn-primary ripple">
+        <a href="/dashboard#/mapa" class="btn-primary ripple">
           🗺️ Mapa
         </a>
-        <a href="/trilhas" class="btn-ghost">Trilhas</a>
-        <a href="/missoes" class="btn-ghost">🎯 Missoes</a>
-        <a href="/conquistas" class="btn-ghost">🏆 Conquistas</a>
+        <a href="/dashboard#/trilhas" class="btn-ghost">Trilhas</a>
+        <a href="/dashboard#/missoes" class="btn-ghost">🎯 Missoes</a>
+        <a href="/dashboard#/conquistas" class="btn-ghost">🏆 Conquistas</a>
       </div>
     </div>
   )

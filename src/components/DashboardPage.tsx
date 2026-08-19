@@ -810,7 +810,7 @@ function CreatorAssistantWidget() {
   )
 }
 
-function DashboardContent() {
+function DashboardContent({ embedded = false }: { embedded?: boolean }) {
   const { user, logout } = useAuth()
   const [dash, setDash] = useState<DashboardResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -932,13 +932,13 @@ function DashboardContent() {
   const levelProgress = s ? ((s.total_grains || 0) % 300) / 300 * 100 : 0
 
   const quickActions = [
-    { label: 'Mapa do Conhecimento', icon: '🗺️', href: '/mapa' },
-    { label: 'Torrefação', icon: '☕', href: '/torrefacao' },
-    { label: 'Biblioteca', icon: '📚', href: '/biblioteca' },
-    { label: vocab.currency, icon: vocab.currency_icon, href: '/graos' },
-    { label: 'Conquistas', icon: '🏆', href: '/conquistas' },
-    { label: 'Missões', icon: '🎯', href: '/missoes' },
-    { label: 'Trilhas', icon: '🎓', href: '/trilhas' },
+    { label: 'Mapa do Conhecimento', icon: '🗺️', href: '/dashboard#/mapa' },
+    { label: 'Torrefação', icon: '☕', href: '/dashboard#/torrefacao' },
+    { label: 'Biblioteca', icon: '📚', href: '/dashboard#/biblioteca' },
+    { label: vocab.currency, icon: vocab.currency_icon, href: '/dashboard#/graos' },
+    { label: 'Conquistas', icon: '🏆', href: '/dashboard#/conquistas' },
+    { label: 'Missões', icon: '🎯', href: '/dashboard#/missoes' },
+    { label: 'Trilhas', icon: '🎓', href: '/dashboard#/trilhas' },
   ]
 
   const firstName = user?.name?.split(' ')[0] || 'Explorador'
@@ -1043,16 +1043,17 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* Mobile Navigation - Bottom Sheet */}
-      <DashboardMobileNav
-        sections={SECTIONS}
-        activeSection={active}
-        onSectionChange={goTo}
-        hasDraft={hasDraft}
-      />
+      {!embedded && (
+        <DashboardMobileNav
+          sections={SECTIONS}
+          activeSection={active}
+          onSectionChange={goTo}
+          hasDraft={hasDraft}
+        />
+      )}
 
-      <div class="grid grid-cols-1 lg:grid-cols-[264px_1fr] gap-6 items-start">
-        {/* Desktop sidebar */}
+      <div class={embedded ? 'space-y-6' : 'grid grid-cols-1 lg:grid-cols-[264px_1fr] gap-6 items-start'}>
+        {!embedded && (
         <aside class="hidden lg:block lg:sticky lg:top-24 space-y-4">
           <nav class="glass-card p-3 space-y-1" aria-label="Seções do dashboard">
             {SECTIONS.map(sec => navItem(sec, false))}
@@ -1095,6 +1096,13 @@ function DashboardContent() {
             </div>
           </div>
         </aside>
+        )}
+
+        {embedded && (
+          <nav class="flex gap-2 overflow-x-auto pb-1.5 -mx-1 px-1" aria-label="Seções do dashboard" style={{ scrollbarWidth: 'none' }}>
+            {SECTIONS.map(sec => navItem(sec, true))}
+          </nav>
+        )}
 
         {/* Content */}
         <main class="min-w-0">
@@ -1313,6 +1321,6 @@ function DashboardContent() {
   )
 }
 
-export default function DashboardPage() {
-  return <AuthPage><DashboardContent /></AuthPage>
+export default function DashboardPage({ embedded = false }: { embedded?: boolean }) {
+  return <AuthPage><DashboardContent embedded={embedded} /></AuthPage>
 }

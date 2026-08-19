@@ -112,7 +112,7 @@ export default function UserMenu() {
 
           <div class="user-menu__divider" role="separator" />
           <span class="user-menu__label">Minha jornada</span>
-          <a href="/jornada" class="dropdown-link" role="menuitem">
+          <a href="/dashboard#/jornada" class="dropdown-link" role="menuitem">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <line x1="18" y1="20" x2="18" y2="10" />
               <line x1="12" y1="20" x2="12" y2="4" />
@@ -120,7 +120,7 @@ export default function UserMenu() {
             </svg>
             Jornada
           </a>
-          <a href="/missoes" class="dropdown-link" role="menuitem">
+          <a href="/dashboard#/missoes" class="dropdown-link" role="menuitem">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="10" />
               <circle cx="12" cy="12" r="6" />
@@ -128,14 +128,14 @@ export default function UserMenu() {
             </svg>
             Missões
           </a>
-          <a href="/conquistas" class="dropdown-link" role="menuitem">
+          <a href="/dashboard#/conquistas" class="dropdown-link" role="menuitem">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="12" cy="8" r="6" />
               <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" />
             </svg>
             Conquistas
           </a>
-          <a href="/trilhas" class="dropdown-link" role="menuitem">
+          <a href="/dashboard#/trilhas" class="dropdown-link" role="menuitem">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
               <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
@@ -145,14 +145,14 @@ export default function UserMenu() {
 
           <div class="user-menu__divider" role="separator" />
           <span class="user-menu__label">Biblioteca</span>
-          <a href="/biblioteca" class="dropdown-link" role="menuitem">
+          <a href="/dashboard#/biblioteca" class="dropdown-link" role="menuitem">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
               <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
             </svg>
             Minha Biblioteca
           </a>
-          <a href="/mapa" class="dropdown-link" role="menuitem">
+          <a href="/dashboard#/mapa" class="dropdown-link" role="menuitem">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
               <line x1="8" y1="2" x2="8" y2="18" />
@@ -160,14 +160,14 @@ export default function UserMenu() {
             </svg>
             Mapa do Conhecimento
           </a>
-          <a href="/graos" class="dropdown-link" role="menuitem">
+          <a href="/dashboard#/graos" class="dropdown-link" role="menuitem">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="9" />
               <path d="M12 3a9 9 0 0 1 9 9 9 9 0 0 1-9 9 9 9 0 0 1 0-18z" opacity="0.4" />
             </svg>
             Grãos
           </a>
-          <a href="/torrefacao" class="dropdown-link" role="menuitem">
+          <a href="/dashboard#/torrefacao" class="dropdown-link" role="menuitem">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
               <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
@@ -179,7 +179,7 @@ export default function UserMenu() {
           </a>
 
           <div class="user-menu__divider" role="separator" />
-          <a href="/perfil" class="dropdown-link" role="menuitem">
+          <a href="/dashboard#/perfil" class="dropdown-link" role="menuitem">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
               <circle cx="12" cy="7" r="4" />

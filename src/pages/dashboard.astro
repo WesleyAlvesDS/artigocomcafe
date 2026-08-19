@@ -1,117 +1,18 @@
 ---
 import Base from '../layouts/Base.astro'
-import LoggedAreaNav from '../components/LoggedAreaNav.astro'
-import DashboardPage from '../components/DashboardPage.tsx'
+import DashboardApp from '../components/DashboardApp'
+import '../styles/dashboard-app.css'
 ---
 
 <Base title="Dashboard — Artigo com Café" description="Seu painel de controle e evolução no Artigo com Café. Acompanhe grãos, leituras, trilhas, clima e mais." canonical="/dashboard/" hideAiAssistant editorial={false} breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Área do leitor', slug: '/dashboard/' }]}>
   <section class="dash-page" aria-label="Dashboard">
-    {/* Mesh gradient background */}
     <div class="dash-bg-mesh" aria-hidden="true">
       <div class="dash-orb dash-orb-1"></div>
       <div class="dash-orb dash-orb-2"></div>
       <div class="dash-orb dash-orb-3"></div>
     </div>
     <div class="max-w-6xl mx-auto relative z-10">
-      <LoggedAreaNav current="dashboard" crumb="Dashboard" />
-      <DashboardPage client:load />
+      <DashboardApp client:load />
     </div>
   </section>
 </Base>
-
-<style is:global>
-  .dash-page {
-    min-height: 100vh;
-    padding: 5.5rem 1rem 4rem;
-    position: relative;
-    overflow: hidden;
-  }
-
-  /* Mesh gradient background */
-  .dash-bg-mesh {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    overflow: hidden;
-  }
-
-  .dash-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(100px);
-    opacity: 0.5;
-  }
-
-  .dash-orb-1 {
-    width: 500px;
-    height: 500px;
-    top: -15%;
-    right: -10%;
-    background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 70%);
-    animation: float-orb 15s ease-in-out infinite;
-  }
-
-  .dash-orb-2 {
-    width: 400px;
-    height: 400px;
-    bottom: 10%;
-    left: -8%;
-    background: radial-gradient(circle, color-mix(in srgb, var(--color-accent-secondary) 8%, transparent), transparent 70%);
-    animation: float-orb 18s ease-in-out infinite reverse;
-  }
-
-  .dash-orb-3 {
-    width: 300px;
-    height: 300px;
-    top: 40%;
-    right: 20%;
-    background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 5%, transparent), transparent 70%);
-    animation: float-orb 12s ease-in-out infinite 3s;
-  }
-
-  /* Dashboard stagger animation */
-  @keyframes dash-fade-in {
-    from {
-      opacity: 0;
-      transform: translateY(16px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes float-orb {
-    0%, 100% {
-      transform: translate(0, 0) scale(1);
-    }
-    33% {
-      transform: translate(10px, -10px) scale(1.1);
-    }
-    66% {
-      transform: translate(-5px, 5px) scale(0.95);
-    }
-  }
-
-  .glass-card {
-    animation: dash-fade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
-  }
-
-  .glass-card:nth-child(1) { animation-delay: 0ms; }
-  .glass-card:nth-child(2) { animation-delay: 50ms; }
-  .glass-card:nth-child(3) { animation-delay: 100ms; }
-  .glass-card:nth-child(4) { animation-delay: 150ms; }
-  .glass-card:nth-child(5) { animation-delay: 200ms; }
-  .glass-card:nth-child(6) { animation-delay: 250ms; }
-  .glass-card:nth-child(7) { animation-delay: 300ms; }
-  .glass-card:nth-child(8) { animation-delay: 350ms; }
-
-  /* Dashboard-specific responsive fixes */
-  @media (max-width: 640px) {
-    .glass-card {
-      animation: none;
-    }
-    .dash-orb { opacity: 0.3; }
-  }
-</style>

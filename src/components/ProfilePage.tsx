@@ -73,13 +73,13 @@ function ProfileContent() {
       <FavoriteCategories />
 
       <div class="flex flex-wrap gap-3">
-        <a href="/mapa" class="px-5 py-2.5 bg-[var(--color-accent)] text-[var(--color-btn-text)] rounded-xl font-medium hover:opacity-90 transition-opacity">🗺️ Mapa</a>
-        <a href="/torrefacao" class="px-5 py-2.5 bg-amber-500 text-black rounded-xl font-medium hover:opacity-90 transition-opacity">☕ Torrefação</a>
-        <a href="/biblioteca" class="px-5 py-2.5 bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] text-[var(--color-text-primary)] rounded-xl font-medium hover:bg-[var(--color-bg-card-hover)] transition-colors">Biblioteca</a>
-        <a href="/graos" class="px-5 py-2.5 bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] text-[var(--color-text-primary)] rounded-xl font-medium hover:bg-[var(--color-bg-card-hover)] transition-colors">{vocab.currency}</a>
-        <a href="/conquistas" class="px-5 py-2.5 bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] text-[var(--color-text-primary)] rounded-xl font-medium hover:bg-[var(--color-bg-card-hover)] transition-colors">Conquistas</a>
-        <a href="/missoes" class="px-5 py-2.5 bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] text-[var(--color-text-primary)] rounded-xl font-medium hover:bg-[var(--color-bg-card-hover)] transition-colors">🎯 Missões</a>
-        <a href="/trilhas" class="px-5 py-2.5 bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] text-[var(--color-text-primary)] rounded-xl font-medium hover:bg-[var(--color-bg-card-hover)] transition-colors">Trilhas</a>
+        <a href="/dashboard#/mapa" class="px-5 py-2.5 bg-[var(--color-accent)] text-[var(--color-btn-text)] rounded-xl font-medium hover:opacity-90 transition-opacity">🗺️ Mapa</a>
+        <a href="/dashboard#/torrefacao" class="px-5 py-2.5 bg-amber-500 text-black rounded-xl font-medium hover:opacity-90 transition-opacity">☕ Torrefação</a>
+        <a href="/dashboard#/biblioteca" class="px-5 py-2.5 bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] text-[var(--color-text-primary)] rounded-xl font-medium hover:bg-[var(--color-bg-card-hover)] transition-colors">Biblioteca</a>
+        <a href="/dashboard#/graos" class="px-5 py-2.5 bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] text-[var(--color-text-primary)] rounded-xl font-medium hover:bg-[var(--color-bg-card-hover)] transition-colors">{vocab.currency}</a>
+        <a href="/dashboard#/conquistas" class="px-5 py-2.5 bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] text-[var(--color-text-primary)] rounded-xl font-medium hover:bg-[var(--color-bg-card-hover)] transition-colors">Conquistas</a>
+        <a href="/dashboard#/missoes" class="px-5 py-2.5 bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] text-[var(--color-text-primary)] rounded-xl font-medium hover:bg-[var(--color-bg-card-hover)] transition-colors">🎯 Missões</a>
+        <a href="/dashboard#/trilhas" class="px-5 py-2.5 bg-[var(--color-bg-card)] border border-[var(--color-bg-card-border)] text-[var(--color-text-primary)] rounded-xl font-medium hover:bg-[var(--color-bg-card-hover)] transition-colors">Trilhas</a>
       </div>
     </div>
   )
