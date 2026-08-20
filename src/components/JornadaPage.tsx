@@ -87,7 +87,7 @@ function JornadaContent() {
             </div>
           </div>
           <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[var(--color-accent)]/10 to-[var(--color-accent-secondary)]/10 border border-[var(--color-accent)]/20 shadow-[0_0_12px_var(--color-accent-glow)]">
-            <span class="text-sm font-bold text-[var(--color-accent)]">Nível {Math.floor((s?.reading_time_hours || 0) / 10) + 1}</span>
+            <span class="text-sm font-bold text-[var(--color-accent)]">Nível {Math.min(10, 1 + Math.floor((s?.total_grains || 0) / 300))}</span>
           </div>
         </div>
       </div>
@@ -164,9 +164,9 @@ function JornadaContent() {
       {/* Evolution index */}
       <div class="glass-card p-6 data-reveal relative overflow-hidden">
         <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[var(--color-accent)]/10 to-transparent rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-        <h2 class="text-lg font-bold text-[var(--color-text-primary)] mb-3">Indice de Evolucao</h2>
+        <h2 class="text-lg font-bold text-[var(--color-text-primary)] mb-3">Índice de Evolução</h2>
         <p class="text-[var(--color-text-secondary)] leading-relaxed">
-          Voce ja investiu <strong class="text-[var(--color-text-primary)] gradient-text">{s?.reading_time_hours || 0} horas</strong> em aprendizado,
+          Você já investiu <strong class="text-[var(--color-text-primary)] gradient-text">{s?.reading_time_hours || 0} horas</strong> em aprendizado,
           concluiu <strong class="text-[var(--color-text-primary)] gradient-text">{s?.trails_completed || 0} trilhas</strong>
           e explorou <strong class="text-[var(--color-text-primary)] gradient-text">{s?.categories_explored || 0} categorias</strong>.
         </p>
@@ -178,7 +178,7 @@ function JornadaContent() {
           🗺️ Mapa
         </a>
         <a href="/dashboard#/trilhas" class="btn-ghost">Trilhas</a>
-        <a href="/dashboard#/missoes" class="btn-ghost">🎯 Missoes</a>
+        <a href="/dashboard#/missoes" class="btn-ghost">🎯 Missões</a>
         <a href="/dashboard#/conquistas" class="btn-ghost">🏆 Conquistas</a>
       </div>
     </div>

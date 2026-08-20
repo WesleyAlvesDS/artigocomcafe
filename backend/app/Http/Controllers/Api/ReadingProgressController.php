@@ -160,5 +160,7 @@ class ReadingProgressController extends Controller
         $dailyVisit->increment('articles_read');
         $dailyVisit->increment('time_spent_minutes', $readingTimeMinutes);
         $dailyVisit->increment('grains_earned', $grainAmount);
+
+        app(GamificationService::class)->registerReadArticle($user);
     }
 }

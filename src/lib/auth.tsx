@@ -86,6 +86,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(null)
       setUser(null)
       resetThemeColors()
+      // Redireciona para a home para o usuário navegar livremente pelo site
+      if (window.location.pathname.startsWith('/dashboard')) {
+        window.location.href = '/'
+      }
     }
   }
 

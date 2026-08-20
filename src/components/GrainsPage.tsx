@@ -51,7 +51,7 @@ function GrainsContent() {
       </div>
 
       {/* Stats grid */}
-      <div class="grid grid-cols-3 gap-4 animate-stagger">
+      <div class="grid grid-cols-2 gap-4 animate-stagger">
         {[
           { label: vocab.harvest, value: data?.total_earned || 0, color: 'text-green-400' },
           { label: vocab.roast_action, value: data?.total_spent || 0, color: 'text-red-400' },

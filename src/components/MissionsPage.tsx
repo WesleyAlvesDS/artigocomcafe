@@ -110,11 +110,17 @@ function MissionsContent() {
                 <div class="reader-progress-fill" style={{ width: `${Math.min(100, cPercent)}%` }} />
               </div>
               {challenge.is_completed ? (
-                <button onClick={() => handleClaim(challenge)}
-                  class="px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-black hover:from-amber-400 hover:to-orange-400 transition-all hover:scale-105 shadow-lg shadow-amber-500/25 whitespace-nowrap"
-                >
-                  Resgatar 🎉
-                </button>
+                challenge.reward_claimed ? (
+                  <span class="px-4 py-2 text-xs font-bold rounded-xl bg-green-500/15 text-green-400 border border-green-500/30 whitespace-nowrap">
+                    ✓ Resgatada
+                  </span>
+                ) : (
+                  <button onClick={() => handleClaim(challenge)}
+                    class="px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-black hover:from-amber-400 hover:to-orange-400 transition-all hover:scale-105 shadow-lg shadow-amber-500/25 whitespace-nowrap"
+                  >
+                    Resgatar 🎉
+                  </button>
+                )
               ) : (
                 <span class="text-xs font-mono text-[var(--color-text-muted)] whitespace-nowrap tabular-nums">
                   {challenge.progress}/{challenge.target} · {cPercent}%
@@ -186,11 +192,17 @@ function MissionsContent() {
 
                   <div class="flex-shrink-0">
                     {mission.is_completed ? (
-                      <button onClick={() => handleClaim(mission)}
-                        class="px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-green-600 to-emerald-500 text-white hover:from-green-500 hover:to-emerald-400 transition-all hover:scale-105 shadow-lg shadow-green-500/25"
-                      >
-                        Resgatar 🎉
-                      </button>
+                      mission.reward_claimed ? (
+                        <span class="px-4 py-2 text-xs font-bold rounded-xl bg-green-500/15 text-green-400 border border-green-500/30 whitespace-nowrap">
+                          ✓ Resgatada
+                        </span>
+                      ) : (
+                        <button onClick={() => handleClaim(mission)}
+                          class="px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-green-600 to-emerald-500 text-white hover:from-green-500 hover:to-emerald-400 transition-all hover:scale-105 shadow-lg shadow-green-500/25"
+                        >
+                          Resgatar 🎉
+                        </button>
+                      )
                     ) : (
                       <div class="px-4 py-2 text-xs font-bold rounded-xl bg-[var(--color-bg-card)] text-[var(--color-text-muted)] border border-[var(--color-bg-card-border)] tabular-nums">
                         {percent}%

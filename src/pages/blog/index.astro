@@ -25,7 +25,7 @@ const categories = await getCategories()
 const { posts, pagination } = await getPosts(currentPage, 9, categorySlug || undefined, search || undefined, tagSlug || undefined)
 ---
 
-<Base title="Blog — Artigo com Café" description="Artigos aprofundados sobre o universo do café: cultura, história, métodos e curiosidades." canonical="/blog/" breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Blog', slug: '/blog/' }]}>
+<Base title="Blog — Artigo com Café" description="Um ambiente de leitura onde o café é uma analogia do acolhimento: artigos sobre cultura, história, métodos e curiosidades." canonical="/blog/" breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Blog', slug: '/blog/' }]}>
   {/* Paginação agora é client-side (island PostBrowser) — sem rel next/prev */}
   <section class="section blog-header">
     <div class="container">
@@ -33,7 +33,7 @@ const { posts, pagination } = await getPosts(currentPage, 9, categorySlug || und
         <span class="section-label">Blog</span>
         <h1 class="section-title">Todos os Artigos</h1>
         <p class="section-subtitle">
-          Conteúdo autoral sobre cultura, história e métodos do café — para ler com calma e aprender.
+          Leitura acolhedora sobre cultura, história e métodos do café — para ler com calma e aprender.
         </p>
       </div>
 

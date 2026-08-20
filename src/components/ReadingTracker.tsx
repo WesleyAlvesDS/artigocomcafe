@@ -57,17 +57,21 @@ export default function ReadingTracker({ articleId, recipeId, articleTitle }: Pr
 
     const interval = setInterval(async () => {
       const currentProgress = progressRef.current
+      const maxProgress = maxScrollRef.current
       const timeSpent = Math.round((Date.now() - startTime.current) / 1000)
 
       try {
+        // Envia o maior progresso alcançado para o servidor não "regredir" a
+        // leitura quando o usuário volta ao topo da página.
         await api.post(progressEndpoint, {
-          progress_percent: currentProgress,
+          progress_percent: Math.max(currentProgress, maxProgress),
           time_spent_seconds: timeSpent,
-          scroll_depth: maxScrollRef.current,
+          scroll_depth: maxProgress,
         })
 
-        // Auto-complete if 90%+ scroll and 30s+ spent
-        if (currentProgress >= 90 && timeSpent >= 30 && !completedRef.current) {
+        // Auto-complete se o usuário chegou a 90%+ (mesmo que já tenha rolado
+        // de volta ao topo) e ficou 30s+ na página.
+        if (maxProgress >= 90 && timeSpent >= 30 && !completedRef.current) {
           completedRef.current = true
           try {
             await api.post(completeEndpoint)

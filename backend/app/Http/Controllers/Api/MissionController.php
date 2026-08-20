@@ -4,12 +4,35 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Mission;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class MissionController extends Controller
 {
+    /**
+     * Verifica se a recompensa da missão já foi resgatada no período vigente.
+     * Diárias: hoje. Semanais: a janela da semana corrente.
+     */
+    private function isRewardClaimed(User $user, Mission $mission): bool
+    {
+        $query = $user->grains()
+            ->where('source', 'mission_reward')
+            ->where('metadata->mission_id', $mission->id);
+
+        if ($mission->type === 'weekly') {
+            $query->whereBetween('created_at', [
+                now()->startOfWeek(),
+                now()->endOfWeek(),
+            ]);
+        } else {
+            $query->whereDate('created_at', now()->toDateString());
+        }
+
+        return $query->exists();
+    }
+
     public function daily(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -24,7 +47,7 @@ class MissionController extends Controller
             $mission->progress = $userMission ? $userMission->pivot->progress : 0;
             $mission->target = $mission->conditions['target'] ?? 1;
             $mission->is_completed = $userMission ? (bool) $userMission->pivot->is_completed : false;
-            $mission->reward_claimed = $userMission && $userMission->pivot->is_completed;
+            $mission->reward_claimed = $this->isRewardClaimed($user, $mission);
 
             return $mission;
         });
@@ -47,7 +70,7 @@ class MissionController extends Controller
             $mission->progress = $userMission ? $userMission->pivot->progress : 0;
             $mission->target = $mission->conditions['target'] ?? 1;
             $mission->is_completed = $userMission ? (bool) $userMission->pivot->is_completed : false;
-            $mission->reward_claimed = $userMission && $userMission->pivot->is_completed;
+            $mission->reward_claimed = $this->isRewardClaimed($user, $mission);
 
             return $mission;
         });
@@ -58,15 +81,20 @@ class MissionController extends Controller
     public function progress(Request $request, Mission $mission): JsonResponse
     {
         $user = $request->user();
-        $today = now()->toDateString();
+        $today = now();
+
+        // Semanais usam o início da semana como assigned_date (igual ao serviço)
+        $assignedDate = $mission->type === 'weekly'
+            ? $today->copy()->startOfWeek()->toDateString()
+            : $today->toDateString();
 
         $userMission = $user->missions()
             ->where('mission_id', $mission->id)
-            ->where('assigned_date', $today)
+            ->where('assigned_date', $assignedDate)
             ->first();
 
-        $progress = $userMission ? $userMission->pivot->progress + 1 : 1;
         $target = $mission->conditions['target'] ?? 1;
+        $progress = min($target, ($userMission ? $userMission->pivot->progress : 0) + 1);
         $isCompleted = $progress >= $target;
 
         $user->missions()->syncWithoutDetaching([
@@ -75,7 +103,7 @@ class MissionController extends Controller
                 'target' => $target,
                 'is_completed' => $isCompleted,
                 'completed_at' => $isCompleted ? now() : null,
-                'assigned_date' => $today,
+                'assigned_date' => $assignedDate,
             ],
         ]);
 
@@ -111,13 +139,7 @@ class MissionController extends Controller
             return response()->json(['message' => 'Missão não concluída.'], 400);
         }
 
-        $alreadyClaimed = $user->grains()
-            ->where('source', 'mission_reward')
-            ->where('metadata->mission_id', $mission->id)
-            ->whereDate('created_at', $today)
-            ->exists();
-
-        if ($alreadyClaimed) {
+        if ($this->isRewardClaimed($user, $mission)) {
             return response()->json(['message' => 'Recompensa já resgatada.'], 400);
         }
 

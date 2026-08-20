@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\Collection;
 use App\Models\Recipe;
+use App\Services\GamificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -32,6 +33,8 @@ class CollectionController extends Controller
 
         $validated['user_id'] = $request->user()->id;
         $collection = Collection::create($validated);
+
+        app(GamificationService::class)->registerCreateCollection($request->user());
 
         return response()->json(['collection' => $collection], 201);
     }
@@ -124,6 +127,8 @@ class CollectionController extends Controller
         if (!$collection->articles()->where('article_id', $articleId)->exists()) {
             $collection->articles()->attach($articleId);
         }
+
+        app(GamificationService::class)->registerSaveArticle($request->user());
 
         return response()->json([
             'message' => 'Artigo salvo na biblioteca.',
