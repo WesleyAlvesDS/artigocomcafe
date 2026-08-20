@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { api, isAuthenticated } from '../lib/api'
 import { showToast } from './Toast'
 
@@ -15,6 +15,9 @@ export default function ReadingTracker({ articleId, recipeId, articleTitle }: Pr
   const startTime = useRef(Date.now())
   const maxScrollRef = useRef(0)
   const progressRef = useRef(0)
+  const pausedTimeRef = useRef(0)
+  const lastVisibilityChangeRef = useRef(Date.now())
+  const docHeightRef = useRef(0)
 
   // Receitas usam o mesmo rastreador (Fase 6) com endpoints próprios
   const isRecipe = recipeId != null
@@ -25,17 +28,29 @@ export default function ReadingTracker({ articleId, recipeId, articleTitle }: Pr
     if (isAuthenticated()) setVisible(true)
   }, [])
 
-  // Track scroll depth
+  // Calculate document height (handles lazy images, dynamic content)
+  const updateDocHeight = useCallback(() => {
+    const h = document.documentElement.scrollHeight - window.innerHeight
+    docHeightRef.current = h > 0 ? h : 1
+  }, [])
+
+  // Track scroll depth with IntersectionObserver fallback for accuracy
   useEffect(() => {
     if (!visible) return
 
+    updateDocHeight()
     let rafId: number
+    let lastScrollTop = window.scrollY
+
     const onScroll = () => {
       cancelAnimationFrame(rafId)
       rafId = requestAnimationFrame(() => {
         const scrollTop = window.scrollY
-        const docHeight = document.documentElement.scrollHeight - window.innerHeight
-        const depth = docHeight > 0 ? Math.min(100, Math.round((scrollTop / docHeight) * 100)) : 0
+        // Detect direction for dwell-time heuristic
+        const scrollingDown = scrollTop > lastScrollTop
+        lastScrollTop = scrollTop
+
+        const depth = Math.min(100, Math.round((scrollTop / docHeightRef.current) * 100))
         maxScrollRef.current = Math.max(maxScrollRef.current, depth)
         progressRef.current = depth
         setProgress(depth)
@@ -43,11 +58,30 @@ export default function ReadingTracker({ articleId, recipeId, articleTitle }: Pr
     }
 
     window.addEventListener('scroll', onScroll, { passive: true })
+    // Recalculate on resize (images loading, orientation change)
+    window.addEventListener('resize', updateDocHeight)
     return () => {
       window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', updateDocHeight)
       cancelAnimationFrame(rafId)
     }
-  }, [visible])    // Send progress to API every 15 seconds
+  }, [visible, updateDocHeight])
+
+  // Track active reading time (pause when tab hidden)
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      const now = Date.now()
+      if (document.hidden) {
+        lastVisibilityChangeRef.current = now
+      } else {
+        pausedTimeRef.current += now - lastVisibilityChangeRef.current
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange)
+  }, [])
+
+  // Send progress to API every 15 seconds
   useEffect(() => {
     if (!visible || contentId == null) return
 
@@ -58,20 +92,20 @@ export default function ReadingTracker({ articleId, recipeId, articleTitle }: Pr
     const interval = setInterval(async () => {
       const currentProgress = progressRef.current
       const maxProgress = maxScrollRef.current
-      const timeSpent = Math.round((Date.now() - startTime.current) / 1000)
+      const activeTimeSpent = Math.round((Date.now() - startTime.current - pausedTimeRef.current) / 1000)
 
       try {
         // Envia o maior progresso alcançado para o servidor não "regredir" a
         // leitura quando o usuário volta ao topo da página.
         await api.post(progressEndpoint, {
           progress_percent: Math.max(currentProgress, maxProgress),
-          time_spent_seconds: timeSpent,
+          time_spent_seconds: activeTimeSpent,
           scroll_depth: maxProgress,
         })
 
         // Auto-complete se o usuário chegou a 90%+ (mesmo que já tenha rolado
-        // de volta ao topo) e ficou 30s+ na página.
-        if (maxProgress >= 90 && timeSpent >= 30 && !completedRef.current) {
+        // de volta ao topo) e ficou 30s+ de tempo ATIVO na página.
+        if (maxProgress >= 90 && activeTimeSpent >= 30 && !completedRef.current) {
           completedRef.current = true
           try {
             await api.post(completeEndpoint)

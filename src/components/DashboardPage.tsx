@@ -189,6 +189,8 @@ function WeatherWidget() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [city, setCity] = useState<string>('São Paulo')
+  const [geoDenied, setGeoDenied] = useState(false)
+  const [manualCity, setManualCity] = useState('')
 
   const fetchByQuery = (query: string) => {
     setLoading(true)
@@ -236,6 +238,7 @@ function WeatherWidget() {
 
   const requestGeolocation = () => {
     if (!navigator.geolocation) {
+      setGeoDenied(true)
       saveLocationPref({ granted: false, city: 'São Paulo' })
       loadFromPref(getLocationPref())
       return
@@ -252,13 +255,26 @@ function WeatherWidget() {
         }
         saveLocationPref(pref)
         loadFromPref(pref)
+        setGeoDenied(false)
       },
-      () => {
+      (err) => {
+        if (err.code === err.PERMISSION_DENIED) {
+          setGeoDenied(true)
+        }
         saveLocationPref({ granted: false, city: 'São Paulo' })
         loadFromPref(getLocationPref())
       },
       { timeout: 10000, maximumAge: 600000 }
     )
+  }
+
+  const handleManualCity = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!manualCity.trim()) return
+    saveLocationPref({ granted: false, city: manualCity.trim() })
+    loadFromPref(getLocationPref())
+    setGeoDenied(false)
+    setManualCity('')
   }
 
   useEffect(() => {
@@ -291,6 +307,26 @@ function WeatherWidget() {
         </div>
       </div>
 
+      {/* Manual city input when geolocation denied */}
+      {geoDenied && (
+        <form onSubmit={handleManualCity} class="mb-4 flex gap-2">
+          <input
+            type="text"
+            value={manualCity}
+            onChange={e => setManualCity(e.target.value)}
+            placeholder="Digite sua cidade (ex: Rio de Janeiro)"
+            class="flex-1 px-3 py-2 text-sm bg-[var(--color-bg-card-border)]/30 rounded-xl border border-[var(--color-bg-card-border)] focus:outline-none focus:border-[var(--color-accent)] text-[var(--color-text-primary)]"
+            aria-label="Cidade para buscar clima"
+          />
+          <button
+            type="submit"
+            class="px-3 py-2 text-sm font-medium text-[var(--color-btn-text)] bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-secondary)] rounded-lg hover:opacity-90 transition-opacity whitespace-nowrap"
+          >
+            Buscar
+          </button>
+        </form>
+      )}
+
       {loading ? (
         <div class="space-y-2">
           <div class="h-8 w-1/4 bg-[var(--color-bg-card-border)] rounded animate-pulse" />
@@ -305,7 +341,7 @@ function WeatherWidget() {
             onClick={requestGeolocation}
             class="text-xs font-medium text-[var(--color-accent)] hover:underline"
           >
-            Tentar
+            Tentar novamente
           </button>
         </div>
       ) : !weather || weather.temperature_c == null ? (
