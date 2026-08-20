@@ -1,5 +1,5 @@
 import { useState, useEffect, type ChangeEvent, type KeyboardEvent } from 'react'
-import { api, isAuthenticated } from '../lib/api'
+import { api, getCached, isAuthenticated } from '../lib/api'
 
 interface PostItem {
   id: number
@@ -25,7 +25,7 @@ export default function AIFloatingWidget() {
   const isGuest = !isAuthenticated()
 
   useEffect(() => {
-    api.get<{ data: { available: boolean; providers: Record<string, boolean> } }>('/ai/status')
+    getCached<{ data: { available: boolean; providers: Record<string, boolean> } }>('/ai/status')
       .then(d => setStatus(d.data))
       .catch(() => setStatus({ available: false, providers: {} }))
   }, [])

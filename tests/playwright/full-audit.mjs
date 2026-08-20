@@ -37,10 +37,18 @@ function warn(name, detail = '') {
 }
 
 async function dismissCookies(page) {
+  // O overlay entra com fade-in de 0.35s — espera ele existir antes de clicar,
+  // senão o clique do aceitar é perdido e o overlay (z 9995, inset:0) intercepta
+  // o próximo clique da auditoria.
   const accept = page.locator('#cookie-accept');
+  await accept.waitFor({ state: 'attached', timeout: 5000 }).catch(() => {});
   if (await accept.count()) {
     await accept.click({ timeout: 5000 }).catch(() => {});
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(400);
+    await page.waitForFunction(() => {
+      const o = document.querySelector('.cookie-overlay');
+      return !o || o.hidden;
+    }, { timeout: 5000 }).catch(() => {});
   }
 }
 
@@ -203,11 +211,23 @@ async function runSuite(viewport, label) {
     const blogLink = isMobile
       ? navPage.locator('footer a[href="/blog"]').first()
       : navPage.locator('header a[href="/blog"]').first();
-    await blogLink.click();
-    await navPage.waitForLoadState('domcontentloaded');
-    await navPage.waitForTimeout(500);
-    const afterBlog = await navPage.url();
-    report('Clique em link "Blog" navega', afterBlog.includes('/blog'), `URL: ${afterBlog}`);
+    // O clique pode ser engolido por overlay residual (cookie/menu) em load
+    // pesado; espera a URL mudar e tenta de novo uma vez antes de falhar.
+    let navOk = false;
+    let navUrl = '';
+    for (let attempt = 0; attempt < 2 && !navOk; attempt++) {
+      await blogLink.click({ timeout: 8000 }).catch(() => {});
+      try {
+        await navPage.waitForURL(/\/blog/, { timeout: 5000 });
+        navOk = true;
+      } catch {}
+      await navPage.waitForTimeout(300);
+      navUrl = navPage.url();
+      if (!navOk && attempt === 0) {
+        await dismissCookies(navPage);
+      }
+    }
+    report('Clique em link "Blog" navega', navOk || navUrl.includes('/blog'), `URL: ${navUrl}`);
 
     // logo → home
     await navPage.locator('a.header-logo').first().click();

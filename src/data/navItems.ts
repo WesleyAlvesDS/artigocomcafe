@@ -44,10 +44,8 @@ export const mainNav: NavItem[] = [
       { icon: '🥤', label: 'Bebidas' },
     ],
   },
-  { label: 'Mapa', href: '/dashboard#/mapa', page: 'mapa' },
   { label: 'Livros', href: '/livros', page: 'livros' },
   { label: 'Loja', href: '/loja', page: 'loja' },
-  { label: 'Jornada', href: '/dashboard#/jornada', page: 'jornada' },
   { label: 'Sobre', href: '/sobre', page: 'sobre' },
   { label: 'Contato', href: '/contato', page: 'contato' },
 ]
@@ -61,7 +59,6 @@ export const mobileSections: MobileSection[] = [
       { label: '🍳 Receitas', href: '/receitas', page: 'receitas' },
       { label: '📚 Livros', href: '/livros', page: 'livros' },
       { label: '🛍️ Loja', href: '/loja', page: 'loja' },
-      { label: 'Mapa', href: '/dashboard#/mapa', page: 'mapa' },
       { label: 'Sobre', href: '/sobre', page: 'sobre' },
       { label: 'Contato', href: '/contato', page: 'contato' },
     ],

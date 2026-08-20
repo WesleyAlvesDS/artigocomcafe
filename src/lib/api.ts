@@ -132,6 +132,30 @@ export const api = {
     request<T>(endpoint, { method: 'DELETE', body: data ? JSON.stringify(data) : undefined }),
 }
 
+// Busca GET com cache de sessão (sessionStorage) + TTL: evita disparar o mesmo
+// endpoint a cada página visitada dentro da aba. Usado por endpoints de status
+// (ex.: /ai/status) que são consultados a cada load de página — sem cache, uma
+// navegação rápida por várias páginas estoura o rate limit do backend (429).
+export async function getCached<T>(endpoint: string, ttlMs = 60000): Promise<T> {
+  const key = 'cache:' + endpoint
+  if (typeof sessionStorage !== 'undefined') {
+    try {
+      const raw = sessionStorage.getItem(key)
+      if (raw) {
+        const entry = JSON.parse(raw) as { ts: number; data: T }
+        if (Date.now() - entry.ts < ttlMs) return entry.data
+      }
+    } catch { /* storage indisponível (SSR/privado) — segue para o fetch */ }
+  }
+  const data = await request<T>(endpoint)
+  if (typeof sessionStorage !== 'undefined') {
+    try {
+      sessionStorage.setItem(key, JSON.stringify({ ts: Date.now(), data }))
+    } catch { /* falha de storage não deve derrubar a resposta */ }
+  }
+  return data
+}
+
 export function setToken(token: string | null) {
   if (token) {
     localStorage.setItem('auth_token', token)

@@ -16,12 +16,19 @@ class UserFavoriteController extends Controller
     {
         $user = $request->user();
 
-        $favoriteSlugs = $user->favorite_categories ?? [];
+        $favoriteSlugs = array_values(array_filter(
+            $user->favorite_categories ?? [],
+            fn ($s) => is_string($s) && $s !== ''
+        ));
 
-        $favorites = Category::where('is_active', true)
-            ->whereIn('slug', $favoriteSlugs)
-            ->orderByRaw('FIELD(slug, ' . implode(',', array_map(fn ($s) => "'" . addslashes($s) . "'", $favoriteSlugs)) . ')')
-            ->get(['id', 'name', 'slug', 'icon', 'color']);
+        $favorites = collect();
+        if (!empty($favoriteSlugs)) {
+            $field = 'FIELD(slug, ' . implode(',', array_map(fn ($s) => "'" . addslashes($s) . "'", $favoriteSlugs)) . ')';
+            $favorites = Category::where('is_active', true)
+                ->whereIn('slug', $favoriteSlugs)
+                ->orderByRaw($field)
+                ->get(['id', 'name', 'slug', 'icon', 'color']);
+        }
 
         $all = Category::where('is_active', true)
             ->orderBy('order')
@@ -51,10 +58,14 @@ class UserFavoriteController extends Controller
 
         $request->user()->update(['favorite_categories' => $slugs]);
 
-        $favorites = Category::where('is_active', true)
-            ->whereIn('slug', $slugs)
-            ->orderByRaw('FIELD(slug, ' . implode(',', array_map(fn ($s) => "'" . addslashes($s) . "'", $slugs)) . ')')
-            ->get(['id', 'name', 'slug', 'icon', 'color']);
+        $favorites = collect();
+        if (!empty($slugs)) {
+            $field = 'FIELD(slug, ' . implode(',', array_map(fn ($s) => "'" . addslashes($s) . "'", $slugs)) . ')';
+            $favorites = Category::where('is_active', true)
+                ->whereIn('slug', $slugs)
+                ->orderByRaw($field)
+                ->get(['id', 'name', 'slug', 'icon', 'color']);
+        }
 
         return response()->json(['favorites' => $favorites]);
     }

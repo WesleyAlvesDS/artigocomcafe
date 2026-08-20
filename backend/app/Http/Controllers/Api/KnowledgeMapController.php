@@ -24,9 +24,11 @@ class KnowledgeMapController extends Controller
             ->pluck('article_id');
 
         // Get completed articles grouped by category
-        $completedArticles = Article::whereIn('id', $completedArticleIds)
-            ->with(['category', 'tags'])
-            ->get();
+        $completedArticles = $completedArticleIds->isEmpty()
+            ? collect()
+            : Article::whereIn('id', $completedArticleIds)
+                ->with(['category', 'tags'])
+                ->get();
 
         // Build category tree: categories -> articles -> tags
         $categories = Category::where('is_active', true)
@@ -66,15 +68,21 @@ class KnowledgeMapController extends Controller
             ->values();
 
         // Get all tags from completed articles (for tag cloud / connections)
-        $completedTags = Tag::whereIn('id', $completedArticles->pluck('tags')->flatten()->pluck('id')->unique())
-            ->withCount(['articles' => fn($q) => $q->whereIn('id', $completedArticleIds)])
-            ->get()
-            ->map(fn($tag) => [
-                'id' => $tag->id,
-                'name' => $tag->name,
-                'slug' => $tag->slug,
-                'count' => $tag->articles_count,
-            ]);
+        $completedTagIds = $completedArticles->isEmpty()
+            ? collect()
+            : $completedArticles->pluck('tags')->flatten()->pluck('id')->unique();
+
+        $completedTags = $completedTagIds->isEmpty()
+            ? collect()
+            : Tag::whereIn('id', $completedTagIds)
+                ->withCount(['articles' => fn($q) => $q->whereIn('articles.id', $completedArticleIds)])
+                ->get()
+                ->map(fn($tag) => [
+                    'id' => $tag->id,
+                    'name' => $tag->name,
+                    'slug' => $tag->slug,
+                    'count' => $tag->articles_count,
+                ]);
 
         // Evolution metrics
         $totalGrains = $user->total_grains;

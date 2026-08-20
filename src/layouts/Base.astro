@@ -3,7 +3,7 @@ import '../styles/global.css'
 import Header from '../components/Header.astro'
 import MaintenanceBar from '../components/MaintenanceBar.astro'
 import Footer from '../components/Footer.astro'
-import AmbientBeans from '../components/AmbientBeans.astro'
+
 import CookieConsent from '../components/CookieConsent.astro'
 import PwaInstallPrompt from '../components/PwaInstallPrompt'
 import SearchModal from '../components/SearchModal'
@@ -476,11 +476,6 @@ const organizationJsonLd = {
   <body data-api-base="https://back.artigocomcafe.com/api" class:list={[editorial && 'body-editorial']}>
     <div class="app-aurora" aria-hidden="true"></div>
     <div class="app-grid-overlay" aria-hidden="true"></div>
-    {/* Grãos de café flutuantes em todas as páginas de apresentação (pedido:
-        "distribuir em todo o site, em todas as páginas"). Posições e animações
-        variam por rota. O dashboard (editorial={false}) fica sem para não
-        poluir o painel funcional. */}
-    {editorial && <AmbientBeans />}
     <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
     <a href="#main-content" class="skip-to-content">Pular para o conteúdo</a>
 

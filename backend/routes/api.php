@@ -57,6 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/auth/profile', [AuthController::class, 'updateProfile']);
 
     Route::get('/user/dashboard', [UserDashboardController::class, 'index']);
+    Route::get('/user/jornada', [UserDashboardController::class, 'jornada']);
 
     Route::get('/user/favorites', [UserFavoriteController::class, 'index']);
     Route::put('/user/favorites/categories', [UserFavoriteController::class, 'update']);
@@ -141,7 +142,10 @@ Route::prefix('integrations')->middleware('throttle:30,1')->group(function () {
 
 // Assistente do Criador — AI (Groq + Gemini)
 // Aberto para visitantes (login opcional). Rate limit para proteger as cotas gratuitas.
-Route::prefix('ai')->middleware('throttle:10,1')->group(function () {
-    Route::get('/ask', [AiAssistantController::class, 'ask']);
-    Route::get('/status', [AiAssistantController::class, 'status']);
+// /ask é a chamada generativa cara (cota da API de IA); /status é uma checagem
+// leve de disponibilidade de provedores, consultada a cada load de página e já
+// cacheada no proxy — não deve compartilhar o throttle apertado de /ask.
+Route::prefix('ai')->group(function () {
+    Route::get('/ask', [AiAssistantController::class, 'ask'])->middleware('throttle:10,1');
+    Route::get('/status', [AiAssistantController::class, 'status'])->middleware('throttle:120,1');
 });

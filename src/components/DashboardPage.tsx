@@ -2,7 +2,7 @@
 import type { ChangeEvent, KeyboardEvent, FormEvent } from 'react'
 import AuthPage from './AuthPage'
 import { useAuth } from '../lib/auth'
-import { api } from '../lib/api'
+import { api, getCached } from '../lib/api'
 import { getCurrentVocabulary } from '../lib/themes'
 import { getLocationPref, saveLocationPref, type LocationPref } from '../lib/consent'
 import { saveDraft, readDraft, readDraftList, clearDraft, emitDraftChange, type PostFormData } from '../lib/draft'
@@ -573,7 +573,7 @@ function CreatorAssistantWidget() {
   const [activeTab, setActiveTab] = useState<'chat' | 'tools'>('chat')
 
   useEffect(() => {
-    api.get<{ data: { available: boolean; providers: Record<string, boolean> } }>('/ai/status')
+    getCached<{ data: { available: boolean; providers: Record<string, boolean> } }>('/ai/status')
       .then(d => setStatus(d.data))
       .catch(() => setStatus({ available: false, providers: {} }))
   }, [])

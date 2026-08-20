@@ -88,11 +88,13 @@ function isActive(item: { href: string; page: string }): boolean {
     </nav>
 
     <div class="header-actions">
-      <button class="nav-icon-btn" id="search-toggle" data-testid="search-toggle" aria-label="Buscar artigos (Ctrl+K)" title="Buscar (Ctrl+K)" type="button">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <button class="nav-search-bar" id="search-toggle" data-testid="search-toggle" aria-label="Buscar artigos (Ctrl+K)" title="Buscar (Ctrl+K)" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
+        <span class="nav-search-bar__label">Buscar artigos…</span>
+        <kbd class="nav-search-bar__kbd">Ctrl K</kbd>
       </button>
       <ThemeToggle client:idle />
       {/* O CTA de Newsletter saiu da navbar (já existe no rodapé e no hero) —
@@ -513,6 +515,57 @@ function isActive(item: { href: string; page: string }): boolean {
     box-shadow: 0 1px 2px rgba(0,0,0,0.25);
   }
 
+  /* Barra de busca visível com lupa (pedido: "barra de busca visível com lupa").
+     Substitui o ícone solto: agora é um campo com placeholder + atalho Ctrl K,
+     e ao clicar abre o modal de busca. */
+  .nav-search-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 40px;
+    min-width: 190px;
+    padding: 0 0.35rem 0 0.85rem;
+    border-radius: 100px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all var(--transition);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+  }
+
+  .nav-search-bar:hover,
+  .nav-search-bar:focus-visible {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    background: var(--color-bg-card-hover);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .nav-search-bar__label {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .nav-search-bar__kbd {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--color-bg-primary) 60%, transparent);
+    border: 1px solid var(--color-bg-card-border);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
   .nav-icon-btn:hover {
     border-color: var(--color-accent);
     color: var(--color-accent);
@@ -710,6 +763,10 @@ function isActive(item: { href: string; page: string }): boolean {
     .header-inner { gap: 0.5rem 0.75rem; }
     .nav-link { padding: 0.5rem 0.7rem; font-size: 0.85rem; }
     .dropdown-panel { width: 300px; }
+    .nav-search-bar { min-width: 0; }
+    .nav-search-bar__label { display: none; }
+    .nav-search-bar { padding: 0 0.6rem; }
+    .nav-search-bar__kbd { display: none; }
   }
 
   @media (max-width: 1000px) {
@@ -740,6 +797,7 @@ function isActive(item: { href: string; page: string }): boolean {
     .mobile-link,
     .header-logo-img,
     .nav-icon-btn,
+    .nav-search-bar,
     .dropdown-overlay {
       transition: none !important;
       animation: none !important;

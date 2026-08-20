@@ -34,3 +34,4 @@ src/lib/storeConfig.ts
 public/images/products/
 scripts/generate-product-images.mjs
 tests/playwright/loja-flow-check.mjs
+test-results/

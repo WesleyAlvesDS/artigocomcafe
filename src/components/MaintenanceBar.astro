@@ -25,7 +25,19 @@
         document.documentElement.style.setProperty('--maintenance-bar-h', h + 'px');
       }
     }
-    adjust();
+    // O componente renderiza ANTES do <header>, então no primeiro load o header
+    // ainda não existe no DOM — rodar imediatamente não empurra nada. Executamos
+    // em DOMContentLoaded/ready e reaplicamos após cada troca SPA/resize.
+    function run() {
+      adjust();
+      requestAnimationFrame(adjust);
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', run);
+    } else {
+      run();
+    }
+    document.addEventListener('astro:page-load', adjust);
     document.addEventListener('astro:after-swap', adjust);
     window.addEventListener('resize', adjust);
   })();
@@ -41,6 +53,9 @@
     overflow: hidden;
     padding: 0.6rem 0;
     font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    /* Aviso é informativo, não interativo: nunca deve roubar cliques que
+       passam por ele em direção ao header fixo abaixo. */
+    pointer-events: none;
   }
 
   .maintenance-track {
