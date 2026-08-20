@@ -63,6 +63,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/user/favorites/categories', [UserFavoriteController::class, 'update']);
 
     Route::get('/user/posts', [UserPostController::class, 'index']);
+    Route::get('/user/posts/{article}', [UserPostController::class, 'show']);
     Route::post('/user/posts', [UserPostController::class, 'store']);
     Route::put('/user/posts/{article}', [UserPostController::class, 'update']);
     Route::delete('/user/posts/{article}', [UserPostController::class, 'destroy']);

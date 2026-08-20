@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, type FormEvent, type KeyboardEvent, type ChangeEvent } from 'react'
 import { api } from '../lib/api'
+import { useAuth } from '../lib/auth'
 import { saveDraft, readDraft, readDraftList, clearDraft, removeDraftEntry, emitDraftChange, type PostFormData, type DraftData } from '../lib/draft'
 import { showToast } from './Toast'
 
@@ -8,7 +9,7 @@ interface PostItem {
   title: string
   slug: string
   excerpt: string | null
-  status: 'draft' | 'review' | 'scheduled' | 'published' | 'archived'
+  status: 'draft' | 'pending_review' | 'review' | 'scheduled' | 'published' | 'archived'
   featured_image: string | null
   reading_time: number | null
   category: { name: string; slug: string } | null
@@ -133,6 +134,8 @@ export function renderMarkdown(text: string): string {
 }
 
 export default function PostEditor({ initialPost, onClose, onSave }: PostEditorProps) {
+  const { user } = useAuth()
+  const canPublish = user?.role === 'admin' || user?.role === 'editor'
   const [formData, setFormData] = useState<PostFormData>({
     title: initialPost?.title || '',
     excerpt: initialPost?.excerpt || '',
@@ -188,13 +191,24 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
       const keyed = list[`post:${initialPost.id}`]
       if (keyed && keyed.data) {
         setFormData(keyed.data)
+        setIsLoading(false)
       } else {
         const draft = readDraft()
         if (draft && draft.mode === 'edit' && draft.postId === initialPost.id) {
           setFormData(draft.data)
+          setIsLoading(false)
+        } else {
+          // No local draft — fetch full content from API
+          api.get<{ article: PostItem }>(`/user/posts/${initialPost.id}`)
+            .then(res => {
+              if (res.article?.content) {
+                setFormData(prev => ({ ...prev, content: res.article.content }))
+              }
+            })
+            .catch(() => {})
+            .finally(() => setIsLoading(false))
         }
       }
-      setIsLoading(false)
     } else {
       // Criação: restaura rascunho de "novo artigo" se existir
       const list = readDraftList()
@@ -463,7 +477,8 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
     setSaveState('publishing')
     try {
       const tags = formDataRef.current.tags_input.split(',').map(t => t.trim()).filter(Boolean)
-      const payload = { ...formDataRef.current, tags, meta_description: formDataRef.current.meta_description, status: 'published' as const }
+      const targetStatus = canPublish ? 'published' : 'pending_review'
+      const payload = { ...formDataRef.current, tags, meta_description: formDataRef.current.meta_description, status: targetStatus }
       
       if (initialPost) {
         await api.put(`/user/posts/${initialPost.id}`, payload)
@@ -473,10 +488,10 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
       clearDraft()
       removeDraftEntry(initialPost ? `post:${initialPost.id}` : 'create')
       emitDraftChange()
-      showToast('Artigo publicado! 🎉', 'success')
+      showToast(canPublish ? 'Artigo publicado! 🎉' : 'Artigo enviado para revisão! ✅', 'success')
       onClose()
     } catch (err: any) {
-      setError(err.message || 'Erro ao publicar')
+      setError(err.message || (canPublish ? 'Erro ao publicar' : 'Erro ao enviar para revisão'))
       setSaveState('idle')
     }
   }
@@ -622,10 +637,17 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
                 aria-label="Status do artigo"
               >
                 <option value="draft">Rascunho</option>
-                <option value="review">Em Revisão</option>
-                <option value="scheduled">Agendado</option>
-                <option value="published">Publicado</option>
-                <option value="archived">Arquivado</option>
+                {canPublish ? (
+                  <>
+                    <option value="pending_review">Enviar para Revisão</option>
+                    <option value="review">Em Revisão</option>
+                    <option value="scheduled">Agendado</option>
+                    <option value="published">Publicado</option>
+                    <option value="archived">Arquivado</option>
+                  </>
+                ) : (
+                  <option value="pending_review">Enviar para Revisão</option>
+                )}
               </select>
               <input
                 type="text"
@@ -743,7 +765,7 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
                   className="btn-primary btn-publish"
                   disabled={saveState === 'saving' || saveState === 'publishing' || !formData.title.trim()}
                 >
-                  Publicar
+                  {canPublish ? 'Publicar' : 'Enviar para Revisão'}
                 </button>
               </div>
             </div>

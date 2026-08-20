@@ -58,6 +58,18 @@ class UserPostController extends Controller
     }
 
     /**
+     * Get a single article owned by the authenticated user (with full content).
+     */
+    public function show(Request $request, Article $article): JsonResponse
+    {
+        if ($article->user_id !== $request->user()->id) {
+            abort(403, 'Você não tem permissão para acessar este artigo.');
+        }
+
+        return response()->json(['article' => $this->serialize($article)]);
+    }
+
+    /**
      * Upload an image for an article (returns a public URL).
      */
     public function uploadImage(Request $request): JsonResponse
@@ -84,12 +96,18 @@ class UserPostController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $user = $request->user();
+        $isPublisher = $user->hasDashboardAccess(); // admin ou editor
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'slug' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('articles', 'slug')->whereNull('deleted_at')],
             'excerpt' => 'nullable|string|max:500',
             'content' => 'nullable|string',
-            'status' => 'sometimes|string|in:draft,review,scheduled,published,archived',
+            'status' => ['sometimes', 'string', Rule::in($isPublisher
+                ? ['draft', 'pending_review', 'review', 'scheduled', 'published', 'archived']
+                : ['draft', 'pending_review']) // usuário comum não pode publicar direto
+            ],
             'category' => 'nullable|array',
             'category.name' => 'nullable|string|max:255',
             'tags' => 'nullable|array',
@@ -97,17 +115,23 @@ class UserPostController extends Controller
             'meta_description' => 'nullable|string|max:320',
         ]);
 
+        // Força status seguro para usuário comum
+        $status = $validated['status'] ?? 'draft';
+        if (!$isPublisher && $status === 'published') {
+            $status = 'pending_review';
+        }
+
         $article = Article::create([
             'title' => $validated['title'],
             'slug' => $this->uniqueSlug($validated['title'], $validated['slug'] ?? null),
             'excerpt' => $validated['excerpt'] ?? null,
             'content' => $validated['content'] ?? '',
-            'status' => $validated['status'] ?? 'draft',
-            'user_id' => $request->user()->id,
+            'status' => $status,
+            'user_id' => $user->id,
             'category_id' => $this->resolveCategory($validated['category'] ?? null)?->id,
             'reading_time' => $this->estimateReadingTime($validated['content'] ?? ''),
             'meta' => $this->mergeMeta(null, $validated['meta_description'] ?? null),
-            'published_at' => ($validated['status'] ?? 'draft') === 'published' ? now() : null,
+            'published_at' => ($status === 'published') ? now() : null,
         ]);
 
         $this->syncTags($article, $validated['tags'] ?? []);
@@ -124,12 +148,18 @@ class UserPostController extends Controller
             abort(403, 'Você não tem permissão para editar este artigo.');
         }
 
+        $user = $request->user();
+        $isPublisher = $user->hasDashboardAccess(); // admin ou editor
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'slug' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('articles', 'slug')->ignore($article->id)->whereNull('deleted_at')],
             'excerpt' => 'nullable|string|max:500',
             'content' => 'nullable|string',
-            'status' => 'sometimes|string|in:draft,review,scheduled,published,archived',
+            'status' => ['sometimes', 'string', Rule::in($isPublisher
+                ? ['draft', 'pending_review', 'review', 'scheduled', 'published', 'archived']
+                : ['draft', 'pending_review'])
+            ],
             'category' => 'nullable|array',
             'category.name' => 'nullable|string|max:255',
             'tags' => 'nullable|array',
@@ -139,12 +169,18 @@ class UserPostController extends Controller
 
         $wasPublished = $article->status === 'published';
 
+        // Usuário comum não pode publicar direto
+        $status = $validated['status'] ?? $article->status;
+        if (!$isPublisher && $status === 'published') {
+            $status = 'pending_review';
+        }
+
         $article->update([
             'title' => $validated['title'],
             'slug' => $this->uniqueSlug($validated['title'], $validated['slug'] ?? $article->slug, $article->id),
             'excerpt' => $validated['excerpt'] ?? null,
             'content' => $validated['content'] ?? '',
-            'status' => $validated['status'] ?? $article->status,
+            'status' => $status,
             'category_id' => $this->resolveCategory($validated['category'] ?? null)?->id,
             'reading_time' => $this->estimateReadingTime($validated['content'] ?? ''),
             'meta' => $this->mergeMeta($article->meta, $validated['meta_description'] ?? null),

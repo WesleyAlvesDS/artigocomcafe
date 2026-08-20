@@ -66,7 +66,7 @@ class AuthController extends Controller
         $this->updateStreak($user);
 
         return response()->json([
-            'user' => $user->only(['id', 'name', 'username', 'email', 'theme', 'avatar']),
+            'user' => $user->only(['id', 'name', 'username', 'email', 'theme', 'avatar', 'role']),
             'token' => $token,
         ]);
     }
