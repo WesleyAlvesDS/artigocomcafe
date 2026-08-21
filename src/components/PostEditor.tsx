@@ -156,6 +156,8 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(!!initialPost)
+  const [localDraft, setLocalDraft] = useState<{ exists: boolean; timestamp: Date | null }>({ exists: false, timestamp: null })
+  const [serverSyncStatus, setServerSyncStatus] = useState<'synced' | 'unsynced' | 'unknown'>('unknown')
   const [wordCount, setWordCount] = useState(0)
   const [readTime, setReadTime] = useState(0)
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
@@ -219,6 +221,26 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
     }
   }, [initialPost])
 
+  // Check local draft status on mount and keep updated
+  useEffect(() => {
+    const checkLocalDraft = () => {
+      const list = readDraftList()
+      const key = initialPost ? `post:${initialPost.id}` : 'create'
+      const draft = list[key]
+      if (draft && draft.data) {
+        setLocalDraft({ exists: true, timestamp: draft.saved_at ? new Date(draft.saved_at) : null })
+        setServerSyncStatus('unsynced')
+      } else {
+        setLocalDraft({ exists: false, timestamp: null })
+        setServerSyncStatus(initialPost ? 'synced' : 'unknown')
+      }
+    }
+    checkLocalDraft()
+    const handler = () => checkLocalDraft()
+    window.addEventListener('dash-draft-change', handler)
+    return () => window.removeEventListener('dash-draft-change', handler)
+  }, [initialPost])
+
   // Autocomplete de categorias/tags (P2) — dados p/ <datalist>
   useEffect(() => {
     let active = true
@@ -256,6 +278,8 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
         saved_at: new Date().toISOString(),
       })
       setLastSaved(new Date())
+      setLocalDraft({ exists: true, timestamp: new Date() })
+      setServerSyncStatus('unsynced')
       setSaveState('saved')
       emitDraftChange()
     }, 500)
@@ -462,6 +486,8 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
       clearDraft()
       removeDraftEntry(initialPost ? `post:${initialPost.id}` : 'create')
       emitDraftChange()
+      setLocalDraft({ exists: false, timestamp: null })
+      setServerSyncStatus('synced')
       setSaveState('saved')
       setLastSaved(new Date())
       onClose()
@@ -488,6 +514,8 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
       clearDraft()
       removeDraftEntry(initialPost ? `post:${initialPost.id}` : 'create')
       emitDraftChange()
+      setLocalDraft({ exists: false, timestamp: null })
+      setServerSyncStatus('synced')
       showToast(canPublish ? 'Artigo publicado! 🎉' : 'Artigo enviado para revisão! ✅', 'success')
       onClose()
     } catch (err: any) {
@@ -725,6 +753,38 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
                 {suggestedTags.map(t => <option key={t} value={t} />)}
               </datalist>
             </div>
+
+            {/* Sync status indicator */}
+            <div className="sync-indicator" aria-live="polite">
+              {localDraft.exists && serverSyncStatus === 'unsynced' && (
+                <span className="sync-unsynced" title="Existem alterações salvas localmente que ainda não foram enviadas ao servidor">
+                  <span className="sync-dot" aria-hidden="true"></span>
+                  Rascunho local: {localDraft.timestamp?.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    className="sync-save-btn"
+                    disabled={saveState === 'saving' || saveState === 'publishing' || !formData.title.trim()}
+                    aria-label="Salvar rascunho no servidor"
+                  >
+                    Salvar no servidor
+                  </button>
+                </span>
+              )}
+              {serverSyncStatus === 'synced' && (
+                <span className="sync-synced" title="Conteúdo sincronizado com o servidor">
+                  <span className="sync-dot" aria-hidden="true"></span>
+                  Sincronizado {lastSaved ? `· {lastSaved.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : ''}
+                </span>
+              )}
+              {localDraft.exists && serverSyncStatus === 'unknown' && (
+                <span className="sync-unknown" title="Rascunho local detectado, status do servidor desconhecido">
+                  <span className="sync-dot" aria-hidden="true"></span>
+                  Rascunho local detectado
+                </span>
+              )}
+            </div>
+
             <div className="editor-actions">
               {error && <span className="editor-error" role="alert">{error}</span>}
               <div className="save-status" aria-live="polite" aria-atomic="true">
