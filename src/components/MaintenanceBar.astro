@@ -13,40 +13,15 @@
   </div>
 </div>
 
-<script is:inline>
-  // Empurra o header fixo para baixo quando a barra de manutenção está presente
-  (function() {
-    function adjust() {
-      var bar = document.querySelector('[data-maintenance-bar]');
-      var header = document.querySelector('.header');
-      if (bar && header) {
-        var h = bar.offsetHeight;
-        header.style.top = h + 'px';
-        document.documentElement.style.setProperty('--maintenance-bar-h', h + 'px');
-      }
-    }
-    // O componente renderiza ANTES do <header>, então no primeiro load o header
-    // ainda não existe no DOM — rodar imediatamente não empurra nada. Executamos
-    // em DOMContentLoaded/ready e reaplicamos após cada troca SPA/resize.
-    function run() {
-      adjust();
-      requestAnimationFrame(adjust);
-    }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', run);
-    } else {
-      run();
-    }
-    document.addEventListener('astro:page-load', adjust);
-    document.addEventListener('astro:after-swap', adjust);
-    window.addEventListener('resize', adjust);
-  })();
+<script>
+  import { initMaintenanceBar } from '../scripts/maintenance-bar';
+  initMaintenanceBar();
 </script>
 
 <style>
   .maintenance-bar {
     position: relative;
-    z-index: 101;
+    z-index: var(--z-maintenance);
     width: 100%;
     background: linear-gradient(90deg, var(--color-accent), var(--color-accent-secondary));
     color: var(--color-btn-text);

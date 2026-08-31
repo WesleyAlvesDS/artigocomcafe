@@ -115,4 +115,8 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    'support_address' => env('MAIL_SUPPORT_ADDRESS', 'suporte@artigocomcafe.com'),
+    'admin_address' => env('MAIL_ADMIN_ADDRESS', 'admin@artigocomcafe.com'),
+    'security_address' => env('MAIL_SECURITY_ADDRESS', 'security@artigocomcafe.com'),
+
 ];

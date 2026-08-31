@@ -9,7 +9,7 @@
                 de artigo com um clique (capa sugerida via Openverse).
             </p>
 
-            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-[1fr_220px]">
+            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-[1fr_200px_120px]">
                 <input
                     type="text"
                     wire:model="query"
@@ -26,22 +26,51 @@
                     <option value="currents">Currents</option>
                     <option value="gnews">GNews</option>
                 </select>
+                <select
+                    wire:model="limit"
+                    class="fi-input block w-full rounded-lg border-gray-300 bg-white py-2 text-sm text-gray-950 shadow-sm outline-none transition duration-75 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-70 dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:ring-primary-500"
+                >
+                    <option value="5">5 resultados</option>
+                    <option value="10">10 resultados</option>
+                    <option value="20">20 resultados</option>
+                    <option value="50">50 resultados</option>
+                </select>
+            </div>
+
+            <div class="mt-4 flex items-center gap-2">
+                <input type="checkbox" wire:model="webResearch" id="webResearch" class="rounded border-gray-300 text-primary-600 shadow-sm focus:ring-primary-500">
+                <label for="webResearch" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    🌍 Ativar Motor de Pesquisa Web Profundo (Scraper Externo)
+                </label>
             </div>
 
             <div class="mt-4">
                 <button
                     type="submit"
-                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:bg-primary-500 dark:hover:bg-primary-400"
+                    wire:loading.attr="disabled"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-500 disabled:opacity-50"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" />
-                    </svg>
+                    <span wire:loading.remove wire:target="search">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" />
+                        </svg>
+                    </span>
+                    <span wire:loading wire:target="search">
+                        <svg class="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                    </span>
                     Buscar pautas
                 </button>
             </div>
 
-            <div wire:loading wire:target="search" class="mt-3 text-sm text-gray-500 dark:text-gray-400">
-                ⏳ Buscando nas fontes…
+            <div wire:loading wire:target="search" class="mt-3 flex items-center gap-2 text-sm text-primary-600 dark:text-primary-400">
+                <svg class="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <span>Buscando, traduzindo e pesquisando na web... isso pode levar alguns segundos.</span>
             </div>
         </div>
     </form>

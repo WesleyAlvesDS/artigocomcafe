@@ -22,6 +22,10 @@ use App\Http\Controllers\Api\UserDashboardController;
 use App\Http\Controllers\Api\UserFavoriteController;
 use App\Http\Controllers\Api\UserPostController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ContactController;
+
+// E-mail & Contato Público (Rate limit rigoroso contra SPAM)
+Route::post('/contact', [ContactController::class, 'send'])->middleware('throttle:3,1');
 
 Route::get('/test', function () {
     return response()->json(['message' => 'API is working', 'version' => '3.0']);
@@ -141,12 +145,9 @@ Route::prefix('integrations')->middleware('throttle:30,1')->group(function () {
     Route::get('/library/books/{key}', [OpenLibraryController::class, 'show']);
 });
 
-// Assistente do Criador — AI (Groq + Gemini)
-// Aberto para visitantes (login opcional). Rate limit para proteger as cotas gratuitas.
-// /ask é a chamada generativa cara (cota da API de IA); /status é uma checagem
-// leve de disponibilidade de provedores, consultada a cada load de página e já
-// cacheada no proxy — não deve compartilhar o throttle apertado de /ask.
-Route::prefix('ai')->group(function () {
-    Route::get('/ask', [AiAssistantController::class, 'ask'])->middleware('throttle:10,1');
-    Route::get('/status', [AiAssistantController::class, 'status'])->middleware('throttle:120,1');
+// Assistente do Criador — AI (OpenRouter — modelos gratuitos rotativos)
+// Rate limit generoso para uso de Copilot em tempo real.
+Route::prefix('ai')->middleware(['web', 'auth', 'throttle:60,1'])->group(function () {
+    Route::post('/ask', [AiAssistantController::class, 'ask']);
+    Route::get('/status', [AiAssistantController::class, 'status']);
 });

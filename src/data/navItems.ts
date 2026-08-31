@@ -27,12 +27,13 @@ export interface MobileSection {
 
 /** Navegação principal (desktop) — ordem exibida no topo. */
 export const mainNav: NavItem[] = [
-  { label: 'Início', href: '/', page: 'home' },
-  { label: 'Blog', href: '/blog', page: 'blog' },
+  { label: 'Início', href: '/', page: 'home', icon: '🏠' },
+  { label: 'Blog', href: '/blog', page: 'blog', icon: '📰' },
   {
     label: 'Receitas',
     href: '/receitas',
     page: 'receitas',
+    icon: '🍳',
     dropdown: true,
     title: 'Explore receitas',
     allLabel: 'Ver todas →',
@@ -44,10 +45,10 @@ export const mainNav: NavItem[] = [
       { icon: '🥤', label: 'Bebidas' },
     ],
   },
-  { label: 'Livros', href: '/livros', page: 'livros' },
-  { label: 'Loja', href: '/loja', page: 'loja' },
-  { label: 'Sobre', href: '/sobre', page: 'sobre' },
-  { label: 'Contato', href: '/contato', page: 'contato' },
+  { label: 'Livros', href: '/livros', page: 'livros', icon: '📚' },
+  { label: 'Loja', href: '/loja', page: 'loja', icon: '🛍️' },
+  { label: 'Sobre', href: '/sobre', page: 'sobre', icon: 'ℹ️' },
+  { label: 'Contato', href: '/contato', page: 'contato', icon: '✉️' },
 ]
 
 /** Menu mobile — seções agrupadas (público + área do usuário). */
@@ -66,19 +67,19 @@ export const mobileSections: MobileSection[] = [
   {
     label: 'Sua Jornada',
     items: [
-      { label: '📊 Jornada', href: '/dashboard#/jornada', page: 'jornada', userOnly: true },
-      { label: '🎯 Missões', href: '/dashboard#/missoes', page: 'missoes', userOnly: true },
-      { label: '🎓 Trilhas', href: '/dashboard#/trilhas', page: 'trilhas', userOnly: true },
-      { label: '🏆 Conquistas', href: '/dashboard#/conquistas', page: 'conquistas', userOnly: true },
+      { label: '📊 Jornada', href: '/dashboard/jornada', page: 'jornada', userOnly: true },
+      { label: '🎯 Missões', href: '/dashboard/missoes', page: 'missoes', userOnly: true },
+      { label: '🎓 Trilhas', href: '/dashboard/trilhas', page: 'trilhas', userOnly: true },
+      { label: '🏆 Conquistas', href: '/dashboard/conquistas', page: 'conquistas', userOnly: true },
     ],
   },
   {
     label: 'Personalizado',
     items: [
-      { label: '🫘 Grãos', href: '/dashboard#/graos', page: 'graos', userOnly: true },
-      { label: '☕ Torrefação', href: '/dashboard#/torrefacao', page: 'torrefacao', userOnly: true },
-      { label: '📚 Biblioteca', href: '/dashboard#/biblioteca', page: 'biblioteca', userOnly: true },
-      { label: '👤 Perfil', href: '/dashboard#/perfil', page: 'perfil', userOnly: true },
+      { label: '🫘 Grãos', href: '/dashboard/graos', page: 'graos', userOnly: true },
+      { label: '☕ Torrefação', href: '/dashboard/torrefacao', page: 'torrefacao', userOnly: true },
+      { label: '📚 Biblioteca', href: '/dashboard/biblioteca', page: 'biblioteca', userOnly: true },
+      { label: '👤 Perfil', href: '/dashboard/perfil', page: 'perfil', userOnly: true },
     ],
   },
 ]

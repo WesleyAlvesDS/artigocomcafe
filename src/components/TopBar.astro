@@ -1,0 +1,446 @@
+---
+import ThemeToggle from './ThemeToggle'
+import UserMenu from './UserMenu'
+
+const pathname = Astro.url.pathname
+
+const mobileNav = [
+  { label: '🏠 Início', href: '/', page: 'home' },
+  { label: '📰 Blog', href: '/blog', page: 'blog' },
+  { label: '🍳 Receitas', href: '/receitas', page: 'receitas' },
+  { label: '📚 Livros', href: '/livros', page: 'livros' },
+  { label: '🛍️ Loja', href: '/loja', page: 'loja' },
+  { label: '📬 Newsletter', href: '/newsletter', page: 'newsletter' },
+  { label: 'ℹ️ Sobre', href: '/sobre', page: 'sobre' },
+  { label: '✉️ Contato', href: '/contato', page: 'contato' },
+]
+
+const userNav = [
+  { label: '📊 Jornada', href: '/dashboard#/jornada', page: 'jornada' },
+  { label: '🎯 Missões', href: '/dashboard#/missoes', page: 'missoes' },
+  { label: '🎓 Trilhas', href: '/dashboard#/trilhas', page: 'trilhas' },
+  { label: '🏆 Conquistas', href: '/dashboard#/conquistas', page: 'conquistas' },
+  { label: '🫘 Grãos', href: '/dashboard#/graos', page: 'graos' },
+  { label: '👤 Perfil', href: '/dashboard#/perfil', page: 'perfil' },
+]
+---
+
+<header class="topbar" id="site-topbar">
+  <div class="topbar-inner">
+    {/* ═══ Logo (só visível em mobile/tablet, já que sidebar some) ═══ */}
+    <a href="/" class="topbar-logo-mobile" aria-label="Artigo com Café - Home">
+      <img
+        class="topbar-logo-img"
+        src="/images/artigologo.svg"
+        alt="Artigo com Café"
+        width="30"
+        height="30"
+        loading="eager"
+      />
+    </a>
+
+    {/* ═══ Busca Global (Ctrl+K) ═══ */}
+    <div class="topbar-search-wrap">
+      <button class="topbar-search-box" id="search-toggle" data-testid="search-toggle" aria-label="Buscar artigos (Ctrl+K)" title="Buscar (Ctrl+K)" type="button">
+        <svg class="topbar-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <span class="topbar-search-text">Buscar artigos, receitas, trilhas…</span>
+        <kbd class="topbar-search-kbd">Ctrl K</kbd>
+      </button>
+    </div>
+
+    {/* ═══ Ações ═══ */}
+    <div class="topbar-actions">
+      <ThemeToggle client:idle />
+      <UserMenu client:idle />
+    </div>
+
+    {/* Hamburger (mobile) */}
+    <button class="topbar-hamburger" id="topbar-hamburger" aria-label="Abrir menu" aria-expanded="false">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+  </div>
+</header>
+
+{/* ═══ Mobile Drawer ═══ */}
+<nav class="mobile-menu" id="mobile-menu" aria-hidden="true">
+  <div class="mobile-menu-head">
+    <button class="mobile-search-btn" id="search-toggle-mobile" aria-label="Buscar" type="button">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <span>Buscar</span>
+    </button>
+    <div class="mobile-theme"><ThemeToggle client:idle /></div>
+  </div>
+
+  <div class="mobile-section">
+    {mobileNav.map(link => (
+      <a href={link.href} class:list={['mobile-link', { active: pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href + '/')) }]}>
+        <span class="mobile-link-text">{link.label}</span>
+      </a>
+    ))}
+  </div>
+
+  <div class="mobile-section">
+    <div class="mobile-section-head">
+      <span class="mobile-section-label">Sua Jornada</span>
+      <span class="mobile-section-lock" data-section-lock hidden>🔒</span>
+    </div>
+    {userNav.map(link => (
+      <a href={link.href} class="mobile-link" data-user-only>
+        <span class="mobile-link-text">{link.label}</span>
+      </a>
+    ))}
+    <div class="mobile-login-hint" data-login-hint hidden>
+      <a href="/entrar" class="mobile-login-btn">Entrar para sincronizar sua jornada →</a>
+    </div>
+  </div>
+</nav>
+
+<div class="mobile-overlay" id="mobile-overlay" aria-hidden="true"></div>
+
+<style>
+  /* ═══════════════════════════════════════════════════════════════
+     TOPBAR — Minimal Facebook-style top bar
+     ═══════════════════════════════════════════════════════════════ */
+  .topbar {
+    position: fixed;
+    top: var(--maintenance-bar-h, 0px);
+    left: 260px;
+    right: 0;
+    z-index: var(--z-topbar);
+    background: color-mix(in srgb, var(--color-bg-primary) 85%, transparent);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    border-bottom: 1px solid var(--color-bg-card-border);
+    transition: background 0.3s, box-shadow 0.3s;
+    height: 56px;
+  }
+
+  .topbar-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    height: 100%;
+    padding: 0 1.25rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .topbar-logo-mobile {
+    display: none;
+    align-items: center;
+    text-decoration: none;
+    line-height: 0;
+    flex-shrink: 0;
+  }
+
+  .topbar-logo-img {
+    height: 30px;
+    width: auto;
+    object-fit: contain;
+  }
+
+  .topbar-search-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  .topbar-search-box {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.45rem 0.85rem;
+    border-radius: 100px;
+    border: 1px solid var(--color-bg-card-border);
+    background: var(--color-bg-card);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    font-size: 0.82rem;
+  }
+
+  .topbar-search-box:hover {
+    background: var(--color-bg-card-hover);
+    border-color: var(--color-accent);
+  }
+
+  .topbar-search-icon { flex-shrink: 0; color: var(--color-text-muted); }
+
+  .topbar-search-text {
+    flex: 1; text-align: left; color: var(--color-text-muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .topbar-search-kbd {
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-bg-card-border);
+    color: var(--color-text-muted);
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+  }
+
+  .topbar-hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.4rem;
+    border-radius: 8px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+
+  .topbar-hamburger:hover { background: var(--color-bg-card-hover); }
+
+  .hamburger-line {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--color-text-secondary);
+    border-radius: 2px;
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+  }
+
+  .topbar-hamburger.active .hamburger-line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .topbar-hamburger.active .hamburger-line:nth-child(2) { opacity: 0; }
+  .topbar-hamburger.active .hamburger-line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  /* ═══ Mobile Drawer ═══ */
+  .mobile-menu {
+    display: none;
+    position: fixed;
+    top: calc(var(--maintenance-bar-h, 0px) + 52px);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-dropdown);
+    background: var(--color-bg-primary);
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 0.5rem 0.75rem 2rem;
+  }
+
+  .mobile-menu[aria-hidden="false"] { display: flex; }
+
+  .mobile-menu-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-bg-card-border);
+    margin-bottom: 0.75rem;
+  }
+
+  .mobile-search-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.85rem;
+    border-radius: 100px;
+    border: 1px solid var(--color-bg-card-border);
+    background: var(--color-bg-card);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+
+  .mobile-section { margin-bottom: 0.75rem; }
+
+  .mobile-section-head {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .mobile-section-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+  }
+
+  .mobile-section-lock { font-size: 0.65rem; }
+
+  .mobile-link {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.55rem 0.65rem;
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--color-text-secondary);
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .mobile-link:hover {
+    background: var(--color-bg-card-hover);
+    color: var(--color-text-primary);
+  }
+
+  .mobile-link.active {
+    color: var(--color-accent);
+    font-weight: 600;
+    background: var(--color-bg-card);
+  }
+
+  .mobile-login-hint {
+    padding: 0.5rem 0.65rem;
+  }
+
+  .mobile-login-btn {
+    display: block;
+    text-align: center;
+    padding: 0.55rem;
+    border-radius: 8px;
+    background: var(--color-accent);
+    color: var(--color-btn-text);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .mobile-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--z-dropdown) - 1);
+    background: rgba(0,0,0,0.4);
+  }
+
+  .mobile-overlay[aria-hidden="false"] { display: block; }
+
+  /* ═══ Responsive ═══ */
+  @media (max-width: 1200px) {
+    .topbar { left: 72px; }
+  }
+
+  @media (max-width: 768px) {
+    .topbar { left: 0; height: 52px; }
+    .topbar-logo-mobile { display: flex; }
+    .topbar-search-text, .topbar-search-kbd { display: none; }
+    .topbar-search-box { max-width: 180px; padding: 0.35rem 0.65rem; justify-content: center; }
+    .topbar-hamburger { display: flex; }
+    .topbar-actions { gap: 0.15rem; }
+  }
+</style>
+
+<script>
+(function () {
+  function refreshAuthState() {
+    var mobileMenu = document.getElementById('mobile-menu')
+    if (!mobileMenu) return
+    var isAuth = typeof window !== 'undefined' && !!localStorage.getItem('auth_token')
+    mobileMenu.classList.toggle('is-auth', isAuth)
+    var locks = mobileMenu.querySelectorAll('[data-section-lock]')
+    for (var i = 0; i < locks.length; i++) { locks[i].hidden = isAuth }
+    var hints = mobileMenu.querySelectorAll('[data-login-hint]')
+    for (var i = 0; i < hints.length; i++) { hints[i].hidden = isAuth }
+  }
+
+  function closeMenu() {
+    var hamburger = document.getElementById('topbar-hamburger')
+    var mobileMenu = document.getElementById('mobile-menu')
+    var overlay = document.getElementById('mobile-overlay')
+    if (hamburger) {
+      hamburger.classList.remove('active')
+      hamburger.setAttribute('aria-expanded', 'false')
+    }
+    if (mobileMenu) mobileMenu.setAttribute('aria-hidden', 'true')
+    if (overlay) overlay.setAttribute('aria-hidden', 'true')
+    document.body.style.overflow = ''
+  }
+
+  function openMenu() {
+    var hamburger = document.getElementById('topbar-hamburger')
+    var mobileMenu = document.getElementById('mobile-menu')
+    var overlay = document.getElementById('mobile-overlay')
+    if (!hamburger || !mobileMenu) return
+    refreshAuthState()
+    hamburger.classList.add('active')
+    hamburger.setAttribute('aria-expanded', 'true')
+    mobileMenu.setAttribute('aria-hidden', 'false')
+    if (overlay) overlay.setAttribute('aria-hidden', 'false')
+    document.body.style.overflow = 'hidden'
+  }
+
+  function openSearch() {
+    window.dispatchEvent(new CustomEvent('search:open'))
+    closeMenu()
+  }
+
+  function onKeyDown(e) {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openSearch() }
+    if (e.key === 'Escape') { closeMenu() }
+  }
+
+  function onDocumentClick(e) {
+    var t = e.target
+    if (!t || !t.closest) return
+
+    if (t.closest('#topbar-hamburger')) {
+      e.stopPropagation()
+      var hamburger = document.getElementById('topbar-hamburger')
+      var isOpen = hamburger && hamburger.classList.contains('active')
+      if (isOpen) { closeMenu() } else { openMenu() }
+      return
+    }
+
+    if (t.closest('#search-toggle') || t.closest('#search-toggle-mobile')) { openSearch(); return }
+
+    var mobileMenu = document.getElementById('mobile-menu')
+    if (mobileMenu && mobileMenu.getAttribute('aria-hidden') === 'false') {
+      var hamb = document.getElementById('topbar-hamburger')
+      if (!hamb.contains(t) && !mobileMenu.contains(t)) closeMenu()
+    }
+  }
+
+  function onMobileLinkClick(e) {
+    if (e.target && e.target.closest && e.target.closest('.mobile-link')) { closeMenu() }
+  }
+
+  if (!window.__topbarLifecycleBound) {
+    window.__topbarLifecycleBound = true
+    document.addEventListener('click', onDocumentClick, true)
+    document.addEventListener('click', onMobileLinkClick)
+    document.addEventListener('keydown', onKeyDown)
+    document.addEventListener('astro:before-swap', function () { closeMenu() })
+    document.addEventListener('astro:after-swap', function () { closeMenu(); refreshAuthState() })
+    window.addEventListener('storage', refreshAuthState)
+    document.addEventListener('auth:changed', refreshAuthState)
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { closeMenu(); refreshAuthState() })
+  } else {
+    closeMenu(); refreshAuthState()
+  }
+})()
+</script>

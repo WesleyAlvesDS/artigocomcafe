@@ -19,7 +19,7 @@ const totalPages = Math.max(1, Math.ceil(initialBooks.length / perPage))
 const pageBooks = initialBooks.slice(0, perPage)
 ---
 
-<Base title="Livros — Artigo com Café" description="Descubra livros sobre café, conhecimento e literatura. Busque milhões de títulos pela OpenLibrary e conheça sua próxima leitura. Um ambiente de leitura aberto a todos, com milhares de títulos gratuitos." canonical="/livros/" breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Livros', slug: '/livros/' }]}>
+<Base title="Livros — Artigo com Café" description="Descubra livros sobre café, conhecimento e literatura. Busque milhões de títulos pela OpenLibrary e conheça sua próxima leitura. Um ambiente de leitura aberto a todos, com milhares de títulos gratuitos." canonical="/livros/" fullWidth breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Livros', slug: '/livros/' }]}>
   <section class="section books-hero">
     <div class="hero-bg-orbs" aria-hidden="true">
       <div class="hero-orb hero-orb-1"></div>
@@ -152,31 +152,9 @@ const pageBooks = initialBooks.slice(0, perPage)
     padding-top: 0.5rem;
   }
 
-  .books-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 340px;
-    gap: 2.5rem;
-    align-items: start;
-  }
-
-  .books-main {
-    min-width: 0;
-  }
-
   .books-feed-ad {
     max-width: 720px;
     margin: 2.5rem auto;
-  }
-
-  @media (max-width: 1100px) {
-    .books-layout {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 2.5rem;
-    }
-    .sidebar-widgets {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    }
   }
 
   .books-leaderboard {

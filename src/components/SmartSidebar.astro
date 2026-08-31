@@ -217,198 +217,35 @@ const { articleTitle, articleUrl, tocHeadings, categories, tags, readingTime } =
   </div>
 </div>
 
-<script is:inline>
-  // Smart Sidebar initialization
-  (function() {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+<script>
+  import {
+    initReadingProgress,
+    initScrollSpy,
+    initFontControls,
+    initReadingThemes,
+    initCopyLink,
+    initShareButton,
+    initReadingTime,
+    initLazyRelated,
+  } from '../scripts/index';
 
-    // Reading progress ring
-    const progressCircle = document.querySelector('.progress-ring-circle');
-    const progressText = document.getElementById('reading-progress-text');
-    const radius = 16;
-    const circumference = 2 * Math.PI * radius;
-
-    if (progressCircle) {
-      progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
-      progressCircle.style.strokeDashoffset = circumference;
-    }
-
-    function updateReadingProgress() {
-      const article = document.querySelector('.article-content, .recipe-main');
-      if (!article) return;
-
-      const rect = article.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const articleHeight = rect.height;
-      const scrolled = -rect.top + viewportHeight * 0.15;
-      const progress = Math.max(0, Math.min(1, scrolled / (articleHeight - viewportHeight * 0.3)));
-
-      if (progressCircle) {
-        const offset = circumference * (1 - progress);
-        progressCircle.style.strokeDashoffset = offset;
-      }
-      if (progressText) {
-        progressText.textContent = `${Math.round(progress * 100)}%`;
-      }
-    }
-
-    // Scroll spy for TOC
-    const tocLinks = document.querySelectorAll('.toc-link');
-    const headings = document.querySelectorAll('.article-content h2, .article-content h3, .recipe-main h2');
-
-    function initScrollSpy() {
-      if (!tocLinks.length || !headings.length) return;
-
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const id = entry.target.id;
-            tocLinks.forEach(link => {
-              link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
-            });
-          }
-        });
-      }, {
-        rootMargin: '-100px 0px -66% 0px',
-        threshold: 0
-      });
-
-      headings.forEach(h => observer.observe(h));
-    }
-
-    // Font size controls
-    const fontDecrease = document.getElementById('font-decrease');
-    const fontIncrease = document.getElementById('font-increase');
-    const articleContent = document.querySelector('.article-content, .recipe-main');
-
-    function setFontSize(size) {
-      if (articleContent) {
-        articleContent.style.fontSize = size === 'small' ? '0.9rem' : size === 'large' ? '1.15rem' : '1rem';
-      }
-      [fontDecrease, fontIncrease].forEach(b => b?.classList.remove('active'));
-      if (size === 'small') fontDecrease?.classList.add('active');
-      else if (size === 'large') fontIncrease?.classList.add('active');
-      localStorage.setItem('article-font-size', size);
-    }
-
-    fontDecrease?.addEventListener('click', () => setFontSize('small'));
-    fontIncrease?.addEventListener('click', () => setFontSize('large'));
-
-    // Restore font size
-    const savedFontSize = localStorage.getItem('article-font-size');
-    if (savedFontSize && articleContent) {
-      setFontSize(savedFontSize);
-    }
-
-    // ── Tema de leitura (clássico / serifado / sépia) ──
-    const themeButtons = document.querySelectorAll('[data-reading-theme]');
-    const readingTarget = document.querySelector('.article-content, .recipe-main');
-
-    function applyReadingTheme(theme) {
-      document.body.classList.remove('reading-serif', 'reading-sepia');
-      if (theme === 'serif') document.body.classList.add('reading-serif');
-      if (theme === 'sepia') document.body.classList.add('reading-sepia');
-      themeButtons.forEach(b => {
-        const active = b.dataset.readingTheme === theme;
-        b.classList.toggle('active', active);
-        b.setAttribute('aria-checked', active ? 'true' : 'false');
-      });
-      localStorage.setItem('article-reading-theme', theme);
-    }
-
-    themeButtons.forEach(btn => {
-      btn.addEventListener('click', () => applyReadingTheme(btn.dataset.readingTheme));
-    });
-
-    const savedTheme = localStorage.getItem('article-reading-theme');
-    if (savedTheme && readingTarget) {
-      applyReadingTheme(savedTheme);
-    }
-
-    // Copy link with feedback
-    const copyLinkBtn = document.getElementById('copy-link');
-    if (copyLinkBtn) {
-      copyLinkBtn.addEventListener('click', async () => {
-        const url = copyLinkBtn.getAttribute('data-url') || window.location.href;
-        try {
-          await navigator.clipboard.writeText(url);
-          copyLinkBtn.classList.add('copied');
-          copyLinkBtn.setAttribute('aria-label', 'Link copiado!');
-          copyLinkBtn.querySelector('span').textContent = 'Copiado!';
-          setTimeout(() => {
-            copyLinkBtn.classList.remove('copied');
-            copyLinkBtn.setAttribute('aria-label', 'Copiar link');
-            copyLinkBtn.querySelector('span').textContent = 'Copiar link';
-          }, 2000);
-        } catch {}
-      });
-    }
-
-    // Share Web API
-    const shareBtn = document.getElementById('share-native');
-    if (shareBtn && navigator.share) {
-      shareBtn.style.display = 'flex';
-      shareBtn.addEventListener('click', async () => {
-        const title = document.querySelector('h1')?.textContent || document.title;
-        try {
-          await navigator.share({ title, url: window.location.href });
-        } catch {}
-      });
-    } else if (shareBtn) {
-      shareBtn.style.display = 'none';
-    }
-
-    // Scroll listeners
-    let ticking = false;
-    function onScroll() {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          updateReadingProgress();
-          ticking = false;
-        });
-        ticking = true;
-      }
-    }
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll, { passive: true });
-    updateReadingProgress();
+  function initAll() {
+    initReadingProgress();
     initScrollSpy();
+    initFontControls();
+    initReadingThemes();
+    initCopyLink();
+    initShareButton();
+    initReadingTime();
+    initLazyRelated();
+  }
 
-    // Reading time estimation
-    const readingTimeEl = document.getElementById('reading-time-estimate');
-    if (readingTimeEl && articleContent) {
-      const text = articleContent.textContent || '';
-      const words = text.trim().split(/\s+/).length;
-      const minutes = Math.ceil(words / 200);
-      readingTimeEl.textContent = `${minutes} min`;
-    }
-
-    // Load related articles when sidebar comes into view
-    const relatedContent = document.getElementById('related-content');
-    if (relatedContent) {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            relatedContent.dispatchEvent(new CustomEvent('load-related'));
-            observer.unobserve(entry.target);
-          }
-        });
-      }, { rootMargin: '200px', threshold: 0.01 });
-      observer.observe(relatedContent);
-    }
-
-    // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        window.dispatchEvent(new CustomEvent('search:open'));
-      }
-      if (e.key === 'Escape') {
-        // Close any open modals
-      }
-    });
-  })();
+  document.addEventListener('astro:page-load', initAll);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAll);
+  } else {
+    initAll();
+  }
 </script>
 
 <style>
@@ -543,7 +380,7 @@ const { articleTitle, articleUrl, tocHeadings, categories, tags, readingTime } =
     font-weight: 500;
     font-family: var(--font-sans);
     cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
   }
 
   .action-btn:hover {
@@ -616,7 +453,7 @@ const { articleTitle, articleUrl, tocHeadings, categories, tags, readingTime } =
     border: 1px solid var(--color-bg-card-border);
     color: var(--color-text-secondary);
     text-decoration: none;
-    transition: all 0.25s;
+    transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast)
   }
 
   a.smart-sidebar .sidebar-tag:hover {
@@ -651,7 +488,7 @@ const { articleTitle, articleUrl, tocHeadings, categories, tags, readingTime } =
     font-weight: 500;
     font-family: var(--font-sans);
     cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
     width: 100%;
   }
 

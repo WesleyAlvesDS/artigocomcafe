@@ -9,20 +9,6 @@ function getInitialTheme(): 'dark' | 'light' {
   return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
 }
 
-const btnStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: '36px',
-  height: '36px',
-  borderRadius: 'var(--radius-button)',
-  background: 'var(--color-bg-card)',
-  border: '1px solid var(--color-bg-card-border)',
-  color: 'var(--color-text-secondary)',
-  cursor: 'pointer',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-}
-
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<'dark' | 'light'>(getInitialTheme)
 
@@ -44,12 +30,10 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggle}
-      style={btnStyle}
+      className="theme-toggle-btn nav-icon-btn"
       aria-label={theme === 'dark' ? 'Ativar modo claro' : 'Ativar modo escuro'}
       title={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
       data-testid="theme-toggle"
-      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--color-accent)'; e.currentTarget.style.color = 'var(--color-accent)' }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--color-bg-card-border)'; e.currentTarget.style.color = 'var(--color-text-secondary)' }}
     >
       <svg
         width="18"

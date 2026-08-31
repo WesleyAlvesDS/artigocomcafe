@@ -491,7 +491,7 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
       setSaveState('saved')
       setLastSaved(new Date())
       onClose()
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.errors?.title?.[0] || err.errors?.content?.[0] || err.message || 'Erro ao salvar')
       setSaveState('idle')
     }
@@ -518,7 +518,7 @@ export default function PostEditor({ initialPost, onClose, onSave }: PostEditorP
       setServerSyncStatus('synced')
       showToast(canPublish ? 'Artigo publicado! 🎉' : 'Artigo enviado para revisão! ✅', 'success')
       onClose()
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || (canPublish ? 'Erro ao publicar' : 'Erro ao enviar para revisão'))
       setSaveState('idle')
     }

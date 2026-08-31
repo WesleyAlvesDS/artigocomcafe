@@ -5,6 +5,7 @@
 // compartilhamento. Os cards SSG são usados como estado inicial (sem flash).
 import { useEffect, useMemo, useState } from 'react'
 import type { Recipe, RecipeCategory, RecipeListResponse } from '../lib/types'
+import LazyImage from './LazyImage'
 
 const API_URL = '/api-proxy.php'
 const PER_PAGE = 12
@@ -41,12 +42,13 @@ function RecipeCardView({ recipe }: { recipe: Recipe }) {
   return (
     <a href={`/receitas/${recipe.slug}`} class="recipe-card glass-card">
       <div class="recipe-image-wrapper">
-        <img
+        <LazyImage
           src={recipe.cover_image || '/images/recipe-default.svg'}
           alt={recipe.title}
-          class="recipe-image"
-          loading="lazy"
-          decoding="async"
+          className="recipe-image"
+          width={1200}
+          height={675}
+          rootMargin="200px"
         />
         <span class="recipe-badge-difficulty" style={{ background: DIFF_COLOR[recipe.difficulty] || '#8b5a2b' }}>
           {DIFF_LABEL[recipe.difficulty] || recipe.difficulty}

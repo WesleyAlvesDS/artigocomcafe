@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Articles\Tables;
 
+use Filament\Actions\CreateAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -87,7 +88,25 @@ class ArticlesTable
             ])
             ->defaultSort('created_at', 'desc')
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->slideOver()
+                    ->modalWidth('5xl')
+                    ->after(fn () => $this->emit('refreshArticles')),
+                \Filament\Actions\Action::make('preview')
+                    ->label('Preview')
+                    ->icon('heroicon-o-eye')
+                    ->color('gray')
+                    ->url(fn (Article $record): string => ArticleResource::getUrl('preview', ['record' => $record])),
+            ])
+->headerActions([
+                CreateAction::make()
+                    ->label('Criar Artigo')
+                    ->modalHeading('Novo Artigo')
+                    ->slideOver()
+                    ->modalWidth('5xl')
+                    ->createAnother(false)
+                    ->after(fn () => $this->emit('refreshArticles'))
+                    ->successNotificationTitle('Artigo criado com sucesso!'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

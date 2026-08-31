@@ -9,6 +9,7 @@ use App\Services\Integrations\GNewsService;
 use App\Services\Integrations\GuardianService;
 use App\Services\Integrations\HackerNewsService;
 use App\Services\Integrations\OpenverseService;
+use App\Services\WebResearchService;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -50,6 +51,11 @@ class CentralEditorial extends Page
     /** Se uma busca já foi executada. */
     public bool $searched = false;
 
+    /** Quantidade de resultados por busca. */
+    public int $limit = 10;
+
+    public bool $webResearch = false;
+
     /**
      * Executa a busca nas fontes selecionadas.
      */
@@ -58,21 +64,17 @@ class CentralEditorial extends Page
         $q = trim($this->query);
 
         if ($q === '') {
-            Notification::make()
-                ->title('Digite um termo para buscar')
-                ->warning()
-                ->send();
-
+            Notification::make()->title('Digite um termo')->warning()->send();
             return;
         }
 
         $items = [];
 
         foreach ($this->activeSources() as $key => $service) {
-            // Hacker News não tem busca por termo — usa as top stories
+            // Busca com limite dinâmico
             $fetched = $key === 'hackernews'
-                ? ($service->headlines(6)['items'] ?? [])
-                : ($service->headlines($q, 6)['items'] ?? []);
+                ? ($service->headlines($this->limit)['items'] ?? [])
+                : ($service->headlines($q, $this->limit)['items'] ?? []);
 
             foreach ($fetched as $item) {
                 $item['source_key'] = $key;
@@ -80,19 +82,23 @@ class CentralEditorial extends Page
             }
         }
 
-        // Ordena por data de publicação (mais recentes primeiro)
+        if ($this->webResearch) {
+             $research = app(WebResearchService::class)->search($q, 2);
+             foreach ($research as $r) {
+                 $items[] = [
+                     'source' => 'Web',
+                     'title' => $r['title'],
+                     'excerpt' => $r['content'],
+                     'url' => $r['url']
+                 ];
+             }
+        }
+
+        // Ordena por data (mais recentes primeiro)
         usort($items, fn ($a, $b) => strcmp($b['published_at'] ?? '', $a['published_at'] ?? ''));
 
-        $this->results = $items;
+        $this->results = array_slice($items, 0, $this->limit);
         $this->searched = true;
-
-        if (empty($items)) {
-            Notification::make()
-                ->title('Nenhum resultado encontrado')
-                ->body('Tente outro termo ou verifique as chaves de API na página Integrações.')
-                ->warning()
-                ->send();
-        }
     }
 
     /**
@@ -106,37 +112,59 @@ class CentralEditorial extends Page
             return;
         }
 
-        $title = Str::limit($item['title_pt'] ?? $item['title'] ?? 'Sem título', 200);
+        // 1. Dados iniciais da Notícia (API)
+        $title = $item['title_pt'] ?? $item['title'];
+        $excerpt = $item['excerpt_pt'] ?? $item['excerpt'];
+        $originalContent = $item['content'] ?? ($item['excerpt'] ?? '');
+
+        // 2. Fortalecimento: Usa o WebResearchService para buscar contexto extra na web sobre a notícia
+        $extraContext = '';
+        try {
+            $researchResults = app(WebResearchService::class)->search($title, 2);
+            foreach ($researchResults as $res) {
+                $extraContext .= "\n--- Fonte Externa ({$res['url']}) ---\n" . $res['content'];
+            }
+        } catch (\Throwable $e) {
+            // Segue sem contexto extra caso o scraper falhe
+        }
+
+        // 3. IA Modelando + Refinando o conteúdo unindo a API e a Pesquisa Web Externa
+        $prompt = "Traduza para português (se não estiver) e escreva um artigo completo, aprofundado e persuasivo. "
+            . "Combine as informações da fonte principal com os dados extras obtidos na web:\n\n"
+            . "[Fonte Principal]: {$originalContent}\n\n"
+            . "[Dados Extras Encontrados na Web]: {$extraContext}";
+
+        $aiResult = app(\App\Services\AiAssistantService::class)->ask($prompt, "Título: {$title}");
+        $content = $aiResult['reply'] ?? $this->draftContent($item);
 
         $article = Article::create([
             'title' => $title,
             'slug' => $this->uniqueSlug(Str::slug($title)),
-            'excerpt' => Str::limit($item['excerpt_pt'] ?? $item['excerpt'] ?? '', 300),
-            'content' => $this->draftContent($item),
+            'excerpt' => Str::limit($excerpt, 300),
+            'content' => $content,
             'cover_image' => $this->coverFor($item),
             'featured_image' => $this->coverFor($item),
             'user_id' => auth()->id(),
             'status' => 'draft',
-            'reading_time' => $this->readingTime($item),
             'meta' => [
                 'source' => $item['source'] ?? null,
                 'source_url' => $item['url'] ?? null,
-                'created_via' => 'central_editorial',
+                'created_via' => 'central_editorial_auto_enriched',
             ],
         ]);
 
         Notification::make()
-            ->title('Rascunho criado!')
-            ->body($article->title)
+            ->title('Artigo Ultra Enriquecido!')
+            ->body('IA combinou APIs + Pesquisa Web para gerar o artigo.')
             ->success()
             ->actions([
                 Action::make('open')
-                    ->label('Abrir rascunho')
-                    ->url(ArticleResource::getUrl('edit', ['record' => $article])),
+                    ->label('Revisar agora')
+                    ->url(ArticleResource::getUrl('edit', ['record' => $article]))
+                    ->slideOver(),
             ])
             ->send();
 
-        // Remove o item já aproveitado, mantendo o contexto da busca
         unset($this->results[$index]);
         $this->results = array_values($this->results);
     }
@@ -219,6 +247,25 @@ class CentralEditorial extends Page
         return "<h2>{$title}</h2>"
             ."<p>{$excerpt}</p>"
             .'<blockquote><p>Fonte: <a href="'.$url.'" rel="nofollow noopener" target="_blank">'.$source.'</a></p></blockquote>';
+    }
+
+    /**
+     * Gera conteúdo expandido e rico usando a IA (aproximadamente 800-1200 palavras).
+     */
+    public function generateRichContent(string $topic, string $context = ''): string
+    {
+        $prompt = "Escreva um artigo EXTENSO e DETALHADO em português (mínimo de 800 palavras, ideal 1000+) sobre o tópico: '{$topic}'. "
+            ."O artigo deve ser estruturado em HTML semântico (h2, h3, p, ul, li, blockquote). "
+            ."Use os dados de contexto a seguir para embasar os fatos:\n\n{$context}\n\n"
+            ."Regras obrigatórias:\n"
+            ."1. Comece com uma introdução cativante (pelo menos 2 parágrafos).\n"
+            ."2. Desenvolva pelo menos 4 seções com subtítulos (h2 ou h3).\n"
+            ."3. Use listas, exemplos práticos e citações.\n"
+            ."4. Finalize com uma conclusão forte e uma call-to-action.\n"
+            ."5. Otimize para SEO naturalmente, sem ser repetitivo.";
+
+        $result = app(\App\Services\AiAssistantService::class)->ask($prompt, "Tópico: {$topic}");
+        return $result['reply'] ?? '<p>Falha ao gerar conteúdo rico.</p>';
     }
 
     /**

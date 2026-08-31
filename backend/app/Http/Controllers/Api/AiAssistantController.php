@@ -14,36 +14,40 @@ class AiAssistantController extends Controller
     ) {}
 
     /**
-     * Pergunta ao assistente do criador.
+     * Pergunta ao assistente do criador (POST para receber prompt + context no body).
      *
-     * Exemplo:
-     *   GET /api/ai/ask?q=Como fazer pão de queijo?
+     * Body JSON: { "prompt": "string", "context": "string?" }
      *
-     * @param  Request  $request
      * @return JsonResponse
      */
     public function ask(Request $request): JsonResponse
     {
         if (! $this->ai->isAvailable()) {
             return response()->json([
-                'error' => 'Assistente de IA não configurado. Configure GROQ_API_KEY ou GEMINI_API_KEY.',
+                'reply' => 'Assistente de IA não configurado. Defina OPENROUTER_API_KEY no .env.',
+                'provider' => 'openrouter',
+                'model' => 'none',
+                'tokens' => 0,
+                'error' => true,
             ], 503);
         }
 
-        $prompt = $request->query('q') ?: $request->input('prompt');
-        $context = $request->input('context', '');
+        $prompt = (string) $request->input('prompt');
+        $context = (string) $request->input('context', '');
 
-        if (! $prompt) {
+        if ($prompt === '') {
             return response()->json([
-                'error' => 'Parâmetro "q" ou "prompt" é obrigatório.',
+                'reply' => 'Prompt vazio.',
+                'provider' => 'openrouter',
+                'model' => 'none',
+                'tokens' => 0,
+                'error' => true,
             ], 422);
         }
 
         $result = $this->ai->ask($prompt, $context);
 
-        return response()->json([
-            'data' => $result,
-        ]);
+        return response()->json($result);
     }
 
     /**
@@ -52,13 +56,8 @@ class AiAssistantController extends Controller
     public function status(): JsonResponse
     {
         return response()->json([
-            'data' => [
-                'available' => $this->ai->isAvailable(),
-                'providers' => [
-                    'groq' => !empty(config('services.groq.key')),
-                    'gemini' => !empty(config('services.gemini.key')),
-                ],
-            ],
+            'available' => $this->ai->isAvailable(),
+            'provider' => 'openrouter',
         ]);
     }
 }

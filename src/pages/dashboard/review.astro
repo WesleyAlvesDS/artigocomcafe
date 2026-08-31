@@ -1,0 +1,8 @@
+---
+import Base from '../../layouts/Base.astro'
+import ReviewPage from '../../components/ReviewPage'
+---
+
+<Base title="Revisão de Artigos — Artigo com Café" description="Painel de revisão para supervisores e administradores." canonical="/dashboard/review" fullWidth hideAiAssistant editorial={false} breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Área do leitor', slug: '/dashboard/' }, { name: 'Revisão', slug: '/dashboard/review' }]}>
+  <ReviewPage client:load />
+</Base>

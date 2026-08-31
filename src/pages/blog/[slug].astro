@@ -5,6 +5,7 @@ import ReaderAssistant from '../../components/ReaderAssistant'
 import ArticleCard from '../../components/ArticleCard.astro'
 import ArticleActions from '../../components/ArticleActions'
 import ArticleToc from '../../components/ArticleToc'
+import CommentSection from '../../components/CommentSection'
 import ScrollAnimations from '../../components/ScrollAnimations.astro'
 import SmartSidebar from '../../components/SmartSidebar.astro'
 import DiamondProtocol from '../../components/DiamondProtocol.astro'
@@ -134,6 +135,7 @@ const contentWithIds = post ? addHeadingIds(rawContent, tocHeadings) : ''
     image={`/og/${post!.slug}.png.ts`}
     type="article"
     canonical={`/blog/${post!.slug}/`}
+    fullWidth
     breadcrumbs={[
       { name: 'Início', slug: '/' },
       { name: 'Blog', slug: '/blog/' },
@@ -242,6 +244,8 @@ const contentWithIds = post ? addHeadingIds(rawContent, tocHeadings) : ''
               />
 
               <AdSterraBanner key="36c0e766cf3f9f800adf45b24d6e2815" width={320} height={50} className="ad-article-mobile" lazy />
+
+              <CommentSection client:load articleId={post.id} articleSlug={post.slug} />
 
               {/* Prev / Next navigation */}
               <nav class="article-nav" aria-label="Navegação entre artigos">
@@ -411,38 +415,15 @@ const contentWithIds = post ? addHeadingIds(rawContent, tocHeadings) : ''
       <span aria-hidden="true">📖</span>
       <span class="study-mode-label">Modo Estudo</span>
     </button>
-    <script is:inline>
-      (function () {
-        var KEY = 'acf-study-mode'
-        function apply() {
-          var on = false
-          try { on = localStorage.getItem(KEY) === '1' } catch (e) {}
-          document.body.classList.toggle('study-mode', on)
-          var btn = document.getElementById('study-mode-toggle')
-          if (!btn) return
-          btn.setAttribute('aria-pressed', String(on))
-          var label = btn.querySelector('.study-mode-label')
-          if (label) label.textContent = on ? 'Sair do modo estudo' : 'Modo Estudo'
-        }
-        document.addEventListener('click', function (e) {
-          var target = e.target
-          if (!target || !target.closest) return
-          if (!target.closest('#study-mode-toggle')) return
-          var on = !document.body.classList.contains('study-mode')
-          document.body.classList.toggle('study-mode', on)
-          try { localStorage.setItem(KEY, on ? '1' : '0') } catch (err) {}
-          apply()
-        })
-        document.addEventListener('astro:page-load', apply)
-        apply()
-      })()
+    <script>
+      import { initStudyMode } from '../../scripts/study-mode';
+      initStudyMode();
     </script>
   </Base>
 )}
 
 <style is:global>
   .article-page {
-    padding-top: 64px;
   }
 
   .article-header-section {
@@ -510,7 +491,7 @@ const contentWithIds = post ? addHeadingIds(rawContent, tocHeadings) : ''
     background: color-mix(in srgb, var(--color-accent) 12%, transparent);
     border: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);
     text-decoration: none;
-    transition: all 0.3s;
+    transition: background-color var(--transition), color var(--transition);
   }
 
   .article-category:hover {
@@ -557,7 +538,7 @@ const contentWithIds = post ? addHeadingIds(rawContent, tocHeadings) : ''
     border: 1px solid var(--color-bg-card-border);
     color: var(--color-text-secondary);
     text-decoration: none;
-    transition: all 0.3s;
+    transition: background-color var(--transition), border-color var(--transition), color var(--transition), transform var(--transition);
   }
 
   .tag:hover {
@@ -658,25 +639,13 @@ const contentWithIds = post ? addHeadingIds(rawContent, tocHeadings) : ''
     flex-direction: column;
     gap: 1rem;
     position: sticky;
-    top: 84px;
-    max-height: calc(100vh - 104px);
+    top: calc(var(--maintenance-bar-h, 0px) + 84px);
+    max-height: calc(100vh - var(--maintenance-bar-h, 0px) - 104px);
     overflow-y: auto;
     scrollbar-width: thin;
     padding-right: 2px;
   }
 
-  .sidebar-card {
-    padding: 1.25rem;
-  }
-
-  .sidebar-title {
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--color-text-muted);
-    margin-bottom: 0.85rem;
-  }
 
   .sidebar-tags {
     display: flex;
@@ -692,7 +661,7 @@ const contentWithIds = post ? addHeadingIds(rawContent, tocHeadings) : ''
     border: 1px solid var(--color-bg-card-border);
     color: var(--color-text-secondary);
     text-decoration: none;
-    transition: all 0.25s;
+    transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
   }
 
   a.sidebar-tag:hover {
@@ -717,7 +686,7 @@ const contentWithIds = post ? addHeadingIds(rawContent, tocHeadings) : ''
     border: 1px solid var(--color-bg-card-border);
     color: var(--color-text-secondary);
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background-color var(--transition), border-color var(--transition), color var(--transition), transform var(--transition), box-shadow var(--transition);
   }
 
   .share-link:hover {
@@ -806,7 +775,7 @@ const contentWithIds = post ? addHeadingIds(rawContent, tocHeadings) : ''
     background: var(--color-bg-card);
     border: 1px solid var(--color-bg-card-border);
     text-decoration: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background-color var(--transition), border-color var(--transition), transform var(--transition), box-shadow var(--transition);
   }
 
   .article-nav-card:hover {
@@ -919,7 +888,7 @@ const contentWithIds = post ? addHeadingIds(rawContent, tocHeadings) : ''
     position: fixed;
     left: 1.25rem;
     bottom: 1.25rem;
-    z-index: 9000;
+    z-index: var(--z-fullscreen);
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
@@ -935,7 +904,7 @@ const contentWithIds = post ? addHeadingIds(rawContent, tocHeadings) : ''
     font-weight: 600;
     cursor: pointer;
     box-shadow: var(--shadow-card);
-    transition: all 0.25s;
+    transition: color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
   }
   .study-mode-toggle:hover {
     color: var(--color-accent);

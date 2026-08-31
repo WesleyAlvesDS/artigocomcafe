@@ -5,7 +5,25 @@ import AdSterraSmartLink from '../components/AdSterraSmartLink.astro'
 import AdSenseSlot from '../components/AdSenseSlot.astro'
 ---
 
-<Base title="Contato — Artigo com Café" description="Entre em contato com a equipe do Artigo com Café." canonical="/contato/">
+<Base title="Contato — Artigo com Café" description="Entre em contato com a equipe do Artigo com Café." canonical="/contato/" fullWidth>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'ContactPage',
+    'name': 'Contato — Artigo com Café',
+    'description': 'Entre em contato com a equipe do Artigo com Café.',
+    'url': 'https://artigocomcafe.com/contato/',
+    'mainEntity': {
+      '@type': 'Organization',
+      'name': 'Artigo com Café',
+      'url': 'https://artigocomcafe.com',
+      'address': {
+        '@type': 'PostalAddress',
+        'addressLocality': 'Nova Friburgo',
+        'addressRegion': 'RJ',
+        'addressCountry': 'BR'
+      }
+    }
+  })} />
   <section class="section page-header">
     <div class="container">
       <div data-reveal>
@@ -146,10 +164,6 @@ import AdSenseSlot from '../components/AdSenseSlot.astro'
 </Base>
 
 <style>
-  .page-header {
-    padding-bottom: 1rem;
-  }
-
   .contact-grid {
     display: grid;
     grid-template-columns: 1.5fr 1fr;
@@ -271,10 +285,15 @@ import AdSenseSlot from '../components/AdSenseSlot.astro'
   @media (max-width: 768px) {
     .contact-grid {
       grid-template-columns: 1fr;
+      gap: 2rem;
     }
 
     .form-row {
       grid-template-columns: 1fr;
+    }
+
+    .contact-info {
+      order: -1;
     }
   }
 </style>

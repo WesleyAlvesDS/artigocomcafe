@@ -131,4 +131,6 @@ function AchievementsContent() {
   )
 }
 
-export default function AchievementsPage() { return <AuthPage><AchievementsContent /></AuthPage> }
+export default function AchievementsPage() {
+  return <AchievementsContent />
+}

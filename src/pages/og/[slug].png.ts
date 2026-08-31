@@ -25,7 +25,7 @@ async function getAllArticles(): Promise<ArticleData[]> {
   }
 
   const json = await res.json()
-  const articles: ArticleData[] = json.data.map((a: any) => ({
+  const articles: ArticleData[] = json.data.map((a: { slug: string; title: string; category?: { name?: string }; reading_time?: string }) => ({
     slug: a.slug,
     title: a.title,
     category: a.category?.name || null,

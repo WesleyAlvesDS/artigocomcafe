@@ -33,7 +33,7 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
 })
 ---
 
-<Base title="Receitas — Artigo com Café" description="Receitas deliciosas com café e para acompanhar seu café. Do café da manhã ao jantar, sobremesas e drinks." canonical="/receitas/" breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Receitas', slug: '/receitas/' }]}>
+<Base title="Receitas — Artigo com Café" description="Receitas deliciosas com café e para acompanhar seu café. Do café da manhã ao jantar, sobremesas e drinks." canonical="/receitas/" fullWidth breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Receitas', slug: '/receitas/' }]}>
   {/* Paginação agora é client-side (island RecipeBrowser) — sem rel next/prev */}
   
   <section class="section recipes-hero">
@@ -142,42 +142,7 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
     flex-direction: column;
     gap: 1.25rem;
   }
-  
-  .search-form {
-    position: relative;
-    max-width: 400px;
-  }
-  
-  .search-icon {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--color-text-muted);
-    pointer-events: none;
-  }
-  
-  .search-form .search-input {
-    width: 100%;
-    padding: 0.75rem 1rem 0.75rem 2.75rem;
-    border-radius: 12px;
-    border: 1px solid var(--color-bg-card-border);
-    background: var(--color-bg-card);
-    color: var(--color-text-primary);
-    font-size: 0.9rem;
-    font-family: var(--font-sans);
-    outline: none;
-    transition: border-color 0.3s;
-  }
-  
-  .search-form .search-input:focus {
-    border-color: var(--color-accent);
-  }
-  
-  .search-form .search-input::placeholder {
-    color: var(--color-text-muted);
-  }
-  
+
   .filters-row {
     display: flex;
     flex-direction: column;
@@ -196,64 +161,6 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
     flex-wrap: wrap;
     gap: 0.5rem;
     flex: 1;
-  }
-  
-  .cat-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.35rem 0.85rem;
-    border-radius: 100px;
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-bg-card-border);
-    color: var(--color-text-secondary);
-    font-size: 0.82rem;
-    font-weight: 500;
-    text-decoration: none;
-    transition: all 0.3s;
-  }
-  
-  .cat-chip:hover,
-  .cat-chip.active {
-    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
-    border-color: var(--color-accent);
-    color: var(--color-accent);
-  }
-  
-  .cat-count {
-    font-size: 0.7rem;
-    opacity: 0.7;
-    font-family: var(--font-mono);
-  }
-  
-  .quick-filters {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-  }
-  
-  .filter-select {
-    padding: 0.5rem 2rem 0.5rem 0.85rem;
-    border-radius: 100px;
-    border: 1px solid var(--color-bg-card-border);
-    background: var(--color-bg-card);
-    color: var(--color-text-primary);
-    font-size: 0.82rem;
-    font-weight: 500;
-    font-family: var(--font-sans);
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23b8b0a3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0.7rem center;
-    transition: all 0.3s;
-    min-width: 160px;
-  }
-  
-  .filter-select:hover,
-  .filter-select:focus {
-    border-color: var(--color-accent);
-    outline: none;
   }
   
   .active-filters {
@@ -308,29 +215,6 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
   
   .recipes-listing-section {
     padding-top: 0.5rem;
-  }
-
-  .recipes-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 340px;
-    gap: 2.5rem;
-    align-items: start;
-  }
-
-  .recipes-main {
-    min-width: 0;
-  }
-
-  @media (max-width: 1100px) {
-    .recipes-layout {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 2.5rem;
-    }
-
-    .sidebar-widgets {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    }
   }
 
   .recipes-grid {
@@ -450,7 +334,7 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
     justify-content: center;
     opacity: 0;
     transform: translateY(8px) scale(0.9);
-    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: opacity var(--transition), transform var(--transition), background-color var(--transition), color var(--transition), border-color var(--transition);
   }
   
   .recipe-save-btn:hover {

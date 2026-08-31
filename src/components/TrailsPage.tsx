@@ -98,4 +98,6 @@ function TrailsContent() {
   )
 }
 
-export default function TrailsPage() { return <AuthPage><TrailsContent /></AuthPage> }
+export default function TrailsPage() {
+  return <TrailsContent />
+}

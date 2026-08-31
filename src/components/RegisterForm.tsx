@@ -175,7 +175,7 @@ export default function RegisterForm() {
       applyThemeColors(selectedTheme)
       setToken(data.token)
       window.location.href = getRedirectTarget()
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err.errors) {
         const mapped: Errors = {}
         for (const [field, msgs] of Object.entries(err.errors)) {

@@ -662,11 +662,7 @@ function LibraryContent() {
 }
 
 export default function LibraryPage() {
-  return (
-    <AuthPage fallback={<PublicLibrary />}>
-      <LibraryContent />
-    </AuthPage>
-  )
+  return <LibraryContent />
 }
 
 function PublicLibrary() {

@@ -21,7 +21,7 @@ export default function ForgotPasswordForm() {
       const data = await api.post<ForgotResponse>('/auth/forgot-password', { email })
       setSent(true)
       if (data.reset_token) setDevToken(data.reset_token)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || 'Erro ao solicitar recuperação')
     } finally {
       setLoading(false)

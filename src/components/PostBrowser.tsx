@@ -5,6 +5,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { BlogPost, LaravelArticle, LaravelCategory, LaravelPaginatedResponse } from '../lib/laravel'
 import type { WPPageInfo } from '../lib/types'
+import LazyImage from './LazyImage'
 
 const API_URL = '/api-proxy.php'
 const PER_PAGE = 9
@@ -54,12 +55,13 @@ function PostCardView({ post }: { post: BlogPost }) {
     <a href={`/blog/${post.slug}`} class="article-card glass-card">
       {post.featuredImage && (
         <div class="article-image-wrapper">
-          <img
+          <LazyImage
             src={post.featuredImage}
             alt={post.featuredImageAlt}
-            class="article-image"
-            loading="lazy"
-            decoding="async"
+            className="article-image"
+            width={1200}
+            height={675}
+            rootMargin="200px"
           />
           <div class="image-overlay" aria-hidden="true" />
         </div>

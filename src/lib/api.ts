@@ -169,7 +169,13 @@ export function setToken(token: string | null) {
 }
 
 export function isAuthenticated(): boolean {
-  return !!getToken()
+  if (typeof window === 'undefined') return false
+  if (typeof localStorage === 'undefined') return false
+  try {
+    return !!localStorage.getItem('auth_token')
+  } catch {
+    return false
+  }
 }
 
 export { ApiError }

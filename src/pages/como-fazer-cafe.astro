@@ -11,6 +11,7 @@ const data = seoLandings.find(l => l.slug === 'como-fazer-cafe')!
   title={data.pageTitle}
   description={data.description}
   canonical={`/${data.slug}/`}
+  fullWidth
   breadcrumbs={[{ name: 'Início', slug: '/' }, { name: data.h1, slug: `/${data.slug}/` }]}
 >
   <SeoLandingPage data={data} />

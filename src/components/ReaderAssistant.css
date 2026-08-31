@@ -2,7 +2,7 @@
   position: fixed;
   right: 1.25rem;
   bottom: 1.25rem;
-  z-index: 190;
+  z-index: var(--z-reader-panel);
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -52,7 +52,7 @@
   position: fixed;
   right: 1.25rem;
   bottom: 5.5rem;
-  z-index: 190;
+  z-index: var(--z-reader-panel);
   width: 340px;
   max-width: calc(100vw - 2rem);
   max-height: min(70vh, 560px);
@@ -128,7 +128,7 @@
   padding: 0.45rem 0.5rem;
   border-radius: 9px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -274,7 +274,7 @@
   padding: 0.45rem 0.25rem;
   border-radius: 9px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .ra-theme-btn[aria-pressed="true"] {
@@ -333,7 +333,7 @@
   text-decoration: none;
   font-size: 0.83rem;
   line-height: 1.4;
-  transition: all 0.2s;
+  transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast)
 }
 
 .ra-toc a:hover {

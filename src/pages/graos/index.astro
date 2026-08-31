@@ -1,0 +1,98 @@
+---
+import Base from '../../layouts/Base.astro'
+import AuthPage from '../../components/AuthPage'
+import GrainsPage from '../../components/GrainsPage'
+---
+
+<Base title="Meus Grãos — Artigo com Café" description="Acompanhe seus grãos, histórico de ganhos e gastos." canonical="/graos" fullWidth>
+
+  <div class="page-header">
+    <h1 class="page-title">🫘 Meus Grãos</h1>
+    <p class="page-subtitle">Acompanhe seu saldo e histórico de grãos</p>
+  </div>
+
+  <AuthPage client:load fallback={
+    <div class="empty-state">
+      <div class="empty-icon">🔒</div>
+      <h3 class="empty-title">Acesso restrito</h3>
+      <p class="empty-desc">Faça login para ver seus grãos</p>
+      <a href="/entrar" class="btn-primary">Entrar</a>
+    </div>
+  }>
+    <GrainsPage client:load />
+  </AuthPage>
+
+  <style>
+    .page-header {
+      margin-bottom: 1.5rem;
+    }
+
+    .page-title {
+      font-family: var(--font-serif);
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin: 0 0 0.35rem;
+    }
+
+    .page-subtitle {
+      color: var(--color-text-muted);
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 40vh;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .empty-title {
+      font-family: var(--font-serif);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin: 0 0 0.5rem;
+    }
+
+    .empty-desc {
+      color: var(--color-text-muted);
+      font-size: 0.9rem;
+      margin: 0 0 1.25rem;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.5rem;
+      background: var(--color-accent);
+      color: var(--color-btn-text);
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .btn-primary:hover {
+      background: var(--color-accent-dark);
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 640px) {
+      .page-title {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</Base>

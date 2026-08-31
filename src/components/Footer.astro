@@ -132,7 +132,7 @@ import AdSterraSmartLink from './AdSterraSmartLink.astro'
     background: var(--color-bg-card);
     border: 1px solid var(--color-bg-card-border);
     color: var(--color-text-muted);
-    transition: all 0.3s;
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), transform var(--transition)
     text-decoration: none;
   }
 
@@ -195,8 +195,16 @@ import AdSterraSmartLink from './AdSterraSmartLink.astro'
 
   @media (max-width: 1100px) {
     .footer-grid {
-      grid-template-columns: 1.5fr 1fr 1fr 1fr 1.5fr;
+      grid-template-columns: repeat(3, 1fr);
       gap: 1.5rem;
+    }
+
+    .footer-brand {
+      grid-column: 1 / -1;
+    }
+
+    .footer-newsletter {
+      grid-column: 1 / -1;
     }
   }
 
@@ -204,6 +212,10 @@ import AdSterraSmartLink from './AdSterraSmartLink.astro'
     .footer-grid {
       grid-template-columns: 1fr 1fr;
       gap: 2rem;
+    }
+
+    .footer-brand {
+      grid-column: 1 / -1;
     }
 
     .footer-newsletter {

@@ -59,6 +59,7 @@ class ArticleResource extends Resource
             'index' => ListArticles::route('/'),
             'create' => CreateArticle::route('/create'),
             'edit' => EditArticle::route('/{record}/edit'),
+            'preview' => \App\Filament\Resources\Articles\Pages\PreviewArticle::route('/{record}/preview'),
         ];
     }
 

@@ -1,18 +1,204 @@
 ---
 import Base from '../layouts/Base.astro'
-import DashboardApp from '../components/DashboardApp'
-import '../styles/dashboard-app.css'
+import UserDashboardNav from '../components/UserDashboardNav'
+import AuthPage from '../components/AuthPage'
+import JornadaPage from '../components/JornadaPage'
+import MissionsPage from '../components/MissionsPage'
+import AchievementsPage from '../components/AchievementsPage'
+import TrailsPage from '../components/TrailsPage'
+import GrainsPage from '../components/GrainsPage'
+import LibraryPage from '../components/LibraryPage'
+import ProfilePage from '../components/ProfilePage'
 ---
 
-<Base title="Dashboard — Artigo com Café" description="Seu painel de controle e evolução no Artigo com Café. Acompanhe grãos, leituras, trilhas, clima e mais." canonical="/dashboard/" hideAiAssistant editorial={false} breadcrumbs={[{ name: 'Início', slug: '/' }, { name: 'Área do leitor', slug: '/dashboard/' }]}>
-  <section class="dash-page" aria-label="Dashboard">
-    <div class="dash-bg-mesh" aria-hidden="true">
-      <div class="dash-orb dash-orb-1"></div>
-      <div class="dash-orb dash-orb-2"></div>
-      <div class="dash-orb dash-orb-3"></div>
-    </div>
-    <div class="max-w-6xl mx-auto relative z-10">
-      <DashboardApp client:load />
-    </div>
-  </section>
+<Base
+  title="Dashboard — Artigo com Café"
+  description="Painel do leitor com jornada, conquistas e personalização."
+  canonical="/dashboard"
+  fullWidth
+  editorial={false}
+>
+  <div class="dashboard-content">
+    <AuthPage client:load fallback={
+      <div class="dashboard-auth-required">
+        <div class="auth-required-card glass-card">
+          <span class="auth-required-icon">🔒</span>
+          <h2 class="auth-required-title">Área do Leitor</h2>
+          <p class="auth-required-desc">
+            Faça login para acessar sua jornada, conquistas e personalização.
+          </p>
+          <a href="/entrar" class="btn-primary">
+            Entrar
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </a>
+        </div>
+      </div>
+    }>
+      <div class="dashboard-grid">
+        {/* Sidebar com navegação */}
+        <div class="dashboard-sidebar">
+          <UserDashboardNav client:load />
+        </div>
+
+        {/* Conteúdo principal com sub-rotas via hash */}
+        <div class="dashboard-main">
+          {/* Página inicial do dashboard */}
+          <div class="dashboard-section" data-dash-section="home">
+            <div class="dashboard-welcome glass-card">
+              <h1>Bem-vindo ao seu painel</h1>
+              <p>Use a navegação à esquerda para explorar suas seções.</p>
+            </div>
+          </div>
+
+          {/* Jornada */}
+          <div class="dashboard-section" data-dash-section="jornada" hidden>
+            <JornadaPage client:load />
+          </div>
+
+          {/* Missões */}
+          <div class="dashboard-section" data-dash-section="missoes" hidden>
+            <MissionsPage client:load />
+          </div>
+
+          {/* Conquistas */}
+          <div class="dashboard-section" data-dash-section="conquistas" hidden>
+            <AchievementsPage client:load />
+          </div>
+
+          {/* Trilhas */}
+          <div class="dashboard-section" data-dash-section="trilhas" hidden>
+            <TrailsPage client:load />
+          </div>
+
+          {/* Grãos */}
+          <div class="dashboard-section" data-dash-section="graos" hidden>
+            <GrainsPage client:load />
+          </div>
+
+          {/* Biblioteca */}
+          <div class="dashboard-section" data-dash-section="biblioteca" hidden>
+            <LibraryPage client:load />
+          </div>
+
+          {/* Perfil */}
+          <div class="dashboard-section" data-dash-section="perfil" hidden>
+            <ProfilePage client:load />
+          </div>
+        </div>
+      </div>
+    </AuthPage>
+  </div>
+
+  <script>
+    import { initDashboardNav } from '../scripts/dashboard-nav';
+    initDashboardNav();
+  </script>
+
+  <style>
+    .dashboard-content {
+      min-height: calc(100vh - var(--topbar-height, 56px) - 2rem);
+    }
+
+    .dashboard-grid {
+      display: flex;
+      gap: 1.5rem;
+      align-items: flex-start;
+    }
+
+    .dashboard-sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      position: sticky;
+      top: calc(var(--maintenance-bar-h, 0px) + 1rem);
+      max-height: calc(100vh - var(--topbar-height, 56px) - 3rem);
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+
+    .dashboard-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .dashboard-section[hidden] {
+      display: none !important;
+    }
+
+    .dashboard-section {
+      display: block;
+    }
+
+    .dashboard-auth-required {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      padding: 2rem;
+    }
+
+    .auth-required-card {
+      max-width: 400px;
+      width: 100%;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-bg-card-border);
+      border-radius: 16px;
+    }
+
+    .auth-required-icon {
+      font-size: 3rem;
+      display: block;
+      margin-bottom: 1rem;
+    }
+
+    .auth-required-title {
+      font-family: var(--font-serif);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin: 0 0 0.5rem;
+    }
+
+    .auth-required-desc {
+      font-size: 0.88rem;
+      color: var(--color-text-muted);
+      line-height: 1.5;
+      margin: 0 0 1.25rem;
+    }
+
+    .dashboard-welcome {
+      padding: 1.5rem;
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-bg-card-border);
+      border-radius: 14px;
+    }
+
+    .dashboard-welcome h1 {
+      font-family: var(--font-serif);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin: 0 0 0.5rem;
+    }
+
+    .dashboard-welcome p {
+      color: var(--color-text-muted);
+      font-size: 0.88rem;
+    }
+
+    @media (max-width: 900px) {
+      .dashboard-grid {
+        flex-direction: column;
+      }
+      .dashboard-sidebar {
+        width: 100%;
+        position: static;
+        max-height: none;
+      }
+    }
+  </style>
 </Base>

@@ -23,6 +23,7 @@ const difficultyColor = { facil: '#22c55e', media: '#f59e0b', dificil: '#ef4444'
       height="675"
       loading="lazy"
       decoding="async"
+      fetchpriority="low"
     />
     <span class="recipe-badge-difficulty" style={`background: ${difficultyColor[recipe.difficulty] || '#8b5a2b'}`}>
       {difficultyLabel[recipe.difficulty] || recipe.difficulty}
@@ -67,6 +68,8 @@ const difficultyColor = { facil: '#22c55e', media: '#f59e0b', dificil: '#ef4444'
     overflow: hidden;
     text-decoration: none;
     color: inherit;
+    border-radius: var(--radius-card);
+    transition: box-shadow 0.3s, transform 0.3s;
   }
 
   .recipe-image-wrapper {
@@ -74,17 +77,25 @@ const difficultyColor = { facil: '#22c55e', media: '#f59e0b', dificil: '#ef4444'
     width: 100%;
     aspect-ratio: 16 / 9;
     overflow: hidden;
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
   }
 
   .recipe-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
     transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
+  /* Hover: shrink image instead of zoom (melhor qualidade visual) */
   .recipe-card:hover .recipe-image {
-    transform: scale(1.05);
+    transform: scale(0.97);
+  }
+
+  .recipe-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-card-hover);
   }
 
   .recipe-badge-difficulty {

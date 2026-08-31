@@ -86,37 +86,13 @@ const canonical = `/${data.slug}/`
   </div>
 </section>
 
-<script is:inline>
-  // Accordion de FAQ resiliente à navegação SPA (re-executa a cada troca de página).
-  (function () {
-    var list = document.querySelector('[data-faq-list]')
-    if (!list || list.dataset.bound === '1') return
-    list.dataset.bound = '1'
-    list.querySelectorAll('[data-faq-item]').forEach(function (item) {
-      var q = item.querySelector('.faq-question')
-      var a = item.querySelector('.faq-answer')
-      if (!q || !a) return
-      q.addEventListener('click', function () {
-        var open = a.hidden === false
-        // Fecha os demais (acordeão)
-        list.querySelectorAll('[data-faq-item]').forEach(function (other) {
-          var oq = other.querySelector('.faq-question')
-          var oa = other.querySelector('.faq-answer')
-          if (other !== item) {
-            if (oa) oa.hidden = true
-            if (oq) oq.setAttribute('aria-expanded', 'false')
-          }
-        })
-        a.hidden = open
-        q.setAttribute('aria-expanded', String(!open))
-      })
-    })
-  })()
+<script>
+  import { initFaqAccordion } from '../scripts/faq-accordion';
+  initFaqAccordion();
 </script>
 
 <style>
   .seo-landing {
-    padding-top: 5.5rem;
   }
 
   .seo-hero {
@@ -188,15 +164,20 @@ const canonical = `/${data.slug}/`
   }
 
   .seo-body {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 320px;
-    gap: 3rem;
-    align-items: start;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
     padding: 3.5rem 0 5rem;
   }
 
   .seo-main {
     min-width: 0;
+  }
+
+  .seo-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
   }
 
   .seo-section {
@@ -284,8 +265,6 @@ const canonical = `/${data.slug}/`
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    position: sticky;
-    top: 96px;
   }
 
   .seo-card {
@@ -334,7 +313,7 @@ const canonical = `/${data.slug}/`
     color: var(--color-text-secondary);
     text-decoration: none;
     border-left: 2px solid transparent;
-    transition: all 0.2s;
+    transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast)
   }
 
   .seo-toc-link:hover {

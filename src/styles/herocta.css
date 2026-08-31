@@ -1,0 +1,190 @@
+.hero-cta {
+  position: relative;
+  min-height: 380px;
+  max-height: 440px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  padding-top: 3.5rem;
+  border-bottom: 1px solid var(--color-bg-card-border);
+}
+
+.hero-cta-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.hero-cta-bg .hero-aurora {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.3;
+}
+
+.hero-cta-bg .aurora-1 {
+  width: 50vw;
+  height: 50vw;
+  top: -20%;
+  right: -10%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--coffee-latte) 40%, transparent), transparent 70%);
+}
+
+.hero-cta-bg .aurora-2 {
+  width: 45vw;
+  height: 45vw;
+  bottom: -25%;
+  left: -15%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--coffee-gold) 20%, transparent), transparent 70%);
+}
+
+.hero-cta-bg .hero-beans {
+  position: absolute;
+  inset: 0;
+}
+
+.hero-cta-bg .bean {
+  position: absolute;
+  left: var(--bean-x);
+  top: var(--bean-y);
+  width: var(--s);
+  height: calc(var(--s) * 1.35);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: linear-gradient(135deg, var(--coffee-gold), var(--coffee-primary));
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--coffee-primary) 30%, transparent);
+  opacity: 0.08;
+  transform: rotate(24deg);
+  animation: bean-float 12s ease-in-out infinite;
+  animation-delay: calc(var(--s) * -0.2s);
+}
+
+@keyframes bean-float {
+  0%, 100% { transform: rotate(24deg) translateY(0); }
+  50% { transform: rotate(24deg) translateY(-18px); }
+}
+
+.hero-cta-content {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 1rem;
+  padding-bottom: 2.5rem;
+}
+
+.hero-cta-text {
+  max-width: 680px;
+  text-align: center;
+}
+
+.hero-cta-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: 1rem;
+  animation: slide-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.05s both;
+}
+
+.eyebrow-rule {
+  display: inline-block;
+  width: 44px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-accent), transparent);
+  border-radius: 2px;
+}
+
+.hero-cta-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-weight: 900;
+  line-height: 0.96;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+  margin-bottom: 1rem;
+  animation: slide-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s both;
+}
+
+.hero-title-accent {
+  color: var(--color-accent);
+  position: relative;
+  display: inline-block;
+}
+
+.hero-title-accent::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.06em;
+  height: 0.12em;
+  background: linear-gradient(90deg, var(--color-accent), transparent);
+  border-radius: 4px;
+  opacity: 0.3;
+}
+
+.hero-cta-subtitle {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin-bottom: 1.5rem;
+  max-width: 520px;
+  animation: slide-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.25s both;
+}
+
+.hero-cta-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  animation: slide-up 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.35s both;
+}
+
+.hero-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.6rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: var(--radius-button);
+}
+
+.hero-cta-btn-secondary {
+  padding: 0.75rem 1.25rem;
+  font-size: 0.88rem;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .hero-cta {
+    min-height: 320px;
+    max-height: 380px;
+  }
+
+  .hero-cta-title {
+    font-size: clamp(1.8rem, 10vw, 2.8rem);
+  }
+
+  .hero-cta-subtitle {
+    font-size: 0.92rem;
+  }
+
+  .hero-cta-actions {
+    flex-direction: column;
+  }
+
+  .hero-cta-btn,
+  .hero-cta-btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+}

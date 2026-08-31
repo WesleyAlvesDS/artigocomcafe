@@ -72,7 +72,7 @@ export default function PostManagementWidget() {
       setPosts(res.data.data)
       setTotalPages(res.data.meta.last_page)
       setPage(res.data.meta.current_page)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err?.message || 'Erro ao carregar posts')
     } finally {
       setLoading(false)

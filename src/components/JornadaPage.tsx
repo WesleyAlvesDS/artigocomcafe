@@ -186,5 +186,5 @@ function JornadaContent() {
 }
 
 export default function JornadaPage() {
-  return <AuthPage><JornadaContent /></AuthPage>
+  return <JornadaContent />
 }

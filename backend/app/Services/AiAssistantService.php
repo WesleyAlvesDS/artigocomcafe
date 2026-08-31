@@ -2,67 +2,153 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Assistente do Criador — integração com provedores de LLM (Groq + Gemini).
+ * Assistente do Criador — integração com OpenRouter.
  *
- * Usado pelo dashboard para sugestões de títulos, resumos, meta-descrições
- * e respostas do assistente editorial. Tenta Groq primeiro (mais rápido),
- * depois Gemini como fallback.
+ * Consome modelos gratuitos rotativos para evitar rate-limit diário.
+ * Lista atualizada de modelos gratuitos deve ser conferida em
+ * https://openrouter.ai/models?max_price=0
  *
- * Config: GROQ_API_KEY e GEMINI_API_KEY no .env.
+ * Config: OPENROUTER_API_KEY no .env (sk-or-v1-...)
  */
 class AiAssistantService
 {
-    protected ?string $groqKey;
-    protected ?string $geminiKey;
+    protected ?string $apiKey;
 
-    protected const MODEL_GROQ = 'llama-3.1-8b-instant';
-    protected const MODEL_GEMINI = 'gemini-1.5-flash';
+    /**
+     * Lista rotativa de modelos gratuitos do OpenRouter.
+     * O índice atual é persistido em cache e avança após cada erro
+     * 429 (rate limit) ou 402 (créditos), garantindo rotação automática.
+     */
+    protected const FREE_MODELS = [
+        'meta-llama/llama-3.3-70b-instruct:free',
+        'meta-llama/llama-3.1-8b-instruct:free',
+        'qwen/qwen-2.5-72b-instruct:free',
+        'qwen/qwen-2.5-7b-instruct:free',
+        'google/gemini-2.0-flash-exp:free',
+        'mistralai/mistral-7b-instruct:free',
+        'nousresearch/hermes-3-llama-3.1-405b:free',
+    ];
+
+    protected const CACHE_KEY = 'ai_assistant:model_index';
 
     public function __construct()
     {
-        $this->groqKey = config('services.groq.key');
-        $this->geminiKey = config('services.gemini.key');
+        $this->apiKey = config('services.openrouter.key');
     }
 
     /**
-     * Pergunta ao assistente.
+     * Pergunta ao assistente. Tenta todos os modelos da lista rotativa
+     * até receber sucesso ou esgotar as opções.
      *
-     * @param  string  $prompt  instrução/mensagem do usuário
-     * @param  string  $context  contexto opcional (ex.: resumo do artigo)
-     * @return array{reply: string, provider: string, cached: bool}
+     * @return array{reply: string, provider: string, model: string, tokens: int, error: bool}
      */
     public function ask(string $prompt, string $context = ''): array
     {
+        if (!$this->isAvailable()) {
+            return $this->failure('OpenRouter não configurado. Defina OPENROUTER_API_KEY no .env.');
+        }
+
         $messages = $this->buildMessages($prompt, $context);
+        $tried = 0;
+        $total = count(self::FREE_MODELS);
+        $startIndex = (int) Cache::get(self::CACHE_KEY, 0);
+        $totalTokens = 0;
 
-        $start = microtime(true);
-        $result = $this->tryGroq($messages)
-            ?? $this->tryGemini($messages)
-            ?? ['reply' => 'Desculpe, não consegui me conectar ao assistente de IA no momento.', 'provider' => 'none'];
+        // Tenta cada modelo começando pelo índice atual; após esgotar, retorna falha.
+        for ($i = 0; $i < $total; $i++) {
+            $index = ($startIndex + $i) % $total;
+            $model = self::FREE_MODELS[$index];
+            $tried++;
 
-        $result['cached'] = false;
-        $result['elapsed_ms'] = (int) ((microtime(true) - $start) * 1000);
+            $result = $this->tryModel($model, $messages);
 
-        return $result;
+            if ($result !== null) {
+                // Sucesso — define este modelo como o próximo a ser tentado.
+                Cache::forever(self::CACHE_KEY, ($index + 1) % $total);
+                $result['tokens'] = $totalTokens + ($result['tokens'] ?? 0);
+                return $result;
+            }
+
+            // Falha — rotaciona o índice para o próximo modelo.
+            Cache::forever(self::CACHE_KEY, ($index + 1) % $total);
+        }
+
+        return $this->failure('Todos os modelos gratuitos estão temporariamente indisponíveis. Tente novamente em instantes.');
     }
 
     /**
-     * Verifica se algum provedor de IA está configurado.
+     * Tenta um único modelo. Retorna null se falhar (rotaciona para o próximo).
      */
+    protected function tryModel(string $model, array $messages): ?array
+    {
+        try {
+            $resp = Http::timeout(45)
+                ->withToken($this->apiKey)
+                ->withHeaders([
+                    'HTTP-Referer' => config('app.url'),
+                    'X-Title' => 'Artigo com Café — Dashboard',
+                ])
+                ->asJson()
+                ->post('https://openrouter.ai/api/v1/chat/completions', [
+                    'model' => $model,
+                    'messages' => $messages,
+                    'max_tokens' => 1024,
+                    'temperature' => 0.7,
+                ]);
+
+            if ($resp->successful()) {
+                $body = $resp->json();
+                $reply = trim($body['choices'][0]['message']['content'] ?? '');
+
+                if ($reply !== '') {
+                    return [
+                        'reply' => $reply,
+                        'provider' => 'openrouter',
+                        'model' => $model,
+                        'tokens' => (int) ($body['usage']['total_tokens'] ?? 0),
+                        'error' => false,
+                    ];
+                }
+            }
+
+            $status = $resp->status();
+            // 429 = rate limit, 402 = créditos esgotados — rotaciona.
+            // Outros erros (500, 503) também rotacionam para tentar outro modelo.
+            Log::warning('OpenRouter model failed', [
+                'model' => $model,
+                'status' => $status,
+                'body' => substr((string) $resp->body(), 0, 200),
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('OpenRouter request error', [
+                'model' => $model,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return null;
+    }
+
     public function isAvailable(): bool
     {
-        return !empty($this->groqKey) || !empty($this->geminiKey);
+        return !empty($this->apiKey);
     }
 
     protected function buildMessages(string $prompt, string $context): array
     {
-        $system = "Você é o 'Assistente do Criador', um assistente de editoria especializado em café, culinária e conhecimento geral. Forneça respostas concisas e úteis no mesmo tom do Artigo com Café.";
+        $system = "Você é o 'Assistente do Criador', um copilot editorial especializado em café, culinária e SEO. "
+            ."Analise o contexto fornecido (artigo em edição) e responda de forma concisa, prática e útil. "
+            ."Quando pedir análise SEO, foque em: palavra-chave no título, meta description (140-160 chars), "
+            ."estrutura de headings, legibilidade e oportunidades de rich-snippet.";
 
-        $userMessage = $context ? "[Contexto]\n{$context}\n\n[Pergunta]\n{$prompt}" : $prompt;
+        $userMessage = $context
+            ? "[Contexto do artigo em edição]\n{$context}\n\n[Solicitação do editor]\n{$prompt}"
+            : $prompt;
 
         return [
             ['role' => 'system', 'content' => $system],
@@ -70,69 +156,14 @@ class AiAssistantService
         ];
     }
 
-    protected function tryGroq(array $messages): ?array
+    protected function failure(string $message): array
     {
-        if (!$this->groqKey) return null;
-
-        try {
-            $resp = Http::timeout(30)->withToken($this->groqKey)->asJson()->post('https://api.groq.com/openai/v1/chat/completions', [
-                'model' => self::MODEL_GROQ,
-                'messages' => $messages,
-                'max_tokens' => 1024,
-                'temperature' => 0.7,
-            ]);
-
-            if ($resp->successful()) {
-                $body = $resp->json();
-                $reply = $body['choices'][0]['message']['content'] ?? '';
-                if ($reply) {
-                    return ['reply' => trim($reply), 'provider' => 'groq'];
-                }
-            }
-
-            Log::warning('Groq API error', ['status' => $resp->status(), 'body' => substr((string) $resp->body(), 0, 300)]);
-        } catch (\Throwable $e) {
-            Log::warning('Groq request failed', ['error' => $e->getMessage()]);
-        }
-
-        return null;
-    }
-
-    protected function tryGemini(array $messages): ?array
-    {
-        if (!$this->geminiKey) return null;
-
-        $system = $messages[0]['content'] ?? '';
-        $userMessage = $messages[1]['content'] ?? '';
-        $combined = $system . "\n\n" . $userMessage;
-
-        try {
-            $resp = Http::timeout(30)->asJson()->post(
-                'https://generativelanguage.googleapis.com/v1beta/models/' . self::MODEL_GEMINI . ':generateContent?key=' . $this->geminiKey,
-                [
-                    'contents' => [
-                        ['parts' => [['text' => $combined]]],
-                    ],
-                    'generationConfig' => [
-                        'maxOutputTokens' => 1024,
-                        'temperature' => 0.7,
-                    ],
-                ]
-            );
-
-            if ($resp->successful()) {
-                $body = $resp->json();
-                $reply = $body['candidates'][0]['content']['parts'][0]['text'] ?? '';
-                if ($reply) {
-                    return ['reply' => trim($reply), 'provider' => 'gemini'];
-                }
-            }
-
-            Log::warning('Gemini API error', ['status' => $resp->status(), 'body' => substr((string) $resp->body(), 0, 300)]);
-        } catch (\Throwable $e) {
-            Log::warning('Gemini request failed', ['error' => $e->getMessage()]);
-        }
-
-        return null;
+        return [
+            'reply' => $message,
+            'provider' => 'openrouter',
+            'model' => 'none',
+            'tokens' => 0,
+            'error' => true,
+        ];
     }
 }

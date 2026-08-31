@@ -1,0 +1,609 @@
+---
+import ThemeToggle from './ThemeToggle'
+import UserMenu from './UserMenu'
+
+const pathname = Astro.url.pathname
+
+const navItems = [
+  { icon: '🏠', label: 'Início', href: '/' },
+  { icon: '📰', label: 'Blog', href: '/blog' },
+  { icon: '🍳', label: 'Receitas', href: '/receitas' },
+  { icon: '📚', label: 'Livros', href: '/livros' },
+  { icon: '🛍️', label: 'Loja', href: '/loja' },
+  { icon: 'ℹ️', label: 'Sobre', href: '/sobre' },
+  { icon: '✉️', label: 'Contato', href: '/contato' },
+]
+
+const exploreItems = [
+  { label: 'Tecnologia', slug: 'tecnologia' },
+  { label: 'Finanças', slug: 'financas' },
+  { label: 'Educação', slug: 'educacao' },
+  { label: 'Desenvolvimento', slug: 'desenvolvimento' },
+  { label: 'Games', slug: 'games' },
+  { label: 'Curiosidades', slug: 'curiosidades' },
+]
+
+function isActive(href: string): boolean {
+  if (pathname === '/' && href === '/') return true
+  if (pathname === href) return true
+  if (href !== '/' && pathname.startsWith(href + '/')) return true
+  if (href === '/blog' && pathname.startsWith('/blog/')) return true
+  if (href === '/receitas' && pathname.startsWith('/receitas/')) return true
+  if (href === '/livros' && (pathname.startsWith('/livros/') || pathname.startsWith('/livro/'))) return true
+  if (href === '/loja' && pathname.startsWith('/loja/')) return true
+  return false
+}
+---
+
+<aside class="left-sidebar" id="left-sidebar">
+  <div class="sidebar-inner">
+    {/* ═══ Brand Header ═══ */}
+    <a href="/" class="sidebar-brand" aria-label="Artigo com Café - Home">
+      <img
+        class="sidebar-logo"
+        src="/images/artigologo.svg"
+        alt="Artigo com Café"
+        width="40"
+        height="40"
+        loading="eager"
+      />
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-name">Artigo com Café</span>
+        <span class="sidebar-brand-tagline">O café é o convite, a leitura é o destino</span>
+      </div>
+    </a>
+
+    {/* ═══ Auth CTA (não logado) ═══ */}
+    <div class="sidebar-auth-cta" id="sidebar-auth-cta">
+      <div class="auth-cta-icon">☕</div>
+      <h3 class="auth-cta-title">Junte-se ao Clube</h3>
+      <p class="auth-cta-desc">Ganhe grãos, desbloqueie missões e salve seus artigos favoritos.</p>
+      <a href="/cadastro" class="auth-cta-btn">Criar Conta Grátis</a>
+      <a href="/entrar" class="auth-cta-link">Já tem conta? Entrar</a>
+    </div>
+
+    {/* ═══ User Profile (logado) — hidden by default ═══ */}
+    <div class="sidebar-user" id="sidebar-user" hidden>
+      <div class="sidebar-user-card">
+        <div class="sidebar-user-avatar" id="sidebar-user-avatar">L</div>
+        <div class="sidebar-user-info">
+          <span class="sidebar-user-name" id="sidebar-user-name">Leitor</span>
+          <span class="sidebar-user-level" id="sidebar-user-level">Barista Iniciante</span>
+          <span class="sidebar-user-beans" id="sidebar-user-beans">0 ☕</span>
+        </div>
+      </div>
+      <div class="sidebar-user-actions">
+        <a href="/dashboard/missoes" class="sidebar-user-action">🎯 Missões</a>
+        <a href="/dashboard/biblioteca" class="sidebar-user-action">📚 Biblioteca</a>
+        <a href="/dashboard/perfil" class="sidebar-user-action">👤 Perfil</a>
+      </div>
+    </div>
+
+    {/* ═══ Primary Navigation ═══ */}
+    <nav class="sidebar-nav" aria-label="Navegação principal">
+      {navItems.map(item => (
+        <a
+          href={item.href}
+          class:list={['sidebar-nav-item', { active: isActive(item.href) }]}
+          data-page={item.href === '/' ? 'home' : item.href.replace('/', '')}
+        >
+          <span class="sidebar-nav-icon" aria-hidden="true">{item.icon}</span>
+          <span class="sidebar-nav-label">{item.label}</span>
+          {isActive(item.href) && <span class="sidebar-nav-indicator" />}
+        </a>
+      ))}
+    </nav>
+
+    {/* ═══ Explore Categories ═══ */}
+    <div class="sidebar-section">
+      <h4 class="sidebar-section-title">Explorar</h4>
+      <div class="sidebar-categories">
+        {exploreItems.map(cat => (
+          <a href={`/blog?categoria=${cat.slug}`} class="sidebar-category-item">
+            <span class="sidebar-category-tag">#</span>
+            <span class="sidebar-category-label">{cat.label}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  {/* ═══ Sidebar Footer ═══ */}
+  <div class="sidebar-footer">
+    <ThemeToggle client:idle />
+    <button class="sidebar-notif-btn" aria-label="Notificações" title="Notificações">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+      </svg>
+    </button>
+  </div>
+</aside>
+
+<style>
+  /* ═══════════════════════════════════════════════════════════════
+     LEFT SIDEBAR — Estilo Twitch/Discord (fixo, 260px)
+     ═══════════════════════════════════════════════════════════════ */
+  .left-sidebar {
+    --sidebar-bg: var(--color-bg-secondary);
+    --sidebar-border: var(--color-bg-card-border);
+    --sidebar-text: var(--color-text-secondary);
+    --sidebar-text-muted: var(--color-text-muted);
+    --sidebar-accent: var(--color-accent);
+    --sidebar-hover: var(--color-bg-card-hover);
+    --sidebar-active: var(--color-accent);
+    --sidebar-card-bg: var(--color-bg-card);
+  }
+
+  .left-sidebar {
+    position: fixed;
+    top: var(--maintenance-bar-h, 0px);
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    z-index: var(--z-sidebar);
+    background: var(--color-bg-primary);
+    border-right: 1px solid var(--color-bg-card-border);
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s, border-color 0.3s;
+  }
+
+  .sidebar-inner {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-bg-card-border) transparent;
+    padding: 0.75rem 0.75rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .sidebar-inner::-webkit-scrollbar {
+    width: 4px;
+  }
+  .sidebar-inner::-webkit-scrollbar-thumb {
+    background: var(--color-bg-card-border);
+    border-radius: 4px;
+  }
+
+  /* ═══ Brand ═══ */
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.5rem 0.65rem;
+    text-decoration: none;
+    border-radius: 10px;
+    transition: background 0.2s;
+    margin-bottom: 0.25rem;
+  }
+
+  .sidebar-brand:hover {
+    background: var(--color-bg-card-hover);
+  }
+
+  .sidebar-logo {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .sidebar-brand-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .sidebar-brand-name {
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    line-height: 1.2;
+  }
+
+  .sidebar-brand-tagline {
+    font-size: 0.65rem;
+    color: var(--color-text-muted);
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ═══ Auth CTA ═══ */
+  .sidebar-auth-cta {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    margin-bottom: 0.25rem;
+  }
+
+  .auth-cta-icon {
+    font-size: 1.8rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .auth-cta-title {
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0 0 0.25rem;
+  }
+
+  .auth-cta-desc {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    line-height: 1.45;
+    margin: 0 0 0.75rem;
+  }
+
+  .auth-cta-btn {
+    display: block;
+    width: 100%;
+    background: var(--color-accent);
+    color: var(--color-btn-text);
+    text-align: center;
+    padding: 0.55rem 0;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+  }
+
+  .auth-cta-btn:hover {
+    background: var(--color-accent-dark);
+    transform: translateY(-1px);
+  }
+
+  .auth-cta-link {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--color-accent);
+    text-decoration: none;
+    margin-top: 0.5rem;
+  }
+
+  .auth-cta-link:hover {
+    text-decoration: underline;
+  }
+
+  /* ═══ User Card (logado) ═══ */
+  .sidebar-user {
+    margin-bottom: 0.25rem;
+  }
+
+  .sidebar-user-card {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.65rem;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    border-radius: 12px;
+  }
+
+  .sidebar-user-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    color: var(--color-btn-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .sidebar-user-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .sidebar-user-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+
+  .sidebar-user-level {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+  }
+
+  .sidebar-user-beans {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--color-accent);
+  }
+
+  .sidebar-user-actions {
+    display: flex;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+    padding: 0 0.15rem;
+  }
+
+  .sidebar-user-action {
+    flex: 1;
+    text-align: center;
+    padding: 0.4rem 0.2rem;
+    font-size: 0.7rem;
+    border-radius: 8px;
+    background: var(--color-bg-card);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .sidebar-user-action:hover {
+    background: var(--color-bg-card-hover);
+    color: var(--color-accent);
+  }
+
+  /* ═══ Navigation ═══ */
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 0.15rem 0;
+  }
+
+  .sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.55rem 0.65rem;
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--color-text-secondary);
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+    position: relative;
+  }
+
+  .sidebar-nav-item:hover {
+    background: var(--color-bg-card-hover);
+    color: var(--color-text-primary);
+  }
+
+  .sidebar-nav-item.active {
+    background: var(--color-bg-card);
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+
+  .sidebar-nav-icon {
+    font-size: 1.1rem;
+    width: 1.5rem;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .sidebar-nav-label {
+    flex: 1;
+  }
+
+  .sidebar-nav-indicator {
+    width: 3px;
+    height: 18px;
+    border-radius: 3px;
+    background: var(--color-accent);
+    flex-shrink: 0;
+  }
+
+  /* ═══ Explore Categories ═══ */
+  .sidebar-section {
+    padding: 0.35rem 0;
+  }
+
+  .sidebar-section-title {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-muted);
+    padding: 0.35rem 0.65rem;
+    margin: 0;
+  }
+
+  .sidebar-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .sidebar-category-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.5rem 0.65rem;
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--color-text-secondary);
+    font-size: 0.82rem;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .sidebar-category-item:hover {
+    background: var(--color-bg-card-hover);
+    color: var(--color-text-primary);
+  }
+
+  .sidebar-category-tag {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 6px;
+    background: var(--color-bg-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--color-accent);
+    flex-shrink: 0;
+  }
+
+  /* ═══ Footer ═══ */
+  .sidebar-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 0.85rem;
+    border-top: 1px solid var(--color-bg-card-border);
+    flex-shrink: 0;
+  }
+
+  .sidebar-notif-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--color-bg-card-border);
+    background: var(--color-bg-card);
+    color: var(--color-text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+
+  .sidebar-notif-btn:hover {
+    background: var(--color-bg-card-hover);
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  /* ═══ Responsive ═══ */
+  @media (max-width: 1200px) {
+    .left-sidebar {
+      width: 72px;
+    }
+    .sidebar-brand-text,
+    .sidebar-nav-label,
+    .sidebar-nav-indicator,
+    .sidebar-section,
+    .sidebar-auth-cta,
+    .sidebar-user-actions,
+    .sidebar-user-info .sidebar-user-level,
+    .sidebar-user-info .sidebar-user-beans,
+    .sidebar-footer .sidebar-notif-btn {
+      display: none;
+    }
+    .sidebar-brand {
+      justify-content: center;
+      padding: 0.5rem;
+    }
+    .sidebar-nav-item {
+      justify-content: center;
+      padding: 0.55rem;
+    }
+    .sidebar-nav-icon {
+      width: auto;
+    }
+    .sidebar-footer {
+      justify-content: center;
+    }
+    .sidebar-inner {
+      padding: 0.5rem 0.35rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .left-sidebar {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+(function () {
+  async function loadUserData() {
+    var isAuth = typeof window !== 'undefined' && !!localStorage.getItem('auth_token')
+    if (!isAuth) {
+      refreshSidebarAuth(false)
+      return
+    }
+
+    try {
+      const res = await fetch('/api-proxy.php/auth/me', {
+        headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('auth_token') }
+      })
+      if (!res.ok) throw new Error('Unauthorized')
+      const data = await res.json()
+      const user = data.user || data
+      refreshSidebarAuth(true, user)
+    } catch (e) {
+      refreshSidebarAuth(false)
+    }
+  }
+
+  function refreshSidebarAuth(isAuth, user) {
+    var cta = document.getElementById('sidebar-auth-cta')
+    var userEl = document.getElementById('sidebar-user')
+    if (!cta || !userEl) return
+    cta.hidden = !!isAuth
+    userEl.hidden = !isAuth
+
+    if (isAuth && user) {
+      var avatar = document.getElementById('sidebar-user-avatar')
+      var name = document.getElementById('sidebar-user-name')
+      var level = document.getElementById('sidebar-user-level')
+      var beans = document.getElementById('sidebar-user-beans')
+      if (avatar) avatar.textContent = (user.name || user.username || 'U').charAt(0).toUpperCase()
+      if (name) name.textContent = user.name || user.username || 'Leitor'
+      if (level) level.textContent = user.level || 'Barista Iniciante'
+      if (beans) beans.textContent = (user.total_grains || user.grains || 0) + ' ☕'
+    }
+  }
+
+  function setActiveSidebarLinks() {
+    var path = window.location.pathname
+    var links = document.querySelectorAll('.sidebar-nav-item')
+    for (var i = 0; i < links.length; i++) {
+      var a = links[i]
+      a.classList.remove('active')
+      var href = a.getAttribute('href')
+      var active = path === href || (href !== '/' && path.indexOf(href + '/') === 0)
+      if (href === '/blog' && path.indexOf('/blog/') === 0) active = true
+      if (href === '/receitas' && path.indexOf('/receitas/') === 0) active = true
+      if (href === '/livros' && (path.indexOf('/livros/') === 0 || path.indexOf('/livro/') === 0)) active = true
+      if (href === '/loja' && path.indexOf('/loja/') === 0) active = true
+      if (active) {
+        a.classList.add('active')
+        if (!a.querySelector('.sidebar-nav-indicator')) {
+          var ind = document.createElement('span')
+          ind.className = 'sidebar-nav-indicator'
+          a.appendChild(ind)
+        }
+      }
+    }
+  }
+
+  if (!window.__sidebarLifecycleBound) {
+    window.__sidebarLifecycleBound = true
+    document.addEventListener('astro:page-load', function () { loadUserData(); setActiveSidebarLinks() })
+    document.addEventListener('astro:after-swap', function () { loadUserData(); setActiveSidebarLinks() })
+    window.addEventListener('storage', loadUserData)
+    document.addEventListener('auth:changed', function () { loadUserData() })
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { loadUserData(); setActiveSidebarLinks() })
+  } else {
+    loadUserData()
+    setActiveSidebarLinks()
+  }
+})()
+</script>

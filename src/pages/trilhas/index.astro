@@ -1,0 +1,257 @@
+---
+import Base from '../../layouts/Base.astro'
+
+export async function getStaticProps() {
+  let trails: Record<string, unknown>[] = []
+  try {
+    const res = await fetch('/api-proxy.php/trails')
+    if (res.ok) {
+      const json = await res.json()
+      trails = json.trails || json.data || json || []
+    }
+  } catch (e) {
+    trails = []
+  }
+  return { props: { trails } }
+}
+
+const { trails = [] } = Astro.props
+---
+
+<Base title="Trilhas de Conhecimento — Artigo com Café" description="Trilhas estruturadas de aprendizado sobre café, tecnologia, finanças e desenvolvimento pessoal." canonical="/trilhas" fullWidth>
+
+  <div class="page-header">
+    <h1 class="page-title">🎓 Trilhas de Conhecimento</h1>
+    <p class="page-subtitle">Aprenda de forma estruturada e acompanhe seu progresso</p>
+  </div>
+
+  {trails.length > 0 ? (
+    <div class="trails-grid">
+      {trails.map((trail: Record<string, unknown>) => (
+        <a href={`/trilhas/${trail.slug}`} class="trail-card glass-card">
+          <div class="trail-card-header">
+            <div class="trail-icon">{trail.icon || '📚'}</div>
+            <div class="trail-meta">
+              <h3 class="trail-title">{trail.title}</h3>
+              <span class="trail-difficulty" data-difficulty={trail.difficulty}>
+                {trail.difficulty || 'iniciante'}
+              </span>
+            </div>
+          </div>
+          <p class="trail-description">{trail.description}</p>
+          <div class="trail-stats">
+            <span class="trail-stat">
+              📖 {trail.articles_count || 0} artigos
+            </span>
+            {trail.recipes_count > 0 && (
+              <span class="trail-stat">
+                🍳 {trail.recipes_count} receitas
+              </span>
+            )}
+            <span class="trail-stat">
+              ⏱️ ~{trail.estimated_hours || 1}h
+            </span>
+            <span class="trail-stat trail-reward">
+              +{trail.grain_reward || 10} 🫘
+            </span>
+          </div>
+        </a>
+      ))}
+    </div>
+  ) : (
+    <div class="empty-state">
+      <div class="empty-icon">🗺️</div>
+      <h3 class="empty-title">Nenhuma trilha disponível</h3>
+      <p class="empty-desc">Explore o blog para descobrir conteúdos incríveis</p>
+      <a href="/blog" class="btn-primary">Explorar Blog</a>
+    </div>
+  )}
+
+  <style>
+    .page-header {
+      margin-bottom: 1.5rem;
+    }
+
+    .page-title {
+      font-family: var(--font-serif);
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin: 0 0 0.35rem;
+    }
+
+    .page-subtitle {
+      color: var(--color-text-muted);
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    .trails-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+
+    .trail-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 1.25rem;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .trail-card:hover {
+      border-color: color-mix(in srgb, var(--color-accent) 25%, transparent);
+      transform: translateY(-2px);
+    }
+
+    .trail-card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .trail-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: var(--color-bg-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .trail-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .trail-title {
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin: 0 0 0.35rem;
+      line-height: 1.3;
+    }
+
+    .trail-difficulty {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      background: rgba(52, 211, 153, 0.1);
+      color: #22c55e;
+    }
+
+    .trail-difficulty[data-difficulty="intermediate"],
+    .trail-difficulty[data-difficulty="intermediario"] {
+      background: rgba(251, 191, 36, 0.1);
+      color: #f59e0b;
+    }
+
+    .trail-difficulty[data-difficulty="advanced"],
+    .trail-difficulty[data-difficulty="avancado"] {
+      background: rgba(248, 113, 113, 0.1);
+      color: #ef4444;
+    }
+
+    .trail-description {
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+      line-height: 1.5;
+      margin: 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .trail-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: auto;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--color-bg-card-border);
+    }
+
+    .trail-stat {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      padding: 0.25rem 0.5rem;
+      background: var(--color-bg-secondary);
+      border-radius: 6px;
+    }
+
+    .trail-reward {
+      background: var(--color-accent);
+      color: var(--color-btn-text);
+      font-weight: 600;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 40vh;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .empty-title {
+      font-family: var(--font-serif);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin: 0 0 0.5rem;
+    }
+
+    .empty-desc {
+      color: var(--color-text-muted);
+      font-size: 0.9rem;
+      margin: 0 0 1.25rem;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.5rem;
+      background: var(--color-accent);
+      color: var(--color-btn-text);
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .btn-primary:hover {
+      background: var(--color-accent-dark);
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 640px) {
+      .trails-grid {
+        grid-template-columns: 1fr;
+      }
+      .page-title {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</Base>

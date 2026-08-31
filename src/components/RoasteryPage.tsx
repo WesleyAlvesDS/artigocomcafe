@@ -50,7 +50,7 @@ function RoastModal({ reward, balance, onClose, onRoast }: {
       await api.post(`/user/rewards/${reward.id}/roast`)
       setDone(true)
       setTimeout(() => { onRoast(); onClose() }, 2000)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || `Erro ao ${vocab.roast_action.toLowerCase()}`)
     } finally {
       setRoasting(false)
@@ -299,5 +299,5 @@ function RoasteryContent() {
 }
 
 export default function RoasteryPage() {
-  return <AuthPage><RoasteryContent /></AuthPage>
+  return <RoasteryContent />
 }

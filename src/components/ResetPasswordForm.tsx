@@ -32,7 +32,7 @@ export default function ResetPasswordForm() {
         password_confirmation: passwordConfirmation,
       })
       setDone(true)
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err.errors) {
         setError(Object.values(err.errors).flat().join(', '))
       } else {

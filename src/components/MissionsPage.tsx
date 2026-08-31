@@ -49,7 +49,7 @@ function MissionsContent() {
         duration: 5000,
       })
       loadMissions()
-    } catch (err: any) {
+    } catch (err: unknown) {
       showToast('Erro ao resgatar', 'error', { message: err.message || 'Tente novamente' })
     }
   }
@@ -242,5 +242,5 @@ function MissionsContent() {
 }
 
 export default function MissionsPage() {
-  return <AuthPage><MissionsContent /></AuthPage>
+  return <MissionsContent />
 }

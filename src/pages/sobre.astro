@@ -5,10 +5,24 @@ import AdSterraSmartLink from '../components/AdSterraSmartLink.astro'
 import AdSenseSlot from '../components/AdSenseSlot.astro'
 ---
 
-<Base title="Sobre — Artigo com Café" description="O café como analogia de um ambiente de leitura acolhedor e acessível a todos. Conheça o projeto Artigo com Café." canonical="/sobre/" breadcrumbs={[
+<Base title="Sobre — Artigo com Café" description="O café como analogia de um ambiente de leitura acolhedor e acessível a todos. Conheça o projeto Artigo com Café." canonical="/sobre/" fullWidth breadcrumbs={[
     { name: 'Início', slug: '/' },
     { name: 'Sobre', slug: '/sobre/' }
   ]}>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    'name': 'Sobre o Artigo com Café',
+    'description': 'O café como analogia de um ambiente de leitura acolhedor e acessível a todos.',
+    'url': 'https://artigocomcafe.com/sobre/',
+    'mainEntity': {
+      '@type': 'Organization',
+      'name': 'Artigo com Café',
+      'url': 'https://artigocomcafe.com',
+      'logo': 'https://artigocomcafe.com/favicon.svg',
+      'description': 'Plataforma de conhecimento onde o café é a analogia de um ambiente de leitura aberto a todos.'
+    }
+  })} />
   <section class="section page-header">
     <div class="container">
       <div data-reveal>
@@ -119,10 +133,6 @@ import AdSenseSlot from '../components/AdSenseSlot.astro'
 </Base>
 
 <style>
-  .page-header {
-    padding-bottom: 1rem;
-  }
-
   .about-grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
@@ -136,7 +146,7 @@ import AdSenseSlot from '../components/AdSenseSlot.astro'
 
   .about-sidebar {
     position: sticky;
-    top: 5rem;
+    top: calc(var(--maintenance-bar-h, 0px) + 5rem);
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -200,7 +210,7 @@ import AdSenseSlot from '../components/AdSenseSlot.astro'
     background: var(--color-bg-card);
     border: 1px solid var(--color-bg-card-border);
     color: var(--color-text-muted);
-    transition: all 0.3s;
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), transform var(--transition)
     text-decoration: none;
   }
 

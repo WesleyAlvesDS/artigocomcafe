@@ -26,6 +26,7 @@ const subtitle = book.subtitle_pt || book.subtitle
           height="270"
           loading="lazy"
           decoding="async"
+          fetchpriority="low"
         />
       ) : (
         <div class="book-cover-fallback"><span aria-hidden="true">📖</span></div>
@@ -205,7 +206,7 @@ const subtitle = book.subtitle_pt || book.subtitle
     padding: 0.15rem 0.5rem;
     border-radius: 100px;
     background: var(--color-bg-card-border);
-    transition: all 0.2s;
+    transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast)
   }
 
   .book-card:hover .meta-chip {

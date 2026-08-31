@@ -121,7 +121,7 @@ const schemaBreadcrumb = book ? {
 ---
 
 {error || !book ? (
-  <Base title="Livro não encontrado — Artigo com Café">
+  <Base title="Livro não encontrado — Artigo com Café" fullWidth>
     <section class="section" style="min-height: 60vh; display: flex; align-items: center; justify-content: center; text-align: center;">
       <div class="container">
         <h1 class="section-title">Livro não encontrado</h1>
@@ -139,6 +139,7 @@ const schemaBreadcrumb = book ? {
     image={cover || '/images/og-default.svg'}
     type="book"
     canonical={`/livro/${book.key}/`}
+    fullWidth
     breadcrumbs={[
       { name: 'Início', slug: '/' },      {name: 'Biblioteca', slug: '/dashboard#/biblioteca' },
       { name: displayTitle, slug: `/livro/${book.key}/` }
@@ -287,6 +288,9 @@ const schemaBreadcrumb = book ? {
                     Ver na OpenLibrary →
                   </a>
                 )}
+                {/* {isLoggedIn && book.key && (
+                  <ShelfSelector bookKey={book.key} bookTitle={displayTitle} client:visible />
+                )} */}
               </div>
 
               <AdSterraNative className="ad-book-inline" lazy />
@@ -352,7 +356,6 @@ const schemaBreadcrumb = book ? {
 
 <style is:global>
   .book-page {
-    padding-top: 64px;
   }
 
   .book-header-section {
@@ -495,7 +498,7 @@ const schemaBreadcrumb = book ? {
     background: color-mix(in srgb, var(--color-bg-card) 90%, transparent);
     border: 1px solid var(--color-bg-card-border);
     backdrop-filter: blur(8px);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), transform var(--transition), box-shadow var(--transition);
   }
 
   .book-stat:hover {
@@ -626,7 +629,7 @@ const schemaBreadcrumb = book ? {
     border-radius: 14px;
     background: var(--color-bg-card);
     border: 1px solid var(--color-bg-card-border);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), transform var(--transition), box-shadow var(--transition);
   }
 
   .edition-card:hover {
@@ -712,7 +715,7 @@ const schemaBreadcrumb = book ? {
     background: var(--color-bg-card);
     border: 1px solid var(--color-bg-card-border);
     text-decoration: none;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
   }
 
   .subject-chip:hover {
@@ -742,21 +745,9 @@ const schemaBreadcrumb = book ? {
     flex-direction: column;
     gap: 1rem;
     position: sticky;
-    top: 84px;
+    top: calc(var(--maintenance-bar-h, 0px) + 84px);
   }
 
-  .sidebar-card {
-    padding: 1.25rem;
-  }
-
-  .sidebar-title {
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--color-text-muted);
-    margin-bottom: 0.85rem;
-  }
 
   .sidebar-text {
     font-size: 0.88rem;
@@ -793,7 +784,7 @@ const schemaBreadcrumb = book ? {
     color: var(--color-text-secondary);
     text-decoration: none;
     font-size: 1rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), transform var(--transition), box-shadow var(--transition);
   }
 
   .share-link:hover {

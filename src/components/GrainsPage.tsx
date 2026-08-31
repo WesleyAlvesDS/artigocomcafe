@@ -97,4 +97,6 @@ function GrainsContent() {
   )
 }
 
-export default function GrainsPage() { return <AuthPage><GrainsContent /></AuthPage> }
+export default function GrainsPage() {
+  return <GrainsContent />
+}

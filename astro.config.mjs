@@ -8,8 +8,14 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
     build: {
-      cssMinify: 'esbuild'
-    }
+      cssMinify: 'esbuild',
+      // Try to disable Rolldown caching
+      rollupOptions: {
+        cache: false
+      }
+    },
+    cacheDir: '.vite-cache',
+    clearScreen: false
   },
   build: {
     inlineStylesheets: 'auto',

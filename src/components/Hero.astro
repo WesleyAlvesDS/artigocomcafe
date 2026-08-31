@@ -3,37 +3,24 @@ import NewsletterForm from './NewsletterForm'
 ---
 
 <section class="hero" transition:name="hero-section" transition:animate="none" data-hero>
-  <!-- Camadas de fundo (parallax em velocidades diferentes) -->
+  <!-- Camadas decorativas de fundo (auroras e grãos) -->
   <div class="hero-bg" aria-hidden="true">
-    <!-- Imagem imersiva: cobre a lateral direita, ancorada ao topo (paralela ao texto) -->
-    <img
-      src="/images/artigo-com-cafe-hero-background.webp"
-      alt=""
-      width="1200"
-      height="1072"
-      loading="eager"
-      fetchpriority="high"
-      decoding="async"
-      class="hero-bg-img"
-    />
-    <!-- Scrim de legibilidade (transição do fundo para a imagem) -->
-    <div class="hero-bg-scrim"></div>
     <div class="hero-aurora aurora-1"></div>
     <div class="hero-aurora aurora-2"></div>
-      <div class="hero-beans" data-parallax="0.06" data-hero-parallax>
-        <span class="bean" style="--bean-x: 6%; --bean-y: 18%; --s: 26px;"></span>
-        <span class="bean" style="--bean-x: 14%; --bean-y: 68%; --s: 18px;"></span>
-        <span class="bean" style="--bean-x: 22%; --bean-y: 42%; --s: 14px;"></span>
-        <span class="bean" style="--bean-x: 44%; --bean-y: 22%; --s: 20px;"></span>
-        <span class="bean" style="--bean-x: 88%; --bean-y: 14%; --s: 24px;"></span>
-        <span class="bean" style="--bean-x: 93%; --bean-y: 62%; --s: 16px;"></span>
-        <span class="bean" style="--bean-x: 78%; --bean-y: 86%; --s: 14px;"></span>
-        <span class="bean" style="--bean-x: 34%; --bean-y: 84%; --s: 18px;"></span>
-        <span class="bean" style="--bean-x: 8%; --bean-y: 8%; --s: 16px;"></span>
-      </div>
+    <div class="hero-beans" data-parallax="0.06" data-hero-parallax>
+      <span class="bean" style="--bean-x: 6%; --bean-y: 18%; --s: 26px;"></span>
+      <span class="bean" style="--bean-x: 14%; --bean-y: 68%; --s: 18px;"></span>
+      <span class="bean" style="--bean-x: 22%; --bean-y: 42%; --s: 14px;"></span>
+      <span class="bean" style="--bean-x: 44%; --bean-y: 22%; --s: 20px;"></span>
+      <span class="bean" style="--bean-x: 88%; --bean-y: 14%; --s: 24px;"></span>
+      <span class="bean" style="--bean-x: 93%; --bean-y: 62%; --s: 16px;"></span>
+      <span class="bean" style="--bean-x: 78%; --bean-y: 86%; --s: 14px;"></span>
+      <span class="bean" style="--bean-x: 34%; --bean-y: 84%; --s: 18px;"></span>
+      <span class="bean" style="--bean-x: 8%; --bean-y: 8%; --s: 16px;"></span>
     </div>
+  </div>
 
-    <div class="hero-content container">
+  <div class="hero-content container">
       <div class="hero-text" data-parallax="0.1" data-hero-parallax>
       <div class="hero-eyebrow">
         <span class="eyebrow-rule" aria-hidden="true"></span>
@@ -86,42 +73,6 @@ import NewsletterForm from './NewsletterForm'
     align-items: center;
     overflow: hidden;
     isolation: isolate;
-    padding-top: 5.5rem;
-  }
-
-  .hero-bg {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    will-change: transform, opacity, filter;
-  }
-
-  /* Imagem imersiva: ancorada ao topo, cobrindo a lateral direita */
-  .hero-bg-img {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: min(66%, 960px);
-    height: 100%;
-    object-fit: cover;
-    object-position: center top;
-    z-index: 0;
-    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 30%, #000 100%);
-    mask-image: linear-gradient(90deg, transparent 0%, #000 30%, #000 100%);
-  }
-
-  /* Scrim de legibilidade: fundo sólido à esquerda → transparente à direita */
-  .hero-bg-scrim {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    background: linear-gradient(
-      90deg,
-      var(--color-bg-primary) 0%,
-      color-mix(in srgb, var(--color-bg-primary) 72%, transparent) 36%,
-      transparent 66%
-    );
   }
 
   /* Auroras suaves na paleta café */
@@ -350,22 +301,8 @@ import NewsletterForm from './NewsletterForm'
 
   /* ── Notebook / tablet (<= 1280) ── */
   @media (max-width: 1280px) {
-    .hero-bg-img {
-      width: min(72%, 900px);
-      -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 38%, #000 100%);
-      mask-image: linear-gradient(90deg, transparent 0%, #000 38%, #000 100%);
-    }
-    .hero-bg-scrim {
-      background: linear-gradient(
-        90deg,
-        var(--color-bg-primary) 0%,
-        color-mix(in srgb, var(--color-bg-primary) 78%, transparent) 44%,
-        transparent 72%
-      );
-    }
   }
 
-  /* ── Tablet (<= 1024): imagem vira fundo suave de tela cheia ── */
   @media (max-width: 1024px) {
     .hero-content {
       justify-content: center;
@@ -379,24 +316,6 @@ import NewsletterForm from './NewsletterForm'
     .hero-eyebrow { justify-content: center; }
     .hero-actions { justify-content: center; }
     .hero-subtitle { margin-left: auto; margin-right: auto; }
-
-    .hero-bg-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center top;
-      opacity: 0.4;
-      -webkit-mask-image: none;
-      mask-image: none;
-    }
-    .hero-bg-scrim {
-      background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--color-bg-primary) 82%, transparent) 0%,
-        color-mix(in srgb, var(--color-bg-primary) 55%, transparent) 55%,
-        var(--color-bg-primary) 100%
-      );
-    }
   }
 
   /* ── Mobile (<= 768) ── */
@@ -405,7 +324,6 @@ import NewsletterForm from './NewsletterForm'
     .hero-content { padding-bottom: 4.5rem; gap: 2rem; }
     .hero-title { font-size: clamp(2.6rem, 11vw, 3.6rem); }
     .hero-subtitle { font-size: 1rem; }
-    .hero-bg-img { opacity: 0.32; }
     .hero-scroll-indicator { display: none; }
   }
 
@@ -417,9 +335,7 @@ import NewsletterForm from './NewsletterForm'
     .hero-title,
     .hero-subtitle,
     .hero-actions,
-    .hero-newsletter,
-    .hero-bg-img,
-    .hero-bg {
+    .hero-newsletter {
       animation: none !important;
       opacity: 1 !important;
       transform: none !important;

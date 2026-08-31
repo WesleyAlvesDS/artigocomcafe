@@ -75,6 +75,32 @@
   --gradient-premium: linear-gradient(135deg, #d4a373 0%, #8b5a2b 50%, #d4a373 100%);
   --gradient-mesh: radial-gradient(at 40% 20%, rgba(212, 163, 115, 0.15) 0%, transparent 50%),
                    radial-gradient(at 80% 80%, rgba(139, 90, 43, 0.1) 0%, transparent 50%);
+
+  /* Z-index scale — semantic layers */
+  --z-sidebar: 90;
+  --z-topbar: 100;
+  --z-dropdown: 200;
+  --z-overlay: 90;
+  --z-mobile-menu: 99;
+  --z-modal: 9990;
+  --z-cookie: 9995;
+  --z-toast: 9996;
+  --z-cart: 9993;
+  --z-ai-launcher: 9998;
+  --z-ai-widget: 9999;
+  --z-fullscreen: 9000;
+  --z-skip-link: 10000;
+  --z-maintenance: 101;
+  --z-reader-panel: 190;
+
+  /* Touch target minimum size (WCAG 2.5.5) */
+  --touch-target: 44px;
+
+  /* Spacing scale */
+  --space-section: 6rem;
+  --space-section-sm: 3rem;
+  --space-section-mobile: 3rem;
+  --space-section-mobile-sm: 1.5rem;
 }
 
 /* ── Paleta editorial café (modelonovo.md) ──────────────────
@@ -144,6 +170,74 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── Fix: Header/TopBar buttons visibility ───────────────────── */
+.topbar,
+.header {
+  --header-btn-bg: var(--color-bg-card);
+  --header-btn-border: var(--color-bg-card-border);
+  --header-btn-color: var(--color-text-secondary);
+  --header-btn-hover-bg: var(--color-bg-card-hover);
+  --header-btn-hover-border: var(--color-accent);
+  --header-btn-hover-color: var(--color-accent);
+}
+
+/* Dark mode: more visible buttons */
+:not(.light) .topbar,
+:not(.light) .header {
+  --header-btn-bg: rgba(255, 255, 255, 0.08);
+  --header-btn-border: rgba(255, 255, 255, 0.15);
+  --header-btn-color: var(--color-text-primary);
+  --header-btn-hover-bg: rgba(212, 163, 115, 0.15);
+  --header-btn-hover-border: var(--color-accent);
+  --header-btn-hover-color: var(--color-accent);
+}
+
+.light .topbar,
+.light .header {
+  --header-btn-bg: var(--color-bg-card);
+  --header-btn-border: var(--color-bg-card-border);
+  --header-btn-color: var(--color-text-secondary);
+  --header-btn-hover-bg: var(--color-bg-card-hover);
+  --header-btn-hover-border: var(--color-accent);
+  --header-btn-hover-color: var(--color-accent);
+}
+
+/* Apply to all header buttons */
+.nav-icon-btn,
+.nav-search-bar,
+.theme-toggle-btn {
+  background: var(--header-btn-bg) !important;
+  border-color: var(--header-btn-border) !important;
+  color: var(--header-btn-color) !important;
+}
+
+.nav-icon-btn:hover,
+.nav-search-bar:hover,
+.nav-search-bar:focus-visible,
+.theme-toggle-btn:hover {
+  background: var(--header-btn-hover-bg) !important;
+  border-color: var(--header-btn-hover-border) !important;
+  color: var(--header-btn-hover-color) !important;
+}
+
+/* Search bar specific */
+.nav-search-bar {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+}
+
+:not(.light) .nav-search-bar {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+.nav-search-bar:hover,
+.nav-search-bar:focus-visible {
+  box-shadow: var(--shadow-glow);
+}
+
+/* Scrollbar hiding utility */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* Tema claro: corpo em serifa Lora para o clima editorial de cafeteria.
    Escopado a `body-editorial` (páginas de marketing/conteúdo) para não
    afetar o painel do leitor (dashboard.astro passa editorial={false}). */
@@ -170,6 +264,7 @@ body {
 .section {
   padding: 6rem 0;
   content-visibility: auto;
+  contain: layout style;
 }
 
 @media (max-width: 768px) {
@@ -255,6 +350,7 @@ body {
               background-color 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
   position: relative;
   isolation: isolate;
+  contain: layout style;
 }
 
 .glass-card::before {
@@ -281,31 +377,6 @@ body {
   background: var(--color-bg-card-hover);
   border-color: transparent;
   box-shadow: var(--shadow-glow), 0 8px 32px rgba(0, 0, 0, 0.35);
-  transform: translateY(-4px);
-}
-
-/* Premium glass card variant with enhanced border glow */
-.glass-card-glow {
-  position: relative;
-  overflow: hidden;
-}
-
-.glass-card-glow::after {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary), var(--color-accent));
-  border-radius: inherit;
-  z-index: -1;
-  opacity: 0;
-  transition: opacity 0.4s;
-}
-
-.glass-card-glow:hover::after {
-  opacity: 0.15;
 }
 
 .btn-primary {
@@ -408,7 +479,7 @@ body {
   border: none;
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform var(--transition), background-color var(--transition), box-shadow var(--transition), color var(--transition);
   overflow: hidden;
 }
 
@@ -447,7 +518,7 @@ body {
   border: 1px solid var(--color-bg-card-border);
   color: var(--color-text-secondary);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color var(--transition), border-color var(--transition), color var(--transition), transform var(--transition), box-shadow var(--transition);
 }
 
 .btn-icon-glow:hover {
@@ -697,7 +768,7 @@ select option:checked {
   border-radius: 50%;
   border: 2px solid var(--color-bg-card-border);
   font-size: 0.75rem;
-  transition: all 0.3s;
+  transition: color var(--transition), border-color var(--transition), background-color var(--transition);
 }
 
 .step-indicator-item.active {
@@ -1012,37 +1083,6 @@ select option:checked {
 }
 
 /* Premium glass card with enhanced hover */
-.glass-card-premium {
-  background: linear-gradient(135deg, var(--color-bg-card), color-mix(in srgb, var(--color-accent) 3%, var(--color-bg-card)));
-  border: 1px solid var(--color-bg-card-border);
-  border-radius: var(--radius-card);
-  position: relative;
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.glass-card-premium::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
-  opacity: 0;
-  transition: opacity 0.4s;
-}
-
-.glass-card-premium:hover {
-  transform: translateY(-6px);
-  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
-  box-shadow: var(--shadow-glow), var(--shadow-elevated);
-}
-
-.glass-card-premium:hover::before {
-  opacity: 1;
-}
-
 /* Gradient border effect */
 .gradient-border {
   position: relative;
@@ -1473,7 +1513,7 @@ select option:checked {
   font-family: var(--font-sans);
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.3s;
+  transition: background-color var(--transition), border-color var(--transition), color var(--transition);
 }
 
 .cat-chip:hover,
@@ -1509,7 +1549,7 @@ select option:checked {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23b8b0a3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.7rem center;
-  transition: all 0.3s;
+  transition: border-color var(--transition);
   min-width: 160px;
 }
 
@@ -1743,7 +1783,7 @@ select option:checked {
   font-family: var(--font-sans);
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.3s;
+  transition: background-color var(--transition), border-color var(--transition), color var(--transition);
 }
 
 .page-btn:hover {
@@ -1772,7 +1812,7 @@ select option:checked {
   background: none;
   border: none;
   text-decoration: none;
-  transition: all 0.3s;
+  transition: background-color var(--transition), color var(--transition);
 }
 
 .page-number:hover {
@@ -1864,7 +1904,7 @@ select option:checked {
   font-family: var(--font-mono);
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.25s;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .tag-filter-chip:hover {
@@ -2018,7 +2058,7 @@ select option:checked {
   color: var(--color-accent);
   font-weight: 500;
   font-family: var(--font-sans);
-  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: background-color var(--transition), transform var(--transition), color var(--transition);
 }
 
 .article-card:hover .article-category {
@@ -2388,7 +2428,7 @@ select option:checked {
   background: var(--color-bg-card);
   border: 1px solid var(--color-bg-card-border);
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: border-color var(--transition), color var(--transition), transform var(--transition);
 }
 
 .reader-tab:hover {
@@ -2529,7 +2569,7 @@ select option:checked {
   left: 0;
   height: 3px;
   width: 0%;
-  z-index: 999;
+  z-index: var(--z-topbar);
   background: linear-gradient(90deg, var(--color-accent), var(--color-accent-secondary), var(--color-accent));
   background-size: 200% 100%;
   animation: scroll-progress-hue 6s linear infinite;
@@ -2710,7 +2750,7 @@ body.reading-sepia .article-content p {
 .img-lightbox {
   position: fixed;
   inset: 0;
-  z-index: 2000;
+  z-index: var(--z-modal);
   background: rgba(5, 4, 2, 0.92);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -2758,7 +2798,7 @@ body.reading-sepia .article-content p {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.25s;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
 }
 
 .img-lightbox-close:hover {
@@ -2781,7 +2821,7 @@ body.reading-sepia .article-content p {
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
-  z-index: 1200;
+  z-index: var(--z-dropdown);
   width: 52px;
   height: 52px;
   border-radius: 50%;
@@ -3552,7 +3592,7 @@ body.reading-sepia .article-content p {
 .post-editor.focus-mode {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: var(--z-ai-widget);
   background: var(--color-bg-primary);
   padding: 1.5rem;
   overflow-y: auto;
@@ -3860,4 +3900,271 @@ body.reading-sepia .article-content p {
   border-radius: 3px;
   background: color-mix(in srgb, var(--color-bg-card-border) 50%, transparent);
   border: 1px solid var(--color-bg-card-border);
+}
+
+/* ═══ Page Header — Global consistent spacing ═══ */
+.page-header {
+  padding-bottom: 1.5rem;
+}
+
+.page-header .section-subtitle {
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    padding-bottom: 1rem;
+  }
+}
+
+/* ═══ Form layout responsive fixes ═══ */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ═══ Article grid responsive ═══ */
+@media (max-width: 640px) {
+  .articles-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
+  }
+
+  .recipes-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+/* ═══ Section spacing on mobile ═══ */
+@media (max-width: 768px) {
+  .section {
+    padding: 3rem 0;
+  }
+
+  .section-header {
+    margin-bottom: 2rem;
+  }
+}
+
+/* ═══ Mobile touch targets (WCAG 2.5.5) ═══ */
+@media (pointer: coarse) {
+  /* Buttons and links in cards */
+  .post-action,
+  .card-action-btn,
+  .sidebar-nav-item,
+  .sidebar-category-item,
+  .nav-tab,
+  .mobile-link,
+  .mobile-search-btn,
+  .category-filter-btn,
+  .page-btn,
+  .page-number,
+  .filter-tag .remove-filter,
+  .clear-filters {
+    min-height: var(--touch-target);
+    min-width: var(--touch-target);
+  }
+
+  /* Feed post actions */
+  .post-more {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Sidebar notification button */
+  .sidebar-notif-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Theme toggle */
+  .theme-toggle-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Hamburger menus */
+  .hamburger,
+  .topbar-hamburger {
+    padding: 10px;
+  }
+}
+
+/* ═══ Focus-visible — consistent ring on all interactive elements ═══ */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible,
+[role="menuitem"]:focus-visible,
+[role="radio"]:focus-visible,
+[role="switch"]:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Remove default outline for mouse users */
+a:not(:focus-visible),
+button:not(:focus-visible),
+input:not(:focus-visible),
+select:not(:focus-visible),
+textarea:not(:focus-visible) {
+  outline: none;
+}
+
+/* ═══ Skip link — works after SPA navigation ═══ */
+.skip-to-content {
+  position: fixed;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-skip-link);
+  padding: 0.75rem 1.5rem;
+  background: var(--color-accent);
+  color: var(--color-btn-text);
+  font-weight: 700;
+  font-size: 0.9rem;
+  border-radius: 0 0 12px 12px;
+  text-decoration: none;
+  transition: top 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.skip-to-content:focus {
+  top: 0;
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ═══ Loading skeleton animation ═══ */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+.skeleton-box {
+  background: var(--color-bg-card-border);
+  border-radius: var(--radius-card);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* ═══ Reduced motion — disable all animations ═══ */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-box {
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
+/* ═══ Sidebar Card — shared across blog/receitas/livro pages ═══ */
+.sidebar-card {
+  padding: 1.25rem;
+}
+
+.sidebar-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+  margin-bottom: 0.85rem;
+}
+
+/* ═══ Content + Sidebar Layout — shared across blog/receitas/livros pages ═══ */
+.blog-layout,
+.recipes-layout,
+.books-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.blog-main,
+.recipes-main,
+.books-main {
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .blog-layout,
+  .recipes-layout,
+  .books-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
+  }
+
+  .sidebar-widgets {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+}
+
+/* ═══ CSS Containment — performance hints ═══ */
+.rs-widget,
+.sidebar-card,
+.footer-widget {
+  contain: layout style;
+}
+
+/* ═══ Smooth transitions on theme toggle ═══ */
+html.theme-transitioning * {
+  transition-duration: 0.35s !important;
+}
+
+/* ═══ Print styles — hide non-essential elements ═══ */
+@media print {
+  .left-sidebar,
+  .right-sidebar,
+  .topbar,
+  .back-to-top,
+  .scroll-progress,
+  .ai-launcher,
+  .ai-floating-widget,
+  .cookie-overlay,
+  .footer,
+  .mobile-menu,
+  .mobile-overlay {
+    display: none !important;
+  }
+  body {
+    padding: 0 !important;
+    background: white !important;
+    color: black !important;
+  }
+  .article-content {
+    max-width: 100% !important;
+  }
+  a[href]::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.8em;
+    color: #666;
+  }
+}
+
+/* ═══ Selection color ═══ */
+::selection {
+  background: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  color: var(--color-text-primary);
+}
+
+::-moz-selection {
+  background: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  color: var(--color-text-primary);
+}
+
+/* ═══ Smooth scroll for all hash navigation ═══ */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--topbar-height) + 20px);
 }

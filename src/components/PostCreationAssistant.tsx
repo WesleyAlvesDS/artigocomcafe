@@ -4,6 +4,22 @@ import { showToast } from './Toast'
 import { saveDraft, removeDraftEntry, emitDraftChange } from '../lib/draft'
 import { renderMarkdown } from './PostEditor'
 
+interface DiamantViolation {
+  regra: string
+  severidade: 'alta' | 'media' | 'baixa'
+  detalhes: string
+}
+
+interface DiamantAnalysis {
+  score: number
+  passa_diamante: boolean
+  pontos_fortes: string[]
+  pontos_melhoria: string[]
+  violacoes: DiamantViolation[]
+  sugestoes_especificas: string[]
+  resumo_feedback: string
+}
+
 interface HeadlineItem {
   title: string
   title_pt?: string | null
@@ -18,7 +34,7 @@ interface HeadlineItem {
 }
 
 interface PostCreationAssistantProps {
-  onPostCreated?: (post: any) => void
+  onPostCreated?: (post: unknown) => void
   onClose: () => void
 }
 
@@ -135,7 +151,7 @@ export default function PostCreationAssistant({ onPostCreated, onClose }: PostCr
   const [generatedPost, setGeneratedPost] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [analysis, setAnalysis] = useState<any>(null)
+  const [analysis, setAnalysis] = useState<DiamantAnalysis | null>(null)
   const [editorContent, setEditorContent] = useState('')
   const [showAnalysis, setShowAnalysis] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
@@ -179,7 +195,7 @@ export default function PostCreationAssistant({ onPostCreated, onClose }: PostCr
       setEditorContent(content)
       updateStats(content)
       setStep('editor')
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err?.message || 'Erro ao gerar artigo. Tente novamente.')
       setStep('source')
     } finally {
@@ -204,7 +220,7 @@ ${POST_GENERATION_PROMPT}`
       setEditorContent(content)
       updateStats(content)
       setStep('editor')
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err?.message || 'Erro ao gerar artigo.')
       setStep('source')
     } finally {
@@ -247,7 +263,7 @@ ${POST_GENERATION_PROMPT}`
       setAnalysis(parsed)
       setShowAnalysis(true)
       setStep('analysis')
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err?.message || 'Erro na análise.')
     } finally {
       setLoading(false)
@@ -309,7 +325,7 @@ ${POST_GENERATION_PROMPT}`
       showToast('Artigo publicado! 🎉', 'success')
       onPostCreated?.(res)
       onClose()
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err?.message || 'Erro ao publicar.')
     } finally {
       setLoading(false)
@@ -659,7 +675,7 @@ ${POST_GENERATION_PROMPT}`
                     <span className="text-red-400">⚠</span> Violações Detectadas
                   </h4>
                   <ul className="space-y-2">
-                    {analysis.violacoes.map((v: any, i: number) => (
+                    {analysis.violacoes.map((v: DiamantViolation, i: number) => (
                       <li key={i} className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
                         <div className="flex items-start gap-2">
                           <span className={`text-xs px-1.5 py-0.5 rounded ${

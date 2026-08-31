@@ -119,8 +119,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser }}>{children}</AuthContext.Provider>
 }
 
+const defaultAuthCtx: AuthCtx = {
+  user: null,
+  loading: false,
+  login: async () => {},
+  register: async () => {},
+  logout: async () => {},
+  refreshUser: async () => {},
+}
+
 export function useAuth() {
   const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider')
+  if (!ctx) {
+    // Retorna fallback seguro durante SSR/SSG quando AuthProvider não está montado
+    return defaultAuthCtx
+  }
   return ctx
 }

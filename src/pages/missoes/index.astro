@@ -1,0 +1,25 @@
+---
+import Base from '../../layouts/Base.astro'
+import AuthPage from '../../components/AuthPage'
+import MissionsPage from '../../components/MissionsPage'
+---
+
+<Base title="Missões — Artigo com Café" description="Complete missões diárias e semanais para ganhar grãos e desbloquear conquistas." canonical="/missoes" fullWidth>
+
+  <div class="page-header">
+    <h1 class="page-title">🎯 Missões</h1>
+    <p class="page-subtitle">Complete missões diárias e semanais para ganhar grãos</p>
+  </div>
+
+  <AuthPage client:load fallback={
+    <div class="empty-state">
+      <div class="empty-icon">🔒</div>
+      <h3 class="empty-title">Acesso restrito</h3>
+      <p class="empty-desc">Faça login para ver suas missões</p>
+      <a href="/entrar" class="btn-primary">Entrar</a>
+    </div>
+  }>
+    <MissionsPage client:load />
+  </AuthPage>
+
+</Base>

@@ -38,7 +38,20 @@ class AdminPanelProvider extends PanelProvider
             ->path('')
             ->login()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => [
+                    50 => '#fdf8f3',
+                    100 => '#f7eadd',
+                    200 => '#edd1bb',
+                    300 => '#ddae8e',
+                    400 => '#c98662',
+                    500 => '#bc6a44',
+                    600 => '#ae5739',
+                    700 => '#914532',
+                    800 => '#75392d',
+                    900 => '#603128',
+                    950 => '#341814',
+                ],
+                'gray' => Color::Slate,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
@@ -71,6 +84,9 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->renderHook('panels::head.end', fn () => view('filament.components.pwa-head'))
+            ->renderHook('panels::body.end', fn () => auth()->check() ? view('filament.components.ai-assistant-balloon') : '')
+            ->renderHook('panels::body.start', fn () => auth()->check() ? view('filament.components.mobile-bottom-bar') : '');
     }
 }

@@ -1,0 +1,5 @@
+Contact: mailto:security@artigocomcafe.com
+Contact: https://github.com/anomalyco/opencode/issues
+Expires: 2027-08-26T12:00:00.000Z
+Preferred-Languages: pt-BR, en
+Canonical: https://artigocomcafe.com/.well-known/security.txt

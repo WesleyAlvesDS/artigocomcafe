@@ -1,0 +1,499 @@
+---
+import ClimaDoCafe from './ClimaDoCafe'
+import ExchangeRateWidget from './ExchangeRateWidget'
+import NewsletterForm from './NewsletterForm'
+---
+
+<aside class="right-sidebar" id="right-sidebar">
+  <div class="sidebar-inner">
+
+    {/* ═══ AI Assistant ═══ */}
+    <div class="rs-widget">
+      <div class="rs-widget-head">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+        <span class="rs-widget-title">Pergunte ao Barista (IA)</span>
+      </div>
+      <div class="rs-ai-chat">
+        <div class="rs-ai-message">
+          No que posso ajudar sua leitura hoje?
+        </div>
+        <div class="rs-ai-input-wrap">
+          <input
+            type="text"
+            class="rs-ai-input"
+            placeholder="Faça uma pergunta..."
+            aria-label="Pergunta para o assistente IA"
+          />
+          <button class="rs-ai-send" aria-label="Enviar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {/* ═══ Gamificação / Jornada ═══ */}
+    <div class="rs-widget">
+      <div class="rs-widget-head">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+        </svg>
+        <span class="rs-widget-title">Sua Jornada</span>
+      </div>
+      <div class="rs-jornada" id="rs-jornada">
+        {/* Não logado: CTA */}
+        <div class="rs-jornada-login" id="rs-jornada-login">
+          <div class="rs-jornada-icon">🎯</div>
+          <p class="rs-jornada-text">Entre para acompanhar seu progresso, ganhar grãos e desbloquear missões.</p>
+          <a href="/entrar" class="rs-jornada-btn">Começar Jornada</a>
+        </div>
+        {/* Logado: progresso */}
+        <div class="rs-jornada-user" id="rs-jornada-user" hidden>
+          <div class="rs-jornada-level">
+            <span class="rs-jornada-level-label">Barista Iniciante</span>
+            <span class="rs-jornada-beans" id="rs-jornada-beans">0 ☕</span>
+          </div>
+          <div class="rs-jornada-missao">
+            <span class="rs-jornada-missao-label">Missão Diária</span>
+            <span class="rs-jornada-missao-text">Leia 2 artigos de Tecnologia</span>
+          </div>
+          <div class="rs-jornada-bar">
+            <div class="rs-jornada-bar-track">
+              <div class="rs-jornada-bar-fill" id="rs-jornada-bar-fill" style="width: 0%"></div>
+            </div>
+            <span class="rs-jornada-bar-text">0/2</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* ═══ Ao Vivo (Clima + Câmbio) ═══ */}
+    <div class="rs-widget">
+      <div class="rs-widget-head">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+        <span class="rs-widget-title">Agora</span>
+      </div>
+      <div class="rs-live-grid">
+        <ClimaDoCafe client:visible />
+        <ExchangeRateWidget client:visible />
+      </div>
+    </div>
+
+    {/* ═══ Newsletter ═══ */}
+    <div class="rs-widget">
+      <div class="rs-widget-head">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="4" width="20" height="16" rx="2" />
+          <path d="M22 7l-10 7L2 7" />
+        </svg>
+        <span class="rs-widget-title">Newsletter do Barista</span>
+      </div>
+      <p class="rs-newsletter-desc">O melhor da semana na sua xícara.</p>
+      <NewsletterForm client:visible />
+    </div>
+
+    {/* ═══ Push Notifications ═══ */}
+    <div class="rs-widget rs-push-widget" id="rs-push-widget">
+      <div class="rs-widget-head">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
+        <span class="rs-widget-title">Notificações</span>
+      </div>
+      <p class="rs-push-desc">Receba alertas de novos artigos e missões.</p>
+      <button class="rs-push-btn" id="rs-push-btn">
+        <span class="rs-push-icon">🔔</span>
+        <span class="rs-push-label">Ativar notificações</span>
+      </button>
+    </div>
+
+  </div>
+</aside>
+
+<style>
+  /* ═══════════════════════════════════════════════════════════════
+     RIGHT SIDEBAR — Estilo Facebook/Reddit (fixo, 320px)
+     ═══════════════════════════════════════════════════════════════ */
+  .right-sidebar {
+    position: sticky;
+    top: calc(var(--topbar-height) + var(--maintenance-bar-h, 0px) + 16px);
+    width: 320px;
+    max-height: calc(100vh - var(--topbar-height) - var(--maintenance-bar-h, 0px) - 32px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-bg-card-border) transparent;
+    flex-shrink: 0;
+    padding-bottom: 2rem;
+  }
+
+  .right-sidebar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .right-sidebar::-webkit-scrollbar-thumb {
+    background: var(--color-bg-card-border);
+    border-radius: 4px;
+  }
+
+  .right-sidebar .sidebar-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  /* ═══ Widget Container ═══ */
+  .rs-widget {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-bg-card-border);
+    border-radius: 14px;
+    padding: 1rem;
+  }
+
+  .rs-widget-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.65rem;
+    color: var(--color-text-muted);
+  }
+
+  .rs-widget-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+  }
+
+  /* ═══ AI Assistant ═══ */
+  .rs-ai-chat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .rs-ai-message {
+    background: var(--color-bg-primary);
+    border-radius: 10px;
+    padding: 0.65rem 0.75rem;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  .rs-ai-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .rs-ai-input {
+    flex: 1;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-bg-card-border);
+    border-radius: 10px;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.8rem;
+    color: var(--color-text-primary);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .rs-ai-input::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  .rs-ai-input:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 2px var(--color-accent-glow);
+  }
+
+  .rs-ai-send {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--color-bg-card-border);
+    background: var(--color-accent);
+    color: var(--color-btn-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+
+  .rs-ai-send:hover {
+    background: var(--color-accent-dark);
+  }
+
+  /* ═══ Jornada / Gamificação ═══ */
+  .rs-jornada-login {
+    text-align: center;
+    padding: 0.25rem 0;
+  }
+
+  .rs-jornada-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .rs-jornada-text {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+    margin: 0 0 0.65rem;
+  }
+
+  .rs-jornada-btn {
+    display: inline-block;
+    background: var(--color-accent);
+    color: var(--color-btn-text);
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+
+  .rs-jornada-btn:hover {
+    background: var(--color-accent-dark);
+  }
+
+  .rs-jornada-user {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .rs-jornada-level {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .rs-jornada-level-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+
+  .rs-jornada-beans {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-accent);
+  }
+
+  .rs-jornada-missao {
+    background: var(--color-bg-primary);
+    border-radius: 10px;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .rs-jornada-missao-label {
+    display: block;
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    margin-bottom: 0.15rem;
+  }
+
+  .rs-jornada-missao-text {
+    font-size: 0.78rem;
+    color: var(--color-text-secondary);
+  }
+
+  .rs-jornada-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .rs-jornada-bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--color-bg-card-border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .rs-jornada-bar-fill {
+    height: 100%;
+    background: var(--color-accent);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+
+  .rs-jornada-bar-text {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+  }
+
+  /* ═══ Live Widgets Grid ═══ */
+  .rs-live-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  /* ═══ Newsletter ═══ */
+  .rs-newsletter-desc {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    margin: 0 0 0.65rem;
+    line-height: 1.4;
+  }
+
+  /* ═══ Responsive ═══ */
+  @media (max-width: 1200px) {
+    .right-sidebar {
+      display: none;
+    }
+  }
+
+  /* ═══ Push Notifications ═══ */
+  .rs-push-widget {
+    background: linear-gradient(135deg, var(--color-bg-card), var(--color-bg-secondary));
+    border: 1px solid var(--color-bg-card-border);
+  }
+
+  .rs-push-desc {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    margin: 0 0 0.65rem;
+    line-height: 1.4;
+  }
+
+  .rs-push-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    border: 1px solid var(--color-bg-card-border);
+    background: var(--color-accent);
+    color: var(--color-btn-text);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast)
+  }
+
+  .rs-push-btn:hover {
+    background: var(--color-accent-dark);
+    transform: translateY(-1px);
+  }
+
+  .rs-push-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .rs-push-icon {
+    font-size: 1rem;
+  }
+
+  .rs-push-btn.subscribed {
+    background: #22c55e;
+    border-color: #22c55e;
+  }
+</style>
+
+<script>
+(function () {
+  // ... existing jornada auth script ...
+
+  // Push notification button
+  async function initPushButton() {
+    var btn = document.getElementById('rs-push-btn')
+    if (!btn) return
+
+    var label = btn.querySelector('.rs-push-label')
+    var icon = btn.querySelector('.rs-push-icon')
+
+    // Check current state
+    try {
+      var statusRes = await fetch('/api-proxy.php/user/push-subscription/status', {
+        headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('auth_token') || '') }
+      })
+      if (statusRes.ok) {
+        var status = await statusRes.json()
+        if (status.subscribed) {
+          btn.classList.add('subscribed')
+          if (label) label.textContent = 'Notificações ativas'
+          if (icon) icon.textContent = '✅'
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    btn.addEventListener('click', async function () {
+      if (btn.classList.contains('subscribed')) {
+        btn.disabled = true
+        btn.querySelector('.rs-push-label').textContent = 'Desativando...'
+        try {
+          var unsub = await import('../lib/push').then(m => m.unsubscribeFromPush())
+          if (unsub) {
+            btn.classList.remove('subscribed')
+            if (label) label.textContent = 'Ativar notificações'
+            if (icon) icon.textContent = '🔔'
+          }
+        } catch (e) {
+          if (label) label.textContent = 'Erro'
+        }
+        btn.disabled = false
+        return
+      }
+
+      btn.disabled = true
+      if (label) label.textContent = 'Solicitando permissão...'
+      try {
+        var subscribe = await import('../lib/push').then(m => m.subscribeToPush())
+        if (subscribe) {
+          btn.classList.add('subscribed')
+          if (label) label.textContent = 'Notificações ativas'
+          if (icon) icon.textContent = '✅'
+        } else {
+          if (label) label.textContent = 'Permissão negada'
+        }
+      } catch (e) {
+        if (label) label.textContent = 'Ativar notificações'
+      }
+      btn.disabled = false
+    })
+  }
+
+  // ... existing lifecycle binding ...
+  if (!window.__rsSidebarLifecycleBound) {
+    window.__rsSidebarLifecycleBound = true
+    document.addEventListener('astro:page-load', function () { loadJornadaData(); initPushButton() })
+    document.addEventListener('astro:after-swap', function () { loadJornadaData(); initPushButton() })
+    window.addEventListener('storage', loadJornadaData)
+    document.addEventListener('auth:changed', function () { loadJornadaData(); initPushButton() })
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { loadJornadaData(); initPushButton() })
+  } else {
+    loadJornadaData()
+    initPushButton()
+  }
+})()
+</script>

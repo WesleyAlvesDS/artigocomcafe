@@ -12,6 +12,7 @@ const data = seoLandings.find(l => l.slug === 'cafe-da-manha')!
   description={data.description}
   image="/og/cafe-da-manha.png.ts"
   canonical={`/${data.slug}/`}
+  fullWidth
   breadcrumbs={[{ name: 'Início', slug: '/' }, { name: data.h1, slug: `/${data.slug}/` }]}
 >
   <SeoLandingPage data={data} />

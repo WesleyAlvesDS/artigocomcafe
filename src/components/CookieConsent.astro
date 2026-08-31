@@ -121,7 +121,7 @@
   .cookie-overlay {
     position: fixed;
     inset: 0;
-    z-index: 9995;
+    z-index: var(--z-cookie);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -416,7 +416,7 @@
     position: fixed;
     right: 1.25rem;
     bottom: 5.5rem;
-    z-index: 9996;
+    z-index: var(--z-toast);
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
@@ -444,7 +444,7 @@
     position: fixed;
     right: 1.25rem;
     bottom: 9rem;
-    z-index: 9996;
+    z-index: var(--z-toast);
     width: 300px;
     padding: 1rem;
     background: var(--color-bg-primary);

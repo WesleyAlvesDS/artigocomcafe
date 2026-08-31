@@ -11,15 +11,14 @@ interface LoginResponse {
 /**
  * Destino após o login:
  * - respeita o parâmetro `?next=` (quando seguro) para voltar à página de origem;
- * - caso contrário, leva o usuário direto para o Dashboard (painel do leitor),
- *   que é a melhor experiência pós-login.
+ * - caso contrário, volta para a home (que mostrará o feed para logados).
  */
 function getRedirectTarget(): string {
-  if (typeof window === 'undefined') return '/dashboard/'
+  if (typeof window === 'undefined') return '/'
   const url = new URL(window.location.href)
   const next = url.searchParams.get('next')
   if (next && next.startsWith('/') && !next.startsWith('//')) return next
-  return '/dashboard/'
+  return '/'
 }
 
 export default function LoginForm() {
@@ -64,7 +63,7 @@ export default function LoginForm() {
       if (data.user?.theme) applyThemeColors(data.user.theme)
       showToast('Bem-vindo de volta! ☕', 'success')
       window.location.href = getRedirectTarget()
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err.errors?.email) {
         setError(Array.isArray(err.errors.email) ? err.errors.email[0] : String(err.errors.email))
       } else if (err.status === 401) {

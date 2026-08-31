@@ -1,129 +1,7 @@
 /* ============================================================
    dashboard-app.css
    Estilos globais consolidados do Dashboard App (área do leitor).
-   Reúne os <style is:global> antes espalhados em:
-   - src/pages/dashboard.astro   (dash-page / dash-orb / stagger)
-   - src/pages/jornada.astro     (user-page / user-orb)
-   - src/pages/biblioteca.astro  (biblioteca OpenLibrary)
    ============================================================ */
-
-/* ── App shell ─────────────────────────────────────────────── */
-.dash-page {
-  min-height: 100vh;
-  padding: 5.5rem 1rem 4rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.dash-bg-mesh {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.dash-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.5;
-}
-
-.dash-orb-1 {
-  width: 500px;
-  height: 500px;
-  top: -15%;
-  right: -10%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 70%);
-  animation: float-orb 15s ease-in-out infinite;
-}
-
-.dash-orb-2 {
-  width: 400px;
-  height: 400px;
-  bottom: 10%;
-  left: -8%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--color-accent-secondary) 8%, transparent), transparent 70%);
-  animation: float-orb 18s ease-in-out infinite reverse;
-}
-
-.dash-orb-3 {
-  width: 300px;
-  height: 300px;
-  top: 40%;
-  right: 20%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 5%, transparent), transparent 70%);
-  animation: float-orb 12s ease-in-out infinite 3s;
-}
-
-@keyframes dash-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes float-orb {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-  }
-  33% {
-    transform: translate(10px, -10px) scale(1.1);
-  }
-  66% {
-    transform: translate(-5px, 5px) scale(0.95);
-  }
-}
-
-/* Entrada em cascata para os cards dentro do app */
-.dash-app .glass-card {
-  animation: dash-fade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
-/* ── Páginas/seções do leitor (user-page) ──────────────────── */
-.user-page {
-  min-height: 100vh;
-  padding: 5.5rem 1rem 4rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.user-page-bg {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.user-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.4;
-}
-
-.user-orb-1 {
-  width: 400px;
-  height: 400px;
-  top: -10%;
-  right: -5%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 70%);
-  animation: float-orb 15s ease-in-out infinite;
-}
-
-.user-orb-2 {
-  width: 350px;
-  height: 350px;
-  bottom: 10%;
-  left: -8%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--color-accent-secondary) 8%, transparent), transparent 70%);
-  animation: float-orb 18s ease-in-out infinite reverse;
-}
 
 /* ── Biblioteca — OpenLibrary ──────────────────────────────── */
 .library-hero {
@@ -224,7 +102,7 @@
   font-weight: 600;
   color: var(--color-text-secondary);
   cursor: pointer;
-  transition: all 0.25s;
+  transition: color var(--transition-fast), background-color var(--transition-fast);
   font-family: var(--font-sans);
 }
 
@@ -504,7 +382,7 @@
 .book-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: var(--z-modal);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -548,7 +426,7 @@
   border: 1px solid var(--color-bg-card-border);
   color: var(--color-text-secondary);
   cursor: pointer;
-  transition: all 0.25s;
+  transition: color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
 }
 
 .modal-close:hover {
@@ -724,7 +602,7 @@
   font-weight: 600;
   color: var(--color-text-secondary);
   cursor: pointer;
-  transition: all 0.25s;
+  transition: color var(--transition-fast), background-color var(--transition-fast);
   font-family: var(--font-sans);
 }
 
@@ -756,7 +634,7 @@
   font-size: 0.72rem;
   font-weight: 700;
   font-family: var(--font-mono);
-  transition: all 0.25s;
+  transition: color var(--transition-fast), background-color var(--transition-fast);
 }
 
 /* Seletor de prateleira no modal */
@@ -795,7 +673,7 @@
   font-weight: 600;
   cursor: pointer;
   font-family: var(--font-sans);
-  transition: all 0.25s;
+  transition: border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
 }
 
 .shelf-btn:hover:not(:disabled) {
