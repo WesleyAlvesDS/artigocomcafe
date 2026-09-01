@@ -87,4 +87,18 @@ return [
         'secret' => env('TURNSTILE_SECRET_KEY'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Web Push Notifications (VAPID)
+    |--------------------------------------------------------------------------
+    |
+    | Generate keys: php artisan push:generate-vapid-keys
+    |
+    */
+
+    'vapid' => [
+        'public_key' => env('VAPID_PUBLIC_KEY'),
+        'private_key' => env('VAPID_PRIVATE_KEY'),
+    ],
+
 ];

@@ -21,6 +21,12 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
+        // Allow all authenticated users to access the 'app' panel (Super App)
+        if ($panel->getId() === 'app') {
+            return true;
+        }
+
+        // Admin/Editor access for dash panel
         return $panel->getId() === 'dash' && $this->hasDashboardAccess();
     }
 

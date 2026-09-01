@@ -1,9 +1,11 @@
 node_modules/
 dist/
 .astro/
+.vite-cache/
 *.log
 .DS_Store
 .env
+.study
 .env.server
 .agents
 scripts/secrets.sh
@@ -19,7 +21,6 @@ tests/playwright/static-server.mjs
 tests/playwright/test-results/
 shots/
 docs/ops/
-
 # ── Loja em desenvolvimento (fora do versionamento até estar pronta) ──
 # A loja fica local, em desenvolvimento, exibindo o cadeado no servidor.
 # Para liberar: remover estas linhas e git add dos arquivos (docs/loja-integracao.md).

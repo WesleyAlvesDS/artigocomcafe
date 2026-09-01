@@ -40,6 +40,7 @@ class Integrations extends Page
             'guardian_api_key' => Setting::get('guardian_api_key'),
             'currents_api_key' => Setting::get('currents_api_key'),
             'gnews_api_key' => Setting::get('gnews_api_key'),
+            'openrouter_api_key' => Setting::get('openrouter_api_key'),
             'unsplash_api_key' => Setting::get('unsplash_api_key'),
             'openverse_client_id' => Setting::get('openverse_client_id'),
             'openverse_client_secret' => Setting::get('openverse_client_secret'),
@@ -68,6 +69,11 @@ class Integrations extends Page
                         ->label('GNews — API Key')
                         ->password()
                         ->revealable(),
+                    TextInput::make('openrouter_api_key')
+                        ->label('OpenRouter — API Key')
+                        ->password()
+                        ->revealable()
+                        ->helperText('Chave sk-or-v1-... usada pelo Copilot Editorial.'),
                 ]),
 
             Section::make('🖼️ Imagens')

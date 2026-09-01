@@ -30,7 +30,12 @@ curl --ftp-create-dirs -T arquivo.php -u 'arti3263:CmQ#yD7R.u993t' 'ftp://br64-d
 
 # Apagar arquivo
 curl -u 'arti3263:CmQ#yD7R.u993t' -Q 'DELE /domains/loom.ordob.com/public_html/recover.php' 'ftp://br64-da.valueserver.net.br/'
+
+# Cloudflare
+curl -X GET "https://api.cloudflare.com/client/v4/accounts/44cbe52429372fb4d1140ec9ceccb382/tokens/verify" \
+     -H "Authorization: Bearer cfat_Spfmfl2Hv301c06jIoR6kxyJxhvU9r0fpqExlGOR70e3731a"
 ```
+
 
 > ⚠️ **Segurança:** as credenciais acima dão acesso à conta arti3263. Não commitar em repositórios públicos.
 

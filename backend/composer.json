@@ -10,8 +10,12 @@
         "filament/filament": "4.*",
         "laravel/framework": "^13.8",
         "laravel/sanctum": "*",
+        "laravel/socialite": "^5.30",
         "laravel/tinker": "^3.0",
-        "minishlink/web-push": "^9.0"
+        "minishlink/web-push": "^9.0",
+        "spatie/laravel-activitylog": "*",
+        "spatie/laravel-medialibrary": "*",
+        "spatie/laravel-permission": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

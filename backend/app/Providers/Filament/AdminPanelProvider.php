@@ -37,6 +37,7 @@ class AdminPanelProvider extends PanelProvider
             ->domain('dash.artigocomcafe.com')
             ->path('')
             ->login()
+            ->spa()
             ->colors([
                 'primary' => [
                     50 => '#fdf8f3',

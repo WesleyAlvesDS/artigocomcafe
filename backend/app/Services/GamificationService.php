@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Achievement;
 use App\Models\Article;
 use App\Models\DailyVisit;
 use App\Models\Grain;
@@ -17,6 +18,14 @@ use Illuminate\Support\Facades\DB;
  */
 class GamificationService
 {
+    protected PushNotificationService $pushService;
+    protected WidgetCacheService $widgetCache;
+
+    public function __construct(PushNotificationService $pushService, WidgetCacheService $widgetCache)
+    {
+        $this->pushService = $pushService;
+        $this->widgetCache = $widgetCache;
+    }
     /**
      * Conclui a leitura de uma receita: marca o progresso, concede grãos,
      * atualiza o total do usuário e o registro diário de visitas, e
@@ -57,6 +66,9 @@ class GamificationService
 
             $this->registerMissionProgress($user, 'read_recipe');
         });
+
+        // Limpa cache do widget de gamificação
+        $this->widgetCache->clearUserGamification($user->id);
     }
 
     /**
@@ -179,6 +191,8 @@ class GamificationService
             $newProgress = min($target, $progress + $amount);
             $isCompleted = $newProgress >= $target;
 
+            $wasAlreadyCompleted = $userMission ? (bool) $userMission->pivot->is_completed : false;
+
             $user->missions()->syncWithoutDetaching([
                 $mission->id => [
                     'progress' => $newProgress,
@@ -188,6 +202,137 @@ class GamificationService
                     'assigned_date' => $assignedDate,
                 ],
             ]);
+
+            // Envia notificação se a missão foi concluída agora
+            if ($isCompleted && ! $wasAlreadyCompleted) {
+                $this->pushService->sendMissionCompleted(
+                    $user,
+                    $mission->title,
+                    $mission->grain_reward
+                );
+            }
         }
+    }
+
+    /**
+     * Verifica e concede conquistas baseadas nas condições do usuário.
+     * Retorna as conquistas recém-desbloqueadas.
+     */
+    public function checkAndUnlockAchievements(User $user): array
+    {
+        $userAchievementIds = $user->achievements()->pluck('achievement_id');
+
+        $allAchievements = Achievement::all();
+        $newlyUnlocked = [];
+
+        foreach ($allAchievements as $achievement) {
+            // Pula se já desbloqueada
+            if ($userAchievementIds->contains($achievement->id)) {
+                continue;
+            }
+
+            // Verifica se as condições são atendidas
+            if ($this->checkAchievementConditions($user, $achievement)) {
+                // Concede a conquista
+                $user->achievements()->attach($achievement->id, [
+                    'earned_at' => now(),
+                ]);
+
+                // Concede grãos de recompensa
+                if ($achievement->grain_reward > 0) {
+                    Grain::create([
+                        'user_id' => $user->id,
+                        'amount' => $achievement->grain_reward,
+                        'type' => 'earned',
+                        'source' => 'achievement_reward',
+                        'description' => "Conquista: {$achievement->name}",
+                        'metadata' => ['achievement_id' => $achievement->id],
+                    ]);
+
+                    $user->increment('total_grains', $achievement->grain_reward);
+                }
+
+                // Envia notificação push
+                $this->pushService->sendAchievementUnlocked(
+                    $user,
+                    $achievement->name,
+                    $achievement->icon ?? '🏆',
+                    $achievement->grain_reward,
+                    $achievement->slug
+                );
+
+                $newlyUnlocked[] = $achievement;
+            }
+        }
+
+        // Limpa cache do widget quando há conquistas desbloqueadas
+        if (! empty($newlyUnlocked)) {
+            $this->widgetCache->clearUserGamification($user->id);
+        }
+
+        return $newlyUnlocked;
+    }
+
+    /**
+     * Verifica se as condições de uma conquista são atendidas pelo usuário.
+     */
+    protected function checkAchievementConditions(User $user, Achievement $achievement): bool
+    {
+        $conditions = $achievement->conditions ?? [];
+
+        if (empty($conditions)) {
+            return false;
+        }
+
+        foreach ($conditions as $type => $value) {
+            switch ($type) {
+                case 'articles_read':
+                    if ($user->articles_read_count < $value) {
+                        return false;
+                    }
+                    break;
+
+                case 'total_grains':
+                    if ($user->total_grains < $value) {
+                        return false;
+                    }
+                    break;
+
+                case 'daily_streak':
+                    if ($user->daily_streak < $value) {
+                        return false;
+                    }
+                    break;
+
+                case 'trails_completed':
+                    if ($user->completed_trails_count < $value) {
+                        return false;
+                    }
+                    break;
+
+                case 'achievements_count':
+                    if ($user->achievements_count < $value) {
+                        return false;
+                    }
+                    break;
+
+                case 'collections_count':
+                    if ($user->collections()->count() < $value) {
+                        return false;
+                    }
+                    break;
+
+                case 'categories_explored':
+                    if ($user->categories_explored_count < $value) {
+                        return false;
+                    }
+                    break;
+
+                default:
+                    return false;
+            }
+        }
+
+        return true;
     }
 }
