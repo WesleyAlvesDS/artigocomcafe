@@ -153,8 +153,8 @@ Route::prefix('integrations')->middleware('throttle:30,1')->group(function () {
 
 // Social Login (Google/GitHub) — Laravel Socialite
 // Configurar credenciais no .env antes de usar em produção.
-Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirect'])->where('provider', 'google|github');
-Route::get('/auth/{provider}/callback', [SocialiteController::class, 'callback'])->where('provider', 'google|github');
+Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirect'])->where('provider', 'google');
+Route::get('/auth/{provider}/callback', [SocialiteController::class, 'callback'])->where('provider', 'google');
 
 // Assistente do Criador — AI (OpenRouter — modelos gratuitos rotativos)
 // Rate limit generoso para uso de Copilot em tempo real.
