@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\User\Resources\CommentResource;
+namespace App\Filament\User\Resources;
 
 use App\Filament\User\Resources\CommentResource\Pages\CreateComment;
 use App\Filament\User\Resources\CommentResource\Pages\EditComment;
