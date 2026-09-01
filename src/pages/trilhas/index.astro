@@ -1,17 +1,10 @@
 ---
 import Base from '../../layouts/Base.astro'
+import { safeFetchJson } from '../../lib/safe-fetch'
 
 export async function getStaticProps() {
-  let trails: Record<string, unknown>[] = []
-  try {
-    const res = await fetch('/api-proxy.php/trails')
-    if (res.ok) {
-      const json = await res.json()
-      trails = json.trails || json.data || json || []
-    }
-  } catch (e) {
-    trails = []
-  }
+  const json = await safeFetchJson<{ trails?: Record<string, unknown>[]; data?: Record<string, unknown>[] }>('/api-proxy.php/trails')
+  const trails = json?.trails || json?.data || []
   return { props: { trails } }
 }
 

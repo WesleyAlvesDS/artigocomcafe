@@ -1,4 +1,5 @@
 import type { BlogPost, BlogListResponse, Recipe, RecipeCategory, RecipeListResponse } from './types'
+import { safeFetchJson } from './safe-fetch'
 
 const API_BASE = import.meta.env.PUBLIC_API_URL || 'https://back.artigocomcafe.com/api'
 
@@ -60,26 +61,7 @@ function mapArticle(a: LaravelArticle): BlogPost {
  * Fetch com retry — o backend de produção às vezes responde 503
  * (proxy/hosting), o que vazava páginas vazias no build SSG.
  */
-async function fetchWithRetry(url: string, attempts = 3): Promise<Response> {
-  let lastError: unknown
-  for (let i = 0; i < attempts; i++) {
-    try {
-      const res = await fetch(url, { headers: { Accept: 'application/json' } })
-      if (res.ok) return res
-      if (res.status === 429 || res.status >= 500) {
-        lastError = new Error(`HTTP ${res.status}`)
-        // backoff simples: 800ms, 1600ms
-        await new Promise(r => setTimeout(r, 800 * 2 ** i))
-        continue
-      }
-      return res
-    } catch (e) {
-      lastError = e
-      await new Promise(r => setTimeout(r, 800 * 2 ** i))
-    }
-  }
-  throw lastError ?? new Error(`Falha ao buscar ${url}`)
-}
+// fetchWithRetry replaced by safeFetchJson from safe-fetch.ts
 
 export async function getPosts(page = 1, perPage = 9, category?: string, search?: string, tag?: string): Promise<BlogListResponse> {
   const params = new URLSearchParams({ page: String(page), per_page: String(perPage) })
@@ -87,60 +69,37 @@ export async function getPosts(page = 1, perPage = 9, category?: string, search?
   if (search) params.set('search', search)
   if (tag) params.set('tag', tag)
 
-  try {
-    const res = await fetchWithRetry(`${API_BASE}/articles?${params}`)
-    const json: LaravelPaginatedResponse = await res.json()
-    return {
-      posts: json.data.map(mapArticle),
-      pagination: { total: json.total, totalPages: json.last_page, page: json.current_page },
-    }
-  } catch {
-    return { posts: [], pagination: { total: 0, totalPages: 0, page } }
+  const json = await safeFetchJson<LaravelPaginatedResponse>(`${API_BASE}/articles?${params}`)
+  if (!json) return { posts: [], pagination: { total: 0, totalPages: 0, page } }
+  return {
+    posts: json.data.map(mapArticle),
+    pagination: { total: json.total, totalPages: json.last_page, page: json.current_page },
   }
 }
 
 export async function getAllSlugs(): Promise<string[]> {
-  try {
-    const res = await fetchWithRetry(`${API_BASE}/articles?per_page=100`)
-    const json: LaravelPaginatedResponse = await res.json()
-    return json.data.map(a => a.slug)
-  } catch {
-    return []
-  }
+  const json = await safeFetchJson<LaravelPaginatedResponse>(`${API_BASE}/articles?per_page=100`)
+  return json?.data?.map(a => a.slug) || []
 }
 
 export async function getPost(slug: string): Promise<{ post: BlogPost; related: BlogPost[] } | null> {
-  try {
-    const res = await fetchWithRetry(`${API_BASE}/articles/${encodeURIComponent(slug)}`)
-    const json = await res.json()
-    return {
-      post: mapArticle(json.article),
-      related: (json.related || []).map(mapArticle),
-    }
-  } catch {
-    return null
+  const json = await safeFetchJson<{ article: LaravelArticle; related: LaravelArticle[] }>(`${API_BASE}/articles/${encodeURIComponent(slug)}`)
+  if (!json?.article) return null
+  return {
+    post: mapArticle(json.article),
+    related: (json.related || []).map(mapArticle),
   }
 }
 
 export async function searchArticles(query: string): Promise<{ id: number; title: string; slug: string; date: string }[]> {
   if (query.trim().length < 2) return []
-  try {
-    const res = await fetchWithRetry(`${API_BASE}/articles?search=${encodeURIComponent(query)}&per_page=5`)
-    const json: LaravelPaginatedResponse = await res.json()
-    return json.data.map(a => ({ id: a.id, title: a.title, slug: a.slug, date: a.published_at }))
-  } catch {
-    return []
-  }
+  const json = await safeFetchJson<LaravelPaginatedResponse>(`${API_BASE}/articles?search=${encodeURIComponent(query)}&per_page=5`)
+  return json?.data?.map(a => ({ id: a.id, title: a.title, slug: a.slug, date: a.published_at })) || []
 }
 
 export async function getCategories(): Promise<LaravelCategory[]> {
-  try {
-    const res = await fetchWithRetry(`${API_BASE}/categories`)
-    const json = await res.json()
-    return json.categories || []
-  } catch {
-    return []
-  }
+  const json = await safeFetchJson<{ categories: LaravelCategory[] }>(`${API_BASE}/categories`)
+  return json?.categories || []
 }
 
 function mapRecipe(r: Recipe): Recipe {
@@ -173,47 +132,29 @@ export async function getRecipes(
   if (filters.difficulty) params.set('difficulty', filters.difficulty)
   if (filters.timeMax) params.set('time_max', filters.timeMax)
 
-  try {
-    const res = await fetchWithRetry(`${API_BASE}/recipes?${params}`)
-    const json: RecipeListResponse = await res.json()
-    return {
-      recipes: json.data.map(mapRecipe),
-      pagination: { total: json.total, totalPages: json.last_page, page: json.current_page },
-    }
-  } catch {
-    return { recipes: [], pagination: { total: 0, totalPages: 0, page } }
+  const json = await safeFetchJson<RecipeListResponse>(`${API_BASE}/recipes?${params}`)
+  if (!json) return { recipes: [], pagination: { total: 0, totalPages: 0, page } }
+  return {
+    recipes: json.data.map(mapRecipe),
+    pagination: { total: json.total, totalPages: json.last_page, page: json.current_page },
   }
 }
 
 export async function getAllRecipeSlugs(): Promise<string[]> {
-  try {
-    const res = await fetchWithRetry(`${API_BASE}/recipes?per_page=1000`)
-    const json: RecipeListResponse = await res.json()
-    return json.data.map(r => r.slug)
-  } catch {
-    return []
-  }
+  const json = await safeFetchJson<RecipeListResponse>(`${API_BASE}/recipes?per_page=1000`)
+  return json?.data?.map(r => r.slug) || []
 }
 
 export async function getRecipe(slug: string): Promise<{ recipe: Recipe; related: Recipe[] } | null> {
-  try {
-    const res = await fetchWithRetry(`${API_BASE}/recipes/${encodeURIComponent(slug)}`)
-    const json = await res.json()
-    return {
-      recipe: mapRecipe(json.recipe),
-      related: (json.related || []).map(mapRecipe),
-    }
-  } catch {
-    return null
+  const json = await safeFetchJson<{ recipe: Recipe; related: Recipe[] }>(`${API_BASE}/recipes/${encodeURIComponent(slug)}`)
+  if (!json?.recipe) return null
+  return {
+    recipe: mapRecipe(json.recipe),
+    related: (json.related || []).map(mapRecipe),
   }
 }
 
 export async function getRecipeCategories(): Promise<RecipeCategory[]> {
-  try {
-    const res = await fetchWithRetry(`${API_BASE}/recipe-categories`)
-    const json = await res.json()
-    return json.categories || []
-  } catch {
-    return []
-  }
+  const json = await safeFetchJson<{ categories: RecipeCategory[] }>(`${API_BASE}/recipe-categories`)
+  return json?.categories || []
 }

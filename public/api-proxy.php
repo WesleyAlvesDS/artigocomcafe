@@ -285,6 +285,47 @@ if ($revalidateLock) {
     @fclose($revalidateLock);
 }
 
+// If body is empty but status is 200, something is wrong — log and retry once
+if (empty($responseBody) && $httpCode >= 200 && $httpCode < 300) {
+    $logMsg = date('c') . " [api-proxy] Empty body for $method $path (HTTP $httpCode)\n";
+    @file_put_contents(__DIR__ . '/api-cache/proxy-errors.log', $logMsg, FILE_APPEND | LOCK_EX);
+
+    // Try one more time without cache
+    $ch2 = curl_init();
+    curl_setopt_array($ch2, [
+        CURLOPT_URL => $backendUrl,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HEADER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_MAXREDIRS => 5,
+        CURLOPT_TIMEOUT => 15,
+        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => 0,
+        CURLOPT_ENCODING => '',
+        CURLOPT_HTTPHEADER => $headers,
+        CURLOPT_CUSTOMREQUEST => $method,
+    ]);
+    if (!empty($resolve)) {
+        curl_setopt($ch2, CURLOPT_RESOLVE, $resolve);
+    }
+    if ($method !== 'GET' && !empty($body)) {
+        curl_setopt($ch2, CURLOPT_POSTFIELDS, $body);
+    }
+    $response2 = curl_exec($ch2);
+    $httpCode2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
+    $headerSize2 = curl_getinfo($ch2, CURLINFO_HEADER_SIZE);
+    $error2 = curl_error($ch2);
+    curl_close($ch2);
+
+    if ($response2 !== false && $httpCode2 > 0) {
+        $responseBody = substr($response2, $headerSize2);
+        $httpCode = $httpCode2;
+        $logMsg2 = date('c') . " [api-proxy] Retry OK for $path (HTTP $httpCode2, " . strlen($responseBody) . " bytes)\n";
+        @file_put_contents(__DIR__ . '/api-cache/proxy-errors.log', $logMsg2, FILE_APPEND | LOCK_EX);
+    }
+}
+
 // Set HTTP status code
 http_response_code($httpCode);
 

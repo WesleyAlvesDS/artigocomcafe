@@ -3,12 +3,13 @@
 use App\Http\Controllers\Api\AchievementController;
 use App\Http\Controllers\Api\AiAssistantController;
 use App\Http\Controllers\Api\ArticleController;
-use App\Http\Controllers\Api\IntegrationController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CollectionController;
+use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\GrainController;
 use App\Http\Controllers\Api\KnowledgeMapController;
 use App\Http\Controllers\Api\MissionController;
+use App\Http\Controllers\Api\IntegrationController;
 use App\Http\Controllers\Api\OpenLibraryController;
 use App\Http\Controllers\Api\ReadingProgressController;
 use App\Http\Controllers\Api\RecommendationController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\Api\UserBookController;
 use App\Http\Controllers\Api\UserDashboardController;
 use App\Http\Controllers\Api\UserFavoriteController;
 use App\Http\Controllers\Api\UserPostController;
+use App\Http\Controllers\Api\SocialiteController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ContactController;
 
@@ -41,6 +43,10 @@ Route::get('/articles/cafe-do-dia', [ArticleController::class, 'cafeDoDia']);
 Route::get('/articles/featured', [ArticleController::class, 'featured']);
 Route::get('/articles/popular', [ArticleController::class, 'popular']);
 Route::get('/articles/{slug}', [ArticleController::class, 'show']);
+
+Route::get('/articles/{article}/comments', [CommentController::class, 'index']);
+Route::post('/articles/{article}/comments', [CommentController::class, 'store'])->middleware('auth:sanctum');
+Route::post('/comments/{comment}/like', [CommentController::class, 'like'])->middleware('auth:sanctum');
 
 Route::get('/categories', [ArticleController::class, 'categories']);
 Route::get('/tags', [ArticleController::class, 'tags']);
@@ -144,6 +150,11 @@ Route::prefix('integrations')->middleware('throttle:30,1')->group(function () {
     Route::get('/library/search', [OpenLibraryController::class, 'search']);
     Route::get('/library/books/{key}', [OpenLibraryController::class, 'show']);
 });
+
+// Social Login (Google/GitHub) — Laravel Socialite
+// Configurar credenciais no .env antes de usar em produção.
+Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirect'])->where('provider', 'google|github');
+Route::get('/auth/{provider}/callback', [SocialiteController::class, 'callback'])->where('provider', 'google|github');
 
 // Assistente do Criador — AI (OpenRouter — modelos gratuitos rotativos)
 // Rate limit generoso para uso de Copilot em tempo real.

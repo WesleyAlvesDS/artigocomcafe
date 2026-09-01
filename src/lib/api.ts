@@ -105,15 +105,24 @@ async function request<T>(
   }
 
   if (!response.ok) {
-    const body = await response.json().catch(() => ({}))
+    const errText = await response.text().catch(() => '')
+    let body: Record<string, unknown> = {}
+    if (errText && errText.trim()) {
+      try { body = JSON.parse(errText) } catch { /* not JSON */ }
+    }
     throw new ApiError(
-      body.message || `API Error: ${response.status}`,
+      (body.message as string) || `API Error: ${response.status}`,
       response.status,
-      body.errors
+      body.errors as Record<string, string[]> | undefined
     )
   }
 
-  return response.json()
+  // Guarda contra body vazio do proxy (200 com 0 bytes)
+  const text = await response.text()
+  if (!text || !text.trim()) {
+    throw new ApiError('Resposta vazia da API', response.status)
+  }
+  return JSON.parse(text)
 }
 
 export const api = {

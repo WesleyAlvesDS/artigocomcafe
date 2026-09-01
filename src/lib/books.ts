@@ -4,6 +4,7 @@
 import type { OpenLibraryBook, OpenLibraryWork } from './types'
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
+import { safeJson } from './safe-fetch'
 
 const API_BASE = import.meta.env.PUBLIC_API_URL || 'https://back.artigocomcafe.com/api'
 
@@ -80,8 +81,9 @@ export async function getCuratedBooks(limit = 24): Promise<OpenLibraryBook[]> {
   if (cached) return cached
   try {
     const res = await fetchWithRetry(`${API_BASE}/integrations/library/explore?limit=${limit}`)
-    const json = await res.json()
-    const books = json?.data?.books || []
+    const json = await safeJson<Record<string, unknown>>(res)
+    const data = json?.data as Record<string, unknown> | undefined
+    const books = (data?.books || []) as OpenLibraryBook[]
     const normalized = books.map((b: OpenLibraryBook) => ({ ...b, key: normBookKey(b.key) }))
     cacheSet(cacheKey, normalized)
     return normalized
@@ -97,9 +99,10 @@ export async function getLibraryExplore(limit = 30): Promise<{ books: OpenLibrar
   if (cached) return cached
   try {
     const res = await fetchWithRetry(`${API_BASE}/integrations/library/explore?limit=${limit}`)
-    const json = await res.json()
-    const books = json?.data?.books || []
-    const themes = json?.data?.themes || []
+    const json = await safeJson<Record<string, unknown>>(res)
+    const data = json?.data as Record<string, unknown> | undefined
+    const books = (data?.books || []) as OpenLibraryBook[]
+    const themes = (data?.themes || []) as string[]
     const result = {
       books: books.map((b: OpenLibraryBook) => ({ ...b, key: normBookKey(b.key) })),
       themes,
@@ -119,17 +122,18 @@ export async function getBook(key: string): Promise<OpenLibraryWork | null> {
   try {
     const res = await fetchWithRetry(`${API_BASE}/integrations/library/books/${encodeURIComponent(key)}`)
     if (!res.ok) return null
-    const json = await res.json()
-    if (!json?.data?.title) return null
+    const json = await safeJson<Record<string, unknown>>(res)
+    if (!json?.data || !(json.data as Record<string, unknown>)?.title) return null
+    const bookData = json.data as Record<string, unknown>
     const book: OpenLibraryWork = {
-      ...json.data,
-      key: normBookKey(json.data.key) || key,
+      ...bookData,
+      key: normBookKey(bookData.key as string) || key,
       // Autores podem vir como [{ key, name }] (work) ou string[] (search)
-      authors: Array.isArray(json.data.authors)
-        ? json.data.authors.map((a: string | { key?: string; name?: string }) =>
+      authors: Array.isArray(bookData.authors)
+        ? (bookData.authors as (string | { key?: string; name?: string })[]).map((a) =>
             typeof a === 'string' ? a : (a.name || a.key || ''))
         : [],
-      subjects: Array.isArray(json.data.subjects) ? json.data.subjects : [],
+      subjects: Array.isArray(bookData.subjects) ? bookData.subjects as string[] : [],
     }
     cacheSet(cacheKey, book)
     return book

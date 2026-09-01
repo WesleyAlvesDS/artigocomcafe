@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro'
 import { generateOgImage } from '../../lib/og'
+import { safeFetchJson } from '../../lib/safe-fetch'
 
 interface ArticleData {
   slug: string
@@ -14,22 +15,20 @@ async function getAllArticles(): Promise<ArticleData[]> {
   if (_articlesCache) return _articlesCache
 
   const API_BASE = import.meta.env.PUBLIC_API_URL || 'https://back.artigocomcafe.com/api'
-  const res = await fetch(`${API_BASE}/articles?per_page=100`, {
-    headers: { Accept: 'application/json' },
-    signal: AbortSignal.timeout(30000),
-  })
+  const json = await safeFetchJson<{ data: { slug: string; title: string; category?: { name?: string }; reading_time?: string }[] }>(
+    `${API_BASE}/articles?per_page=100`
+  )
 
-  if (!res.ok) {
-    console.error('[OG] API returned', res.status)
+  if (!json?.data) {
+    console.error('[OG] API returned empty or invalid data')
     return []
   }
 
-  const json = await res.json()
-  const articles: ArticleData[] = json.data.map((a: { slug: string; title: string; category?: { name?: string }; reading_time?: string }) => ({
+  const articles: ArticleData[] = json.data.map((a) => ({
     slug: a.slug,
     title: a.title,
     category: a.category?.name || null,
-    readingTime: parseInt(a.reading_time) || 5,
+    readingTime: parseInt(a.reading_time || '') || 5,
   }))
 
   _articlesCache = articles
@@ -66,7 +65,6 @@ export const GET: APIRoute = async ({ props }) => {
     })
   } catch (error) {
     console.error('[OG] Generation error:', error)
-    // Return a simple fallback PNG
     return new Response(
       '<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630"><rect width="1200" height="630" fill="#16110c"/><text x="600" y="315" font-family="sans-serif" font-size="48" fill="#d4a373" text-anchor="middle" dominant-baseline="middle">Artigo com Café</text></svg>',
       {
@@ -75,7 +73,7 @@ export const GET: APIRoute = async ({ props }) => {
           'Content-Type': 'image/svg+xml',
           'Cache-Control': 'public, max-age=3600',
         },
-      }
+      },
     )
   }
 }
