@@ -3,7 +3,6 @@ import Base from '../../layouts/Base.astro'
 import PostBrowser from '../../components/PostBrowser'
 import ArticleCard from '../../components/ArticleCard.astro'
 import Pagination from '../../components/Pagination.astro'
-import SidebarWidgets from '../../components/SidebarWidgets.astro'
 import ScrollAnimations from '../../components/ScrollAnimations.astro'
 import AdSterraBanner from '../../components/AdSterraBanner.astro'
 import AdSterraNative from '../../components/AdSterraNative.astro'
@@ -44,29 +43,14 @@ const { posts, pagination } = await getPosts(currentPage, 9, categorySlug || und
 
   <section class="section blog-listing-section">
     <div class="container">
-      <div class="blog-layout">
-        <div class="blog-main">
-          {/* Navegador client-side: busca, categoria e tag funcionam no site
-              estático (cards SSG como estado inicial). */}
-          <PostBrowser client:visible categories={categories} initialPosts={posts} initialPagination={pagination} />
-          {posts.length > 4 && (
-            <>
-              {/* In-feed: anúncio nativo após a grade */}
-              <AdSterraNative lazy className="blog-feed-ad" label="Publicidade" />
-              {/* Slot reservado para o Google AdSense */}
-              <AdSenseSlot />
-            </>
-          )}
-        </div>
-
-        <SidebarWidgets
-          cafeDoDia={true}
-          receitaDoDia={true}
-          newsletter={true}
-          clima={false}
-          cambio={false}
-          nativeAd={false}
-        />
+      <div class="blog-main">
+        <PostBrowser client:visible categories={categories} initialPosts={posts} initialPagination={pagination} />
+        {posts.length > 4 && (
+          <>
+            <AdSterraNative lazy className="blog-feed-ad" label="Publicidade" />
+            <AdSenseSlot />
+          </>
+        )}
       </div>
 
       {/* Fallback sem JavaScript: lista SSG da página 1. */}

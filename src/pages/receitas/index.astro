@@ -3,7 +3,7 @@ import Base from '../../layouts/Base.astro'
 import RecipeBrowser from '../../components/RecipeBrowser'
 import RecipeCard from '../../components/RecipeCard.astro'
 import Pagination from '../../components/Pagination.astro'
-import SidebarWidgets from '../../components/SidebarWidgets.astro'
+
 import ScrollAnimations from '../../components/ScrollAnimations.astro'
 import AdSterraBanner from '../../components/AdSterraBanner.astro'
 import AdSterraNative from '../../components/AdSterraNative.astro'
@@ -54,29 +54,14 @@ const { recipes, pagination } = await getRecipes(currentPage, 12, {
 
   <section class="section recipes-listing-section">
     <div class="container">
-      <div class="recipes-layout">
-        <div class="recipes-main">
-          {/* Navegador client-side: busca, filtros e paginação funcionam no
-              site estático (os cards SSG entram como estado inicial). */}
-          <RecipeBrowser client:visible categories={categories} initialRecipes={recipes} />
-          {recipes.length > 6 && (
-            <>
-              {/* In-feed: anúncio nativo após a grade */}
-              <AdSterraNative lazy className="recipes-feed-ad" label="Publicidade" />
-              {/* Slot reservado para o Google AdSense */}
-              <AdSenseSlot />
-            </>
-          )}
-        </div>
-
-        <SidebarWidgets
-          cafeDoDia={false}
-          receitaDoDia={true}
-          newsletter={true}
-          clima={true}
-          cambio={true}
-          nativeAd={false}
-        />
+      <div class="recipes-main">
+        <RecipeBrowser client:visible categories={categories} initialRecipes={recipes} />
+        {recipes.length > 6 && (
+          <>
+            <AdSterraNative lazy className="recipes-feed-ad" label="Publicidade" />
+            <AdSenseSlot />
+          </>
+        )}
       </div>
 
       {/* Fallback sem JavaScript: lista SSG das receitas da página 1. */}

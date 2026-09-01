@@ -3,7 +3,6 @@ import Base from '../../layouts/Base.astro'
 import BookBrowser from '../../components/BookBrowser'
 import BookCard from '../../components/BookCard.astro'
 import Pagination from '../../components/Pagination.astro'
-import SidebarWidgets from '../../components/SidebarWidgets.astro'
 import ScrollAnimations from '../../components/ScrollAnimations.astro'
 import AdSterraBanner from '../../components/AdSterraBanner.astro'
 import AdSterraNative from '../../components/AdSterraNative.astro'
@@ -39,28 +38,14 @@ const pageBooks = initialBooks.slice(0, perPage)
 
   <section class="section books-listing-section">
     <div class="container">
-      <div class="books-layout">
-        <div class="books-main">
-          {/* Navegador client-side: busca com debounce na OpenLibrary + chips
-              de tema + paginação — funciona no site estático (cards SSG como
-              estado inicial). */}
-          <BookBrowser client:visible initialBooks={initialBooks} initialThemes={initialThemes} />
-          {pageBooks.length > 6 && (
-            <>
-              <AdSterraNative lazy className="books-feed-ad" label="Publicidade" />
-              <AdSenseSlot />
-            </>
-          )}
-        </div>
-
-        <SidebarWidgets
-          cafeDoDia={false}
-          receitaDoDia={true}
-          newsletter={true}
-          clima={true}
-          cambio={true}
-          nativeAd={false}
-        />
+      <div class="books-main">
+        <BookBrowser client:visible initialBooks={initialBooks} initialThemes={initialThemes} />
+        {pageBooks.length > 6 && (
+          <>
+            <AdSterraNative lazy className="books-feed-ad" label="Publicidade" />
+            <AdSenseSlot />
+          </>
+        )}
       </div>
 
       {/* Fallback sem JavaScript: lista SSG da curadoria. */}

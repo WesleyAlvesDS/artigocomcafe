@@ -2,6 +2,8 @@
 import ClimaDoCafe from './ClimaDoCafe'
 import ExchangeRateWidget from './ExchangeRateWidget'
 import NewsletterForm from './NewsletterForm'
+import CafeDoDia from './CafeDoDia'
+import ReceitaDoDia from './ReceitaDoDia'
 ---
 
 <aside class="right-sidebar" id="right-sidebar">
@@ -84,6 +86,24 @@ import NewsletterForm from './NewsletterForm'
         <ClimaDoCafe client:visible />
         <ExchangeRateWidget client:visible />
       </div>
+    </div>
+
+    {/* ═══ Café do Dia ═══ */}
+    <div class="rs-widget">
+      <div class="rs-widget-head">
+        <span style="font-size:1.1rem">☕</span>
+        <span class="rs-widget-title">Café do Dia</span>
+      </div>
+      <CafeDoDia client:visible />
+    </div>
+
+    {/* ═══ Receita do Dia ═══ */}
+    <div class="rs-widget">
+      <div class="rs-widget-head">
+        <span style="font-size:1.1rem">🍳</span>
+        <span class="rs-widget-title">Receita do Dia</span>
+      </div>
+      <ReceitaDoDia client:visible />
     </div>
 
     {/* ═══ Newsletter ═══ */}
