@@ -437,7 +437,44 @@ import ReceitaDoDia from './ReceitaDoDia'
 
 <script>
 (function () {
-  // ... existing jornada auth script ...
+
+  // ── Jornada (progress bar + level) ─────────────────────────────
+  async function loadJornadaData() {
+    var token = localStorage.getItem('auth_token')
+    var loginBlock = document.getElementById('rs-jornada-login')
+    var userBlock = document.getElementById('rs-jornada-user')
+
+    if (!token) {
+      if (loginBlock) loginBlock.hidden = false
+      if (userBlock) userBlock.hidden = true
+      return
+    }
+
+    try {
+      var res = await fetch('/api-proxy.php/user/dashboard', {
+        headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
+      })
+      if (!res.ok) throw new Error('Unauthorized')
+      var data = await res.json()
+      var user = data.user || data
+
+      if (loginBlock) loginBlock.hidden = true
+      if (userBlock) userBlock.hidden = false
+
+      var levelEl = document.getElementById('rs-jornada-level-label')
+      var beansEl = document.getElementById('rs-jornada-beans')
+      var barFill = document.getElementById('rs-jornada-bar-fill')
+      var barText = document.getElementById('rs-jornada-bar-text')
+
+      if (levelEl) levelEl.textContent = user.level || 'Barista Iniciante'
+      if (beansEl) beansEl.textContent = (user.total_grains || user.grains || 0) + ' ☕'
+      if (barFill) barFill.style.width = Math.min((user.daily_progress || 0) * 100, 100) + '%'
+      if (barText) barText.textContent = (user.daily_progress || 0) + '/' + (user.daily_goal || 2)
+    } catch (e) {
+      if (loginBlock) loginBlock.hidden = false
+      if (userBlock) userBlock.hidden = true
+    }
+  }
 
   // Push notification button
   async function initPushButton() {
